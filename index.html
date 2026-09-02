@@ -28,7 +28,6 @@
         .app-container { max-width: 1400px; margin: 0 auto; padding: 12px; flex: 1; }
         .hidden { display: none !important; }
         
-        /* HEADER */
         .header {
             background: linear-gradient(135deg, var(--primary-dark), var(--primary));
             color: #fff;
@@ -49,7 +48,6 @@
         .btn-logout { background: var(--danger); color: #fff; border: 0; padding: 6px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; }
         .btn-logout:hover { background: #c45566; }
         
-        /* NAV */
         .nav {
             display: flex;
             gap: 4px;
@@ -74,7 +72,6 @@
         .nav button:hover { background: var(--primary-light); color: var(--primary); }
         .nav button.active { background: var(--primary); color: #fff; }
         
-        /* PANEL */
         .panel {
             background: #fff;
             border-radius: var(--radius);
@@ -93,7 +90,6 @@
         .panel-header h2 { font-size: 18px; color: var(--primary-dark); }
         .panel-header .actions { display: flex; gap: 8px; flex-wrap: wrap; }
         
-        /* FORM */
         .form-group { margin-bottom: 14px; }
         .form-group label { display: block; font-weight: 600; font-size: 13px; color: var(--primary-dark); margin-bottom: 4px; }
         .form-group label .required { color: var(--danger); }
@@ -110,7 +106,6 @@
         .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
         textarea.form-control { min-height: 80px; resize: vertical; }
         
-        /* BUTTONS */
         .btn { padding: 10px 24px; border: 0; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .btn-primary { background: var(--primary); color: #fff; }
@@ -124,7 +119,6 @@
         .btn-sm { padding: 4px 12px; font-size: 11px; }
         .btn-block { width: 100%; }
         
-        /* TABLE */
         .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--gray-light); }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
         table th { background: var(--primary-dark); color: #fff; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 12px; }
@@ -142,7 +136,6 @@
         .badge-status.info { background: #d1ecf1; color: #0c5460; }
         .badge-status.warning { background: #fff3cd; color: #856404; }
         
-        /* STATS CARDS */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -165,7 +158,6 @@
         .stat-card .number.success { color: var(--success); }
         .stat-card .number.warning { color: #b8860b; }
         
-        /* MODAL */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -210,7 +202,6 @@
         }
         .modal-box .close-btn:hover { color: var(--danger); }
         
-        /* ALERT */
         .alert {
             padding: 12px 16px;
             border-radius: 8px;
@@ -222,7 +213,6 @@
         .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
         .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         
-        /* AUTH */
         .auth-container {
             max-width: 420px;
             margin: 60px auto 40px;
@@ -252,7 +242,6 @@
         }
         .auth-container .demo-info b { color: var(--primary-dark); }
         
-        /* UPLOAD PREVIEW */
         .upload-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
         .upload-preview .preview-item {
             position: relative;
@@ -295,7 +284,6 @@
             cursor: pointer;
         }
         
-        /* IMAGE GALLERY */
         .image-gallery { display: flex; gap: 6px; flex-wrap: wrap; }
         .image-gallery .thumb {
             width: 50px;
@@ -308,7 +296,6 @@
         .image-gallery .thumb:hover { transform: scale(1.05); border-color: var(--primary); }
         .image-gallery .thumb img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* LIGHTBOX */
         .lightbox {
             display: none;
             position: fixed;
@@ -334,7 +321,6 @@
         }
         .lightbox .close-lightbox:hover { color: var(--danger); }
         
-        /* FOOTER */
         .footer {
             text-align: center;
             padding: 16px 20px;
@@ -349,7 +335,6 @@
         .footer .brand-name span { color: var(--secondary); }
         .footer .version { font-size: 9px; color: #b0c0d0; margin-left: 4px; }
         
-        /* LOADING */
         .loading { text-align: center; padding: 40px; color: var(--gray); }
         .loading .spinner {
             display: inline-block;
@@ -425,9 +410,9 @@
                 <label>🔒 Password</label>
                 <input type="password" id="loginPassword" class="form-control" placeholder="Masukkan password" value="admin123">
             </div>
-            <button class="btn btn-primary btn-block" id="btnLogin">🚀 Masuk</button>
+            <button class="btn btn-primary btn-block" onclick="handleLogin()">🚀 Masuk</button>
             <div class="toggle-link">
-                Belum punya akun? <a id="linkToRegister">Daftar di sini</a>
+                Belum punya akun? <a onclick="showRegisterPage()">Daftar di sini</a>
             </div>
             <div class="demo-info">
                 💡 <b>Demo:</b> admin@sekolah.com | admin123
@@ -461,9 +446,9 @@
                 <label>🏫 Nama Sekolah <span class="required">*</span></label>
                 <input type="text" id="registerSchool" class="form-control" placeholder="Nama sekolah">
             </div>
-            <button class="btn btn-success btn-block" id="btnRegister">📝 Daftar</button>
+            <button class="btn btn-success btn-block" onclick="handleRegister()">📝 Daftar</button>
             <div class="toggle-link">
-                Sudah punya akun? <a id="linkToLogin">Masuk di sini</a>
+                Sudah punya akun? <a onclick="showLoginPage()">Masuk di sini</a>
             </div>
         </div>
     </div>
@@ -480,21 +465,21 @@
             <div class="header-info">
                 <span class="school-name" id="schoolDisplay">Sekolah</span>
                 <span id="userDisplay">👤 Guru</span>
-                <button class="btn-logout" id="btnLogout">🚪 Keluar</button>
+                <button class="btn-logout" onclick="handleLogout()">🚪 Keluar</button>
             </div>
         </div>
 
         <div class="nav" id="mainNav">
-            <button class="active" data-tab="dashboard">📊 Dashboard</button>
-            <button data-tab="students">👨‍🎓 Data Siswa</button>
-            <button data-tab="teachers">👩‍🏫 Guru BK</button>
-            <button data-tab="counseling">📋 Konseling</button>
-            <button data-tab="parent-call">📞 Panggilan OT</button>
-            <button data-tab="attendance">✅ Kehadiran</button>
-            <button data-tab="home-visit">🏠 Home Visit</button>
-            <button data-tab="incident">⚠️ Kejadian</button>
-            <button data-tab="reports">📊 Laporan</button>
-            <button data-tab="settings">⚙️ Pengaturan</button>
+            <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
+            <button onclick="showTab('students')">👨‍🎓 Data Siswa</button>
+            <button onclick="showTab('teachers')">👩‍🏫 Guru BK</button>
+            <button onclick="showTab('counseling')">📋 Konseling</button>
+            <button onclick="showTab('parent-call')">📞 Panggilan OT</button>
+            <button onclick="showTab('attendance')">✅ Kehadiran</button>
+            <button onclick="showTab('home-visit')">🏠 Home Visit</button>
+            <button onclick="showTab('incident')">⚠️ Kejadian</button>
+            <button onclick="showTab('reports')">📊 Laporan</button>
+            <button onclick="showTab('settings')">⚙️ Pengaturan</button>
         </div>
 
         <!-- DASHBOARD -->
@@ -855,7 +840,7 @@
 // ============================================================
 // KONFIGURASI FIREBASE
 // ============================================================
-const firebaseConfig = {
+var firebaseConfig = {
     apiKey: "AIzaSyA2AQNbuiqycFQ4S-vsthw9NFMNyb-acFA",
     authDomain: "sosio-digital.firebaseapp.com",
     projectId: "sosio-digital",
@@ -866,15 +851,15 @@ const firebaseConfig = {
 
 // Inisialisasi Firebase
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const storage = firebase.storage();
+var db = firebase.firestore();
+var storage = firebase.storage();
 
 // ============================================================
 // AUTHENTICATION - localStorage
 // ============================================================
-const USER_KEY = 'SIMBK_USERS';
-const SESSION_KEY = 'SIMBK_SESSION';
-const SCHOOL_KEY = 'SIMBK_SCHOOL';
+var USER_KEY = 'SIMBK_USERS';
+var SESSION_KEY = 'SIMBK_SESSION';
+var SCHOOL_KEY = 'SIMBK_SCHOOL';
 
 function getUsers() {
     try { return JSON.parse(localStorage.getItem(USER_KEY)) || {}; } catch(e) { return {}; }
@@ -883,7 +868,7 @@ function saveUsers(users) { localStorage.setItem(USER_KEY, JSON.stringify(users)
 function getSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch(e) { return null; }
 }
-function saveSession(email) { localStorage.setItem(SESSION_KEY, JSON.stringify({ email, loginAt: new Date().toISOString() })); }
+function saveSession(email) { localStorage.setItem(SESSION_KEY, JSON.stringify({ email: email, loginAt: new Date().toISOString() })); }
 function clearSession() { localStorage.removeItem(SESSION_KEY); }
 function getSchoolData() {
     try { return JSON.parse(localStorage.getItem(SCHOOL_KEY)) || { name: '', year: '', address: '' }; } catch(e) { return { name: '', year: '', address: '' }; }
@@ -893,14 +878,14 @@ function saveSchoolData(data) { localStorage.setItem(SCHOOL_KEY, JSON.stringify(
 // ============================================================
 // STATE
 // ============================================================
-let currentUser = null;
-let schoolData = { name: '', year: '', address: '' };
-let allStudents = [];
-let allTeachers = [];
-let incidentPhotos = [];
+var currentUser = null;
+var schoolData = { name: '', year: '', address: '' };
+var allStudents = [];
+var allTeachers = [];
+var incidentPhotos = [];
 
 // ============================================================
-// AUTH FUNCTIONS - PASTIKAN MENGGUNAKAN NAMA UNIK
+// AUTH FUNCTIONS
 // ============================================================
 function showLoginPage() {
     document.getElementById('loginPage').style.display = 'block';
@@ -917,11 +902,11 @@ function showRegisterPage() {
 }
 
 function handleRegister() {
-    const email = document.getElementById('registerEmail').value.trim();
-    const password = document.getElementById('registerPassword').value.trim();
-    const name = document.getElementById('registerName').value.trim();
-    const school = document.getElementById('registerSchool').value.trim();
-    const alertEl = document.getElementById('registerAlert');
+    var email = document.getElementById('registerEmail').value.trim();
+    var password = document.getElementById('registerPassword').value.trim();
+    var name = document.getElementById('registerName').value.trim();
+    var school = document.getElementById('registerSchool').value.trim();
+    var alertEl = document.getElementById('registerAlert');
 
     // Validasi
     if (!email) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Email harus diisi!</div>'; return; }
@@ -929,7 +914,7 @@ function handleRegister() {
     if (!name) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Nama harus diisi!</div>'; return; }
     if (!school) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Nama sekolah harus diisi!</div>'; return; }
 
-    const users = getUsers();
+    var users = getUsers();
     if (users[email]) {
         alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Email sudah terdaftar! Silakan login.</div>';
         return;
@@ -958,14 +943,14 @@ function handleRegister() {
 }
 
 function handleLogin() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
-    const alertEl = document.getElementById('loginAlert');
+    var email = document.getElementById('loginEmail').value.trim();
+    var password = document.getElementById('loginPassword').value.trim();
+    var alertEl = document.getElementById('loginAlert');
 
     if (!email) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Email harus diisi!</div>'; return; }
     if (!password) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Password harus diisi!</div>'; return; }
 
-    const users = getUsers();
+    var users = getUsers();
     if (!users[email]) {
         alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Email tidak terdaftar! Silakan daftar terlebih dahulu.</div>';
         return;
@@ -984,11 +969,11 @@ function handleLogin() {
     alertEl.innerHTML = '<div class="alert alert-success">✅ Login berhasil! Mengarahkan...</div>';
     
     // Redirect ke aplikasi
-    setTimeout(() => {
+    setTimeout(function() {
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('registerPage').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
-        document.getElementById('userDisplay').textContent = '👤 ' + (currentUser?.name || 'Guru');
+        document.getElementById('userDisplay').textContent = '👤 ' + (currentUser.name || 'Guru');
         
         schoolData = getSchoolData();
         document.getElementById('settingsSchool').value = schoolData.name || '';
@@ -1010,9 +995,9 @@ function handleLogout() {
 }
 
 function checkSession() {
-    const session = getSession();
+    var session = getSession();
     if (session && session.email) {
-        const users = getUsers();
+        var users = getUsers();
         if (users[session.email]) {
             currentUser = users[session.email];
             currentUser.email = session.email;
@@ -1020,7 +1005,7 @@ function checkSession() {
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('registerPage').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
-            document.getElementById('userDisplay').textContent = '👤 ' + (currentUser?.name || 'Guru');
+            document.getElementById('userDisplay').textContent = '👤 ' + (currentUser.name || 'Guru');
             
             schoolData = getSchoolData();
             document.getElementById('settingsSchool').value = schoolData.name || '';
@@ -1036,83 +1021,6 @@ function checkSession() {
     }
     return false;
 }
-
-// ============================================================
-// EVENT BINDING
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Loaded - SIM BK');
-    
-    // === BINDING LOGIN ===
-    const btnLogin = document.getElementById('btnLogin');
-    if (btnLogin) {
-        btnLogin.addEventListener('click', handleLogin);
-        console.log('Login button bound');
-    } else {
-        console.error('btnLogin not found!');
-    }
-    
-    // === BINDING REGISTER ===
-    const btnRegister = document.getElementById('btnRegister');
-    if (btnRegister) {
-        btnRegister.addEventListener('click', handleRegister);
-        console.log('Register button bound');
-    } else {
-        console.error('btnRegister not found!');
-    }
-    
-    // === BINDING LINK TOGGLE ===
-    const linkToRegister = document.getElementById('linkToRegister');
-    if (linkToRegister) {
-        linkToRegister.addEventListener('click', showRegisterPage);
-        console.log('Link to register bound');
-    }
-    
-    const linkToLogin = document.getElementById('linkToLogin');
-    if (linkToLogin) {
-        linkToLogin.addEventListener('click', showLoginPage);
-        console.log('Link to login bound');
-    }
-    
-    // === BINDING LOGOUT ===
-    const btnLogout = document.getElementById('btnLogout');
-    if (btnLogout) {
-        btnLogout.addEventListener('click', handleLogout);
-        console.log('Logout button bound');
-    }
-    
-    // === BINDING ENTER KEY ===
-    document.getElementById('loginPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') handleLogin();
-    });
-    document.getElementById('loginEmail').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') handleLogin();
-    });
-    document.getElementById('registerPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') handleRegister();
-    });
-    document.getElementById('registerEmail').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') handleRegister();
-    });
-    document.getElementById('registerName').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') handleRegister();
-    });
-    document.getElementById('registerSchool').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') handleRegister();
-    });
-    
-    // === BINDING NAVIGATION ===
-    document.querySelectorAll('#mainNav button[data-tab]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            showTab(this.dataset.tab);
-        });
-    });
-    
-    // === CHECK SESSION ===
-    if (!checkSession()) {
-        showLoginPage();
-    }
-});
 
 // ============================================================
 // LOAD ALL DATA
@@ -1133,12 +1041,19 @@ function loadAllData() {
 // NAVIGATION
 // ============================================================
 function showTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    const target = document.getElementById('tab-' + tabId);
+    var tabs = document.querySelectorAll('.tab-content');
+    for (var i = 0; i < tabs.length; i++) {
+        tabs[i].classList.remove('active');
+    }
+    var target = document.getElementById('tab-' + tabId);
     if (target) target.classList.add('active');
     
-    document.querySelectorAll('#mainNav button').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`#mainNav button[data-tab="${tabId}"]`)?.classList.add('active');
+    var navBtns = document.querySelectorAll('#mainNav button');
+    for (var j = 0; j < navBtns.length; j++) {
+        navBtns[j].classList.remove('active');
+    }
+    var activeBtn = document.querySelector('#mainNav button[onclick="showTab(\'' + tabId + '\')"]');
+    if (activeBtn) activeBtn.classList.add('active');
 
     if (tabId === 'students') loadStudents();
     if (tabId === 'teachers') loadTeachers();
@@ -1159,22 +1074,31 @@ function openModal(id) {
     incidentPhotos = [];
     document.getElementById('incidentPreview').innerHTML = '';
     
-    if (id === 'counselingModal' || id === 'parentCallModal' || id === 'homeVisitModal' || id === 'incidentModal') {
+    var today = new Date().toISOString().split('T')[0];
+    if (id === 'counselingModal') {
         populateStudentDropdown(id);
-        const today = new Date().toISOString().split('T')[0];
-        const dateMap = {
-            'counselingModal': 'counselingDate',
-            'parentCallModal': 'parentCallDate',
-            'homeVisitModal': 'homeVisitDate',
-            'incidentModal': 'incidentDate'
-        };
-        const dateField = document.getElementById(dateMap[id]);
-        if (dateField) dateField.value = today;
-    }
-    if (id === 'attendanceModal') {
-        document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('counselingDate').value = today;
+    } else if (id === 'parentCallModal') {
+        populateStudentDropdown(id);
+        document.getElementById('parentCallDate').value = today;
+    } else if (id === 'homeVisitModal') {
+        populateStudentDropdown(id);
+        document.getElementById('homeVisitDate').value = today;
+    } else if (id === 'incidentModal') {
+        populateStudentDropdown(id);
+        document.getElementById('incidentDate').value = today;
+    } else if (id === 'attendanceModal') {
+        document.getElementById('attendanceDate').value = today;
         populateClassDropdown('attendanceClass');
         loadAttendanceStudents();
+    } else if (id === 'studentModal') {
+        document.getElementById('studentName').value = '';
+        document.getElementById('studentClass').value = '';
+        document.getElementById('studentNISN').value = '';
+    } else if (id === 'teacherModal') {
+        document.getElementById('teacherName').value = '';
+        document.getElementById('teacherClasses').value = '';
+        document.getElementById('teacherEmail').value = '';
     }
 }
 
@@ -1189,80 +1113,76 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// Enter key support
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        if (document.getElementById('loginPage').style.display !== 'none') {
+            handleLogin();
+        } else if (document.getElementById('registerPage').style.display !== 'none') {
+            handleRegister();
+        }
+    }
+});
+
 // ============================================================
 // STUDENT FUNCTIONS
 // ============================================================
 function loadStudents() {
-    const classFilter = document.getElementById('filterClass').value;
-    const search = document.getElementById('searchStudent').value.toLowerCase();
-    const container = document.getElementById('studentList');
+    var classFilter = document.getElementById('filterClass').value;
+    var search = document.getElementById('searchStudent').value.toLowerCase();
+    var container = document.getElementById('studentList');
 
     db.collection('students')
         .orderBy('class')
         .orderBy('name')
         .get()
-        .then(snapshot => {
+        .then(function(snapshot) {
             allStudents = [];
-            const classes = new Set();
-            snapshot.forEach(doc => {
-                const data = doc.data();
+            var classes = new Set();
+            snapshot.forEach(function(doc) {
+                var data = doc.data();
                 data.id = doc.id;
                 allStudents.push(data);
                 if (data.class) classes.add(data.class);
             });
 
-            const filterSelect = document.getElementById('filterClass');
-            const currentVal = filterSelect.value;
+            var filterSelect = document.getElementById('filterClass');
+            var currentVal = filterSelect.value;
             filterSelect.innerHTML = '<option value="">Semua Kelas</option>';
-            [...classes].sort().forEach(c => {
-                filterSelect.innerHTML += `<option value="${c}">${c}</option>`;
-            });
+            var classArray = Array.from(classes).sort();
+            for (var i = 0; i < classArray.length; i++) {
+                filterSelect.innerHTML += '<option value="' + classArray[i] + '">' + classArray[i] + '</option>';
+            }
             filterSelect.value = currentVal;
 
-            let filtered = allStudents;
-            if (classFilter) filtered = filtered.filter(s => s.class === classFilter);
-            if (search) filtered = filtered.filter(s => s.name.toLowerCase().includes(search));
+            var filtered = allStudents;
+            if (classFilter) filtered = filtered.filter(function(s) { return s.class === classFilter; });
+            if (search) filtered = filtered.filter(function(s) { return s.name.toLowerCase().includes(search); });
 
             if (filtered.length === 0) {
                 container.innerHTML = '<div class="alert alert-info">📭 Belum ada data siswa.</div>';
                 return;
             }
 
-            let html = `<div class="table-wrap"><table>
-                <thead><tr>
-                    <th>No</th>
-                    <th>Nama</th>
-                    <th>Kelas</th>
-                    <th>NISN</th>
-                    <th>JK</th>
-                    <th>Aksi</th>
-                </tr></thead><tbody>`;
-            filtered.forEach((s, i) => {
-                html += `<tr>
-                    <td>${i + 1}</td>
-                    <td><strong>${s.name}</strong></td>
-                    <td><span class="badge-status info">${s.class || '-'}</span></td>
-                    <td>${s.nisn || '-'}</td>
-                    <td>${s.gender || '-'}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')">🗑️</button>
-                    </td>
-                </tr>`;
-            });
+            var html = '<div class="table-wrap"><table><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>NISN</th><th>JK</th><th>Aksi</th></tr></thead><tbody>';
+            for (var j = 0; j < filtered.length; j++) {
+                var s = filtered[j];
+                html += '<tr><td>' + (j + 1) + '</td><td><strong>' + s.name + '</strong></td><td><span class="badge-status info">' + (s.class || '-') + '</span></td><td>' + (s.nisn || '-') + '</td><td>' + (s.gender || '-') + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteStudent(\'' + s.id + '\')">🗑️</button></td></tr>';
+            }
             html += '</tbody></table></div>';
             container.innerHTML = html;
         })
-        .catch(err => {
-            container.innerHTML = `<div class="alert alert-danger">❌ Gagal memuat data: ${err.message}</div>`;
+        .catch(function(err) {
+            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>';
         });
 }
 
 function saveStudent() {
-    const name = document.getElementById('studentName').value.trim();
-    const classVal = document.getElementById('studentClass').value.trim();
-    const nisn = document.getElementById('studentNISN').value.trim();
-    const gender = document.getElementById('studentGender').value;
-    const alertEl = document.getElementById('studentModalAlert');
+    var name = document.getElementById('studentName').value.trim();
+    var classVal = document.getElementById('studentClass').value.trim();
+    var nisn = document.getElementById('studentNISN').value.trim();
+    var gender = document.getElementById('studentGender').value;
+    var alertEl = document.getElementById('studentModalAlert');
 
     if (!name || !classVal) {
         alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Nama dan kelas harus diisi!</div>';
@@ -1270,47 +1190,47 @@ function saveStudent() {
     }
 
     db.collection('students').add({
-        name,
+        name: name,
         class: classVal,
         nisn: nisn || '',
-        gender,
+        gender: gender,
         createdAt: new Date().toISOString(),
         school: schoolData.name || ''
-    }).then(() => {
+    }).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Siswa berhasil ditambahkan!</div>';
-        setTimeout(() => {
+        setTimeout(function() {
             closeModal('studentModal');
             loadStudents();
             updateDashboard();
         }, 1000);
-    }).catch(err => {
-        alertEl.innerHTML = `<div class="alert alert-danger">❌ Gagal: ${err.message}</div>`;
+    }).catch(function(err) {
+        alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
     });
 }
 
 function deleteStudent(id) {
     if (!confirm('Yakin ingin menghapus siswa ini?')) return;
     db.collection('students').doc(id).delete()
-        .then(() => {
+        .then(function() {
             loadStudents();
             updateDashboard();
         })
-        .catch(err => alert('Gagal menghapus: ' + err.message));
+        .catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
 // ============================================================
 // TEACHER FUNCTIONS
 // ============================================================
 function loadTeachers() {
-    const container = document.getElementById('teacherList');
+    var container = document.getElementById('teacherList');
 
     db.collection('teachers')
         .orderBy('name')
         .get()
-        .then(snapshot => {
+        .then(function(snapshot) {
             allTeachers = [];
-            snapshot.forEach(doc => {
-                const data = doc.data();
+            snapshot.forEach(function(doc) {
+                var data = doc.data();
                 data.id = doc.id;
                 allTeachers.push(data);
             });
@@ -1320,39 +1240,29 @@ function loadTeachers() {
                 return;
             }
 
-            let html = `<div class="table-wrap"><table>
-                <thead><tr>
-                    <th>No</th>
-                    <th>Nama Guru</th>
-                    <th>Kelas Dipegang</th>
-                    <th>Email</th>
-                    <th>Aksi</th>
-                </tr></thead><tbody>`;
-            allTeachers.forEach((t, i) => {
-                const classList = t.classes ? t.classes.split(',').map(c => c.trim()).filter(c => c) : [];
-                html += `<tr>
-                    <td>${i + 1}</td>
-                    <td><strong>${t.name}</strong></td>
-                    <td>${classList.map(c => `<span class="teacher-tag">${c}</span>`).join('')}</td>
-                    <td>${t.email || '-'}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="deleteTeacher('${t.id}')">🗑️</button>
-                    </td>
-                </tr>`;
-            });
+            var html = '<div class="table-wrap"><table><thead><tr><th>No</th><th>Nama Guru</th><th>Kelas Dipegang</th><th>Email</th><th>Aksi</th></tr></thead><tbody>';
+            for (var i = 0; i < allTeachers.length; i++) {
+                var t = allTeachers[i];
+                var classList = t.classes ? t.classes.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c; }) : [];
+                html += '<tr><td>' + (i + 1) + '</td><td><strong>' + t.name + '</strong></td><td>';
+                for (var j = 0; j < classList.length; j++) {
+                    html += '<span class="teacher-tag">' + classList[j] + '</span>';
+                }
+                html += '</td><td>' + (t.email || '-') + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteTeacher(\'' + t.id + '\')">🗑️</button></td></tr>';
+            }
             html += '</tbody></table></div>';
             container.innerHTML = html;
         })
-        .catch(err => {
-            container.innerHTML = `<div class="alert alert-danger">❌ Gagal memuat data: ${err.message}</div>`;
+        .catch(function(err) {
+            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>';
         });
 }
 
 function saveTeacher() {
-    const name = document.getElementById('teacherName').value.trim();
-    const classes = document.getElementById('teacherClasses').value.trim();
-    const email = document.getElementById('teacherEmail').value.trim();
-    const alertEl = document.getElementById('teacherModalAlert');
+    var name = document.getElementById('teacherName').value.trim();
+    var classes = document.getElementById('teacherClasses').value.trim();
+    var email = document.getElementById('teacherEmail').value.trim();
+    var alertEl = document.getElementById('teacherModalAlert');
 
     if (!name || !classes) {
         alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Nama dan kelas harus diisi!</div>';
@@ -1360,152 +1270,140 @@ function saveTeacher() {
     }
 
     db.collection('teachers').add({
-        name,
-        classes,
+        name: name,
+        classes: classes,
         email: email || '',
         createdAt: new Date().toISOString(),
         school: schoolData.name || ''
-    }).then(() => {
+    }).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Guru BK berhasil ditambahkan!</div>';
-        setTimeout(() => {
+        setTimeout(function() {
             closeModal('teacherModal');
             loadTeachers();
             updateDashboard();
         }, 1000);
-    }).catch(err => {
-        alertEl.innerHTML = `<div class="alert alert-danger">❌ Gagal: ${err.message}</div>`;
+    }).catch(function(err) {
+        alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
     });
 }
 
 function deleteTeacher(id) {
     if (!confirm('Yakin ingin menghapus guru ini?')) return;
     db.collection('teachers').doc(id).delete()
-        .then(() => {
+        .then(function() {
             loadTeachers();
             updateDashboard();
         })
-        .catch(err => alert('Gagal menghapus: ' + err.message));
+        .catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
 // ============================================================
 // COUNSELING FUNCTIONS
 // ============================================================
 function loadCounseling() {
-    const classFilter = document.getElementById('filterCounselingClass').value;
-    const monthFilter = document.getElementById('filterCounselingMonth').value;
-    const container = document.getElementById('counselingList');
+    var classFilter = document.getElementById('filterCounselingClass').value;
+    var monthFilter = document.getElementById('filterCounselingMonth').value;
+    var container = document.getElementById('counselingList');
 
     db.collection('counseling')
         .orderBy('date', 'desc')
         .get()
-        .then(snapshot => {
-            let items = [];
-            snapshot.forEach(doc => {
-                const data = doc.data();
+        .then(function(snapshot) {
+            var items = [];
+            snapshot.forEach(function(doc) {
+                var data = doc.data();
                 data.id = doc.id;
                 items.push(data);
             });
 
-            if (classFilter) items = items.filter(c => c.studentClass === classFilter);
-            if (monthFilter) items = items.filter(c => c.date && c.date.startsWith(monthFilter));
+            if (classFilter) items = items.filter(function(c) { return c.studentClass === classFilter; });
+            if (monthFilter) items = items.filter(function(c) { return c.date && c.date.startsWith(monthFilter); });
 
             if (items.length === 0) {
                 container.innerHTML = '<div class="alert alert-info">📭 Belum ada catatan konseling.</div>';
                 return;
             }
 
-            let html = `<div class="table-wrap"><table>
-                <thead><tr>
-                    <th>Tanggal</th>
-                    <th>Siswa</th>
-                    <th>Kelas</th>
-                    <th>Masalah</th>
-                    <th>Hasil</th>
-                    <th>Tindak Lanjut</th>
-                    <th>Aksi</th>
-                </tr></thead><tbody>`;
-            items.forEach(c => {
-                html += `<tr>
-                    <td>${c.date ? new Date(c.date).toLocaleDateString('id-ID') : '-'}</td>
-                    <td><strong>${c.studentName}</strong></td>
-                    <td><span class="badge-status info">${c.studentClass}</span></td>
-                    <td style="max-width:150px;">${c.problem || '-'}</td>
-                    <td style="max-width:150px;">${c.result || '-'}</td>
-                    <td style="max-width:150px;">${c.followUp || '-'}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="deleteCounseling('${c.id}')">🗑️</button>
-                    </td>
-                </tr>`;
-            });
+            var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Masalah</th><th>Hasil</th><th>Tindak Lanjut</th><th>Aksi</th></tr></thead><tbody>';
+            for (var i = 0; i < items.length; i++) {
+                var c = items[i];
+                html += '<tr><td>' + (c.date ? new Date(c.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + c.studentName + '</strong></td><td><span class="badge-status info">' + c.studentClass + '</span></td><td style="max-width:150px;">' + (c.problem || '-') + '</td><td style="max-width:150px;">' + (c.result || '-') + '</td><td style="max-width:150px;">' + (c.followUp || '-') + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteCounseling(\'' + c.id + '\')">🗑️</button></td></tr>';
+            }
             html += '</tbody></table></div>';
             container.innerHTML = html;
         })
-        .catch(err => {
-            container.innerHTML = `<div class="alert alert-danger">❌ Gagal memuat data: ${err.message}</div>`;
+        .catch(function(err) {
+            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>';
         });
 }
 
 function saveCounseling() {
-    const studentId = document.getElementById('counselingStudent').value;
-    const date = document.getElementById('counselingDate').value;
-    const problem = document.getElementById('counselingProblem').value.trim();
-    const result = document.getElementById('counselingResult').value.trim();
-    const followUp = document.getElementById('counselingFollowUp').value.trim();
-    const alertEl = document.getElementById('counselingModalAlert');
+    var studentId = document.getElementById('counselingStudent').value;
+    var date = document.getElementById('counselingDate').value;
+    var problem = document.getElementById('counselingProblem').value.trim();
+    var result = document.getElementById('counselingResult').value.trim();
+    var followUp = document.getElementById('counselingFollowUp').value.trim();
+    var alertEl = document.getElementById('counselingModalAlert');
 
     if (!studentId || !date || !problem || !result) {
         alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';
         return;
     }
 
-    const student = allStudents.find(s => s.id === studentId);
+    var student = null;
+    for (var i = 0; i < allStudents.length; i++) {
+        if (allStudents[i].id === studentId) {
+            student = allStudents[i];
+            break;
+        }
+    }
 
     db.collection('counseling').add({
-        studentId,
-        studentName: student?.name || 'Tidak diketahui',
-        studentClass: student?.class || 'Tidak diketahui',
-        date,
-        problem,
-        result,
+        studentId: studentId,
+        studentName: student ? student.name : 'Tidak diketahui',
+        studentClass: student ? student.class : 'Tidak diketahui',
+        date: date,
+        problem: problem,
+        result: result,
         followUp: followUp || '',
-        counselor: currentUser?.name || 'Guru BK',
+        counselor: currentUser ? currentUser.name : 'Guru BK',
         createdAt: new Date().toISOString(),
         school: schoolData.name || ''
-    }).then(() => {
+    }).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Catatan konseling berhasil disimpan!</div>';
-        setTimeout(() => {
+        setTimeout(function() {
             closeModal('counselingModal');
             loadCounseling();
             updateDashboard();
         }, 1000);
-    }).catch(err => {
-        alertEl.innerHTML = `<div class="alert alert-danger">❌ Gagal: ${err.message}</div>`;
+    }).catch(function(err) {
+        alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
     });
 }
 
 function deleteCounseling(id) {
     if (!confirm('Yakin ingin menghapus catatan ini?')) return;
     db.collection('counseling').doc(id).delete()
-        .then(() => {
+        .then(function() {
             loadCounseling();
             updateDashboard();
         })
-        .catch(err => alert('Gagal menghapus: ' + err.message));
+        .catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
 // ============================================================
 // PARENT CALL FUNCTIONS
 // ============================================================
 function loadParentCalls() {
-    const container = document.getElementById('parentCallList');
+    var container = document.getElementById('parentCallList');
 
     db.collection('parentCalls')
         .orderBy('date', 'desc')
         .get()
-        .then(snapshot => {
-            let items = [];
-            snapshot.forEach(doc => {
-                const data = doc.data();
+        .then(function(snapshot) {
+            var items = [];
+            snapshot.forEach(function(doc) {
+                var data = doc.data();
                 data.id = doc.id;
                 items.push(data);
             });
@@ -1515,231 +1413,206 @@ function loadParentCalls() {
                 return;
             }
 
-            let html = `<div class="table-wrap"><table>
-                <thead><tr>
-                    <th>Tanggal</th>
-                    <th>Siswa</th>
-                    <th>Kelas</th>
-                    <th>Masalah</th>
-                    <th>Hasil</th>
-                    <th>Aksi</th>
-                </tr></thead><tbody>`;
-            items.forEach(c => {
-                html += `<tr>
-                    <td>${c.date ? new Date(c.date).toLocaleDateString('id-ID') : '-'}</td>
-                    <td><strong>${c.studentName}</strong></td>
-                    <td><span class="badge-status info">${c.studentClass}</span></td>
-                    <td style="max-width:150px;">${c.problem || '-'}</td>
-                    <td style="max-width:150px;">${c.result || '-'}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="deleteParentCall('${c.id}')">🗑️</button>
-                    </td>
-                </tr>`;
-            });
+            var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Masalah</th><th>Hasil</th><th>Aksi</th></tr></thead><tbody>';
+            for (var i = 0; i < items.length; i++) {
+                var c = items[i];
+                html += '<tr><td>' + (c.date ? new Date(c.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + c.studentName + '</strong></td><td><span class="badge-status info">' + c.studentClass + '</span></td><td style="max-width:150px;">' + (c.problem || '-') + '</td><td style="max-width:150px;">' + (c.result || '-') + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteParentCall(\'' + c.id + '\')">🗑️</button></td></tr>';
+            }
             html += '</tbody></table></div>';
             container.innerHTML = html;
         })
-        .catch(err => {
-            container.innerHTML = `<div class="alert alert-danger">❌ Gagal memuat data: ${err.message}</div>`;
+        .catch(function(err) {
+            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>';
         });
 }
 
 function saveParentCall() {
-    const studentId = document.getElementById('parentCallStudent').value;
-    const date = document.getElementById('parentCallDate').value;
-    const problem = document.getElementById('parentCallProblem').value.trim();
-    const result = document.getElementById('parentCallResult').value.trim();
-    const alertEl = document.getElementById('parentCallModalAlert');
+    var studentId = document.getElementById('parentCallStudent').value;
+    var date = document.getElementById('parentCallDate').value;
+    var problem = document.getElementById('parentCallProblem').value.trim();
+    var result = document.getElementById('parentCallResult').value.trim();
+    var alertEl = document.getElementById('parentCallModalAlert');
 
     if (!studentId || !date || !problem || !result) {
         alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';
         return;
     }
 
-    const student = allStudents.find(s => s.id === studentId);
+    var student = null;
+    for (var i = 0; i < allStudents.length; i++) {
+        if (allStudents[i].id === studentId) {
+            student = allStudents[i];
+            break;
+        }
+    }
 
     db.collection('parentCalls').add({
-        studentId,
-        studentName: student?.name || 'Tidak diketahui',
-        studentClass: student?.class || 'Tidak diketahui',
-        date,
-        problem,
-        result,
-        counselor: currentUser?.name || 'Guru BK',
+        studentId: studentId,
+        studentName: student ? student.name : 'Tidak diketahui',
+        studentClass: student ? student.class : 'Tidak diketahui',
+        date: date,
+        problem: problem,
+        result: result,
+        counselor: currentUser ? currentUser.name : 'Guru BK',
         createdAt: new Date().toISOString(),
         school: schoolData.name || ''
-    }).then(() => {
+    }).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Data panggilan orang tua berhasil disimpan!</div>';
-        setTimeout(() => {
+        setTimeout(function() {
             closeModal('parentCallModal');
             loadParentCalls();
             updateDashboard();
         }, 1000);
-    }).catch(err => {
-        alertEl.innerHTML = `<div class="alert alert-danger">❌ Gagal: ${err.message}</div>`;
+    }).catch(function(err) {
+        alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
     });
 }
 
 function deleteParentCall(id) {
     if (!confirm('Yakin ingin menghapus data ini?')) return;
     db.collection('parentCalls').doc(id).delete()
-        .then(() => {
+        .then(function() {
             loadParentCalls();
             updateDashboard();
         })
-        .catch(err => alert('Gagal menghapus: ' + err.message));
+        .catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
 // ============================================================
 // ATTENDANCE FUNCTIONS
 // ============================================================
 function loadAttendance() {
-    const date = document.getElementById('filterAttendanceDate').value;
-    const classFilter = document.getElementById('filterAttendanceClass').value;
-    const container = document.getElementById('attendanceList');
+    var date = document.getElementById('filterAttendanceDate').value;
+    var classFilter = document.getElementById('filterAttendanceClass').value;
+    var container = document.getElementById('attendanceList');
 
     db.collection('attendance')
         .orderBy('date', 'desc')
         .get()
-        .then(snapshot => {
-            let items = [];
-            snapshot.forEach(doc => {
-                const data = doc.data();
+        .then(function(snapshot) {
+            var items = [];
+            snapshot.forEach(function(doc) {
+                var data = doc.data();
                 data.id = doc.id;
                 items.push(data);
             });
 
-            if (date) items = items.filter(a => a.date === date);
-            if (classFilter) items = items.filter(a => a.class === classFilter);
+            if (date) items = items.filter(function(a) { return a.date === date; });
+            if (classFilter) items = items.filter(function(a) { return a.class === classFilter; });
 
             if (items.length === 0) {
                 container.innerHTML = '<div class="alert alert-info">📭 Belum ada data kehadiran.</div>';
                 return;
             }
 
-            let html = `<div class="table-wrap"><table>
-                <thead><tr>
-                    <th>Tanggal</th>
-                    <th>Kelas</th>
-                    <th>Siswa</th>
-                    <th>Status</th>
-                    <th>Keterangan</th>
-                    <th>Guru BK</th>
-                </tr></thead><tbody>`;
-            items.forEach(a => {
-                const statusClass = a.status === 'Hadir' ? 'success' : 
-                                   a.status === 'Sakit' ? 'warning' : 
-                                   a.status === 'Izin' ? 'info' : 'danger';
-                html += `<tr>
-                    <td>${a.date ? new Date(a.date).toLocaleDateString('id-ID') : '-'}</td>
-                    <td><span class="badge-status info">${a.class}</span></td>
-                    <td><strong>${a.studentName}</strong></td>
-                    <td><span class="badge-status ${statusClass}">${a.status || '-'}</span></td>
-                    <td>${a.note || '-'}</td>
-                    <td>${a.counselor || '-'}</td>
-                </tr>`;
-            });
+            var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Siswa</th><th>Status</th><th>Keterangan</th><th>Guru BK</th></tr></thead><tbody>';
+            for (var i = 0; i < items.length; i++) {
+                var a = items[i];
+                var statusClass = a.status === 'Hadir' ? 'success' : a.status === 'Sakit' ? 'warning' : a.status === 'Izin' ? 'info' : 'danger';
+                html += '<tr><td>' + (a.date ? new Date(a.date).toLocaleDateString('id-ID') : '-') + '</td><td><span class="badge-status info">' + a.class + '</span></td><td><strong>' + a.studentName + '</strong></td><td><span class="badge-status ' + statusClass + '">' + (a.status || '-') + '</span></td><td>' + (a.note || '-') + '</td><td>' + (a.counselor || '-') + '</td></tr>';
+            }
             html += '</tbody></table></div>';
             container.innerHTML = html;
         })
-        .catch(err => {
-            container.innerHTML = `<div class="alert alert-danger">❌ Gagal memuat data: ${err.message}</div>`;
+        .catch(function(err) {
+            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>';
         });
 }
 
 function loadAttendanceStudents() {
-    const classVal = document.getElementById('attendanceClass').value;
-    const container = document.getElementById('attendanceStudentList');
+    var classVal = document.getElementById('attendanceClass').value;
+    var container = document.getElementById('attendanceStudentList');
     
     if (!classVal) {
         container.innerHTML = '<div class="alert alert-info">Pilih kelas terlebih dahulu.</div>';
         return;
     }
 
-    const students = allStudents.filter(s => s.class === classVal);
+    var students = allStudents.filter(function(s) { return s.class === classVal; });
     if (students.length === 0) {
         container.innerHTML = '<div class="alert alert-warning">Belum ada siswa di kelas ini.</div>';
         return;
     }
 
-    let html = '<h4 style="margin:12px 0 8px;">Daftar Siswa</h4>';
-    students.forEach((s, i) => {
-        html += `<div style="display:flex;align-items:center;gap:10px;padding:4px 0;border-bottom:1px solid #f0f0f0;">
-            <span style="font-weight:600;width:24px;">${i + 1}.</span>
-            <span style="flex:1;">${s.name}</span>
-            <select class="form-control" style="width:120px;padding:4px 8px;font-size:12px;" id="att_${s.id}">
-                <option value="Hadir">✅ Hadir</option>
-                <option value="Sakit">🤒 Sakit</option>
-                <option value="Izin">📝 Izin</option>
-                <option value="Alfa">❌ Alfa</option>
-            </select>
-            <input type="text" class="form-control" style="width:120px;padding:4px 8px;font-size:12px;" id="att_note_${s.id}" placeholder="Keterangan">
-        </div>`;
-    });
+    var html = '<h4 style="margin:12px 0 8px;">Daftar Siswa</h4>';
+    for (var i = 0; i < students.length; i++) {
+        var s = students[i];
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:4px 0;border-bottom:1px solid #f0f0f0;">';
+        html += '<span style="font-weight:600;width:24px;">' + (i + 1) + '.</span>';
+        html += '<span style="flex:1;">' + s.name + '</span>';
+        html += '<select class="form-control" style="width:120px;padding:4px 8px;font-size:12px;" id="att_' + s.id + '">';
+        html += '<option value="Hadir">✅ Hadir</option>';
+        html += '<option value="Sakit">🤒 Sakit</option>';
+        html += '<option value="Izin">📝 Izin</option>';
+        html += '<option value="Alfa">❌ Alfa</option>';
+        html += '</select>';
+        html += '<input type="text" class="form-control" style="width:120px;padding:4px 8px;font-size:12px;" id="att_note_' + s.id + '" placeholder="Keterangan">';
+        html += '</div>';
+    }
     container.innerHTML = html;
 }
 
 function saveAttendance() {
-    const date = document.getElementById('attendanceDate').value;
-    const classVal = document.getElementById('attendanceClass').value;
-    const alertEl = document.getElementById('attendanceModalAlert');
+    var date = document.getElementById('attendanceDate').value;
+    var classVal = document.getElementById('attendanceClass').value;
+    var alertEl = document.getElementById('attendanceModalAlert');
 
     if (!date || !classVal) {
         alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Tanggal dan kelas harus diisi!</div>';
         return;
     }
 
-    const students = allStudents.filter(s => s.class === classVal);
+    var students = allStudents.filter(function(s) { return s.class === classVal; });
     if (students.length === 0) {
         alertEl.innerHTML = '<div class="alert alert-warning">Belum ada siswa di kelas ini.</div>';
         return;
     }
 
-    let promises = [];
-    students.forEach(s => {
-        const status = document.getElementById(`att_${s.id}`)?.value || 'Hadir';
-        const note = document.getElementById(`att_note_${s.id}`)?.value || '';
+    var promises = [];
+    for (var i = 0; i < students.length; i++) {
+        var s = students[i];
+        var status = document.getElementById('att_' + s.id) ? document.getElementById('att_' + s.id).value : 'Hadir';
+        var note = document.getElementById('att_note_' + s.id) ? document.getElementById('att_note_' + s.id).value : '';
 
-        db.collection('attendance')
-            .where('date', '==', date)
-            .where('studentId', '==', s.id)
-            .get()
-            .then(snapshot => {
+        var query = db.collection('attendance').where('date', '==', date).where('studentId', '==', s.id);
+        query.get().then(function(snapshot, studentId, studentName, status, note) {
+            return function() {
                 if (!snapshot.empty) {
-                    snapshot.forEach(doc => {
+                    snapshot.forEach(function(doc) {
                         db.collection('attendance').doc(doc.id).update({
-                            status,
-                            note,
-                            counselor: currentUser?.name || 'Guru BK',
+                            status: status,
+                            note: note,
+                            counselor: currentUser ? currentUser.name : 'Guru BK',
                             updatedAt: new Date().toISOString()
                         });
                     });
                 } else {
                     db.collection('attendance').add({
-                        date,
+                        date: date,
                         class: classVal,
-                        studentId: s.id,
-                        studentName: s.name,
-                        status,
-                        note,
-                        counselor: currentUser?.name || 'Guru BK',
+                        studentId: studentId,
+                        studentName: studentName,
+                        status: status,
+                        note: note,
+                        counselor: currentUser ? currentUser.name : 'Guru BK',
                         createdAt: new Date().toISOString(),
                         school: schoolData.name || ''
                     });
                 }
-            });
+            };
+        }(s.id, s.name, status, note));
         promises.push(Promise.resolve());
-    });
+    }
 
-    Promise.all(promises).then(() => {
+    Promise.all(promises).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Kehadiran berhasil disimpan!</div>';
-        setTimeout(() => {
+        setTimeout(function() {
             closeModal('attendanceModal');
             loadAttendance();
             updateDashboard();
         }, 1000);
-    }).catch(err => {
-        alertEl.innerHTML = `<div class="alert alert-danger">❌ Gagal: ${err.message}</div>`;
+    }).catch(function(err) {
+        alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
     });
 }
 
@@ -1747,15 +1620,15 @@ function saveAttendance() {
 // HOME VISIT FUNCTIONS
 // ============================================================
 function loadHomeVisits() {
-    const container = document.getElementById('homeVisitList');
+    var container = document.getElementById('homeVisitList');
 
     db.collection('homeVisits')
         .orderBy('date', 'desc')
         .get()
-        .then(snapshot => {
-            let items = [];
-            snapshot.forEach(doc => {
-                const data = doc.data();
+        .then(function(snapshot) {
+            var items = [];
+            snapshot.forEach(function(doc) {
+                var data = doc.data();
                 data.id = doc.id;
                 items.push(data);
             });
@@ -1765,106 +1638,95 @@ function loadHomeVisits() {
                 return;
             }
 
-            let html = `<div class="table-wrap"><table>
-                <thead><tr>
-                    <th>Tanggal</th>
-                    <th>Siswa</th>
-                    <th>Kelas</th>
-                    <th>Masalah</th>
-                    <th>Hasil</th>
-                    <th>Aksi</th>
-                </tr></thead><tbody>`;
-            items.forEach(c => {
-                html += `<tr>
-                    <td>${c.date ? new Date(c.date).toLocaleDateString('id-ID') : '-'}</td>
-                    <td><strong>${c.studentName}</strong></td>
-                    <td><span class="badge-status info">${c.studentClass}</span></td>
-                    <td style="max-width:150px;">${c.problem || '-'}</td>
-                    <td style="max-width:150px;">${c.result || '-'}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="deleteHomeVisit('${c.id}')">🗑️</button>
-                    </td>
-                </tr>`;
-            });
+            var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Masalah</th><th>Hasil</th><th>Aksi</th></tr></thead><tbody>';
+            for (var i = 0; i < items.length; i++) {
+                var c = items[i];
+                html += '<tr><td>' + (c.date ? new Date(c.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + c.studentName + '</strong></td><td><span class="badge-status info">' + c.studentClass + '</span></td><td style="max-width:150px;">' + (c.problem || '-') + '</td><td style="max-width:150px;">' + (c.result || '-') + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteHomeVisit(\'' + c.id + '\')">🗑️</button></td></tr>';
+            }
             html += '</tbody></table></div>';
             container.innerHTML = html;
         })
-        .catch(err => {
-            container.innerHTML = `<div class="alert alert-danger">❌ Gagal memuat data: ${err.message}</div>`;
+        .catch(function(err) {
+            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>';
         });
 }
 
 function saveHomeVisit() {
-    const studentId = document.getElementById('homeVisitStudent').value;
-    const date = document.getElementById('homeVisitDate').value;
-    const problem = document.getElementById('homeVisitProblem').value.trim();
-    const result = document.getElementById('homeVisitResult').value.trim();
-    const alertEl = document.getElementById('homeVisitModalAlert');
+    var studentId = document.getElementById('homeVisitStudent').value;
+    var date = document.getElementById('homeVisitDate').value;
+    var problem = document.getElementById('homeVisitProblem').value.trim();
+    var result = document.getElementById('homeVisitResult').value.trim();
+    var alertEl = document.getElementById('homeVisitModalAlert');
 
     if (!studentId || !date || !problem || !result) {
         alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';
         return;
     }
 
-    const student = allStudents.find(s => s.id === studentId);
+    var student = null;
+    for (var i = 0; i < allStudents.length; i++) {
+        if (allStudents[i].id === studentId) {
+            student = allStudents[i];
+            break;
+        }
+    }
 
     db.collection('homeVisits').add({
-        studentId,
-        studentName: student?.name || 'Tidak diketahui',
-        studentClass: student?.class || 'Tidak diketahui',
-        date,
-        problem,
-        result,
-        counselor: currentUser?.name || 'Guru BK',
+        studentId: studentId,
+        studentName: student ? student.name : 'Tidak diketahui',
+        studentClass: student ? student.class : 'Tidak diketahui',
+        date: date,
+        problem: problem,
+        result: result,
+        counselor: currentUser ? currentUser.name : 'Guru BK',
         createdAt: new Date().toISOString(),
         school: schoolData.name || ''
-    }).then(() => {
+    }).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Data home visit berhasil disimpan!</div>';
-        setTimeout(() => {
+        setTimeout(function() {
             closeModal('homeVisitModal');
             loadHomeVisits();
             updateDashboard();
         }, 1000);
-    }).catch(err => {
-        alertEl.innerHTML = `<div class="alert alert-danger">❌ Gagal: ${err.message}</div>`;
+    }).catch(function(err) {
+        alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
     });
 }
 
 function deleteHomeVisit(id) {
     if (!confirm('Yakin ingin menghapus data ini?')) return;
     db.collection('homeVisits').doc(id).delete()
-        .then(() => {
+        .then(function() {
             loadHomeVisits();
             updateDashboard();
         })
-        .catch(err => alert('Gagal menghapus: ' + err.message));
+        .catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
 // ============================================================
 // INCIDENT FUNCTIONS
 // ============================================================
 function previewIncidentPhotos(event) {
-    const files = event.target.files;
-    const preview = document.getElementById('incidentPreview');
+    var files = event.target.files;
+    var preview = document.getElementById('incidentPreview');
     
-    for (let i = 0; i < files.length; i++) {
+    for (var i = 0; i < files.length; i++) {
         if (incidentPhotos.length >= 5) {
             alert('⚠️ Maksimal 5 foto!');
             break;
         }
-        const file = files[i];
+        var file = files[i];
         incidentPhotos.push(file);
         
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const div = document.createElement('div');
-            div.className = 'preview-item';
-            div.innerHTML = `
-                <img src="${e.target.result}" alt="Foto kejadian">
-                <button class="remove-img" onclick="removeIncidentPhoto(${incidentPhotos.indexOf(file)})">✕</button>
-            `;
-            preview.appendChild(div);
-        };
+        var reader = new FileReader();
+        reader.onload = function(e, fileObj) {
+            return function() {
+                var div = document.createElement('div');
+                div.className = 'preview-item';
+                div.innerHTML = '<img src="' + e.target.result + '" alt="Foto kejadian"><button class="remove-img" onclick="removeIncidentPhoto(' + incidentPhotos.indexOf(fileObj) + ')">✕</button>';
+                preview.appendChild(div);
+            };
+        }(reader, file);
         reader.readAsDataURL(file);
     }
     event.target.value = '';
@@ -1872,21 +1734,21 @@ function previewIncidentPhotos(event) {
 
 function removeIncidentPhoto(index) {
     incidentPhotos.splice(index, 1);
-    const preview = document.getElementById('incidentPreview');
+    var preview = document.getElementById('incidentPreview');
     preview.innerHTML = '';
-    incidentPhotos.forEach((file, i) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const div = document.createElement('div');
-            div.className = 'preview-item';
-            div.innerHTML = `
-                <img src="${e.target.result}" alt="Foto kejadian">
-                <button class="remove-img" onclick="removeIncidentPhoto(${i})">✕</button>
-            `;
-            preview.appendChild(div);
-        };
+    for (var i = 0; i < incidentPhotos.length; i++) {
+        var file = incidentPhotos[i];
+        var reader = new FileReader();
+        reader.onload = function(e, fileObj) {
+            return function() {
+                var div = document.createElement('div');
+                div.className = 'preview-item';
+                div.innerHTML = '<img src="' + e.target.result + '" alt="Foto kejadian"><button class="remove-img" onclick="removeIncidentPhoto(' + incidentPhotos.indexOf(fileObj) + ')">✕</button>';
+                preview.appendChild(div);
+            };
+        }(reader, file);
         reader.readAsDataURL(file);
-    });
+    }
 }
 
 function openLightbox(imgSrc) {
@@ -1899,246 +1761,222 @@ function closeLightbox() {
 }
 
 function loadIncidents() {
-    const classFilter = document.getElementById('filterIncidentClass').value;
-    const typeFilter = document.getElementById('filterIncidentType').value;
-    const monthFilter = document.getElementById('filterIncidentMonth').value;
-    const container = document.getElementById('incidentList');
+    var classFilter = document.getElementById('filterIncidentClass').value;
+    var typeFilter = document.getElementById('filterIncidentType').value;
+    var monthFilter = document.getElementById('filterIncidentMonth').value;
+    var container = document.getElementById('incidentList');
 
     db.collection('incidents')
         .orderBy('date', 'desc')
         .get()
-        .then(snapshot => {
-            let items = [];
-            snapshot.forEach(doc => {
-                const data = doc.data();
+        .then(function(snapshot) {
+            var items = [];
+            snapshot.forEach(function(doc) {
+                var data = doc.data();
                 data.id = doc.id;
                 items.push(data);
             });
 
-            if (classFilter) items = items.filter(c => c.studentClass === classFilter);
-            if (typeFilter) items = items.filter(c => c.type === typeFilter);
-            if (monthFilter) items = items.filter(c => c.date && c.date.startsWith(monthFilter));
+            if (classFilter) items = items.filter(function(c) { return c.studentClass === classFilter; });
+            if (typeFilter) items = items.filter(function(c) { return c.type === typeFilter; });
+            if (monthFilter) items = items.filter(function(c) { return c.date && c.date.startsWith(monthFilter); });
 
             if (items.length === 0) {
                 container.innerHTML = '<div class="alert alert-info">📭 Belum ada laporan kejadian.</div>';
                 return;
             }
 
-            let html = `<div class="table-wrap"><table>
-                <thead><tr>
-                    <th>Tanggal</th>
-                    <th>Siswa</th>
-                    <th>Kelas</th>
-                    <th>Jenis</th>
-                    <th>Deskripsi</th>
-                    <th>Foto</th>
-                    <th>Aksi</th>
-                </tr></thead><tbody>`;
-            items.forEach(c => {
-                const hasPhotos = c.photoUrls && c.photoUrls.length > 0;
-                let photoHtml = '-';
+            var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Deskripsi</th><th>Foto</th><th>Aksi</th></tr></thead><tbody>';
+            for (var i = 0; i < items.length; i++) {
+                var c = items[i];
+                var hasPhotos = c.photoUrls && c.photoUrls.length > 0;
+                var photoHtml = '-';
                 if (hasPhotos) {
-                    photoHtml = `<div class="image-gallery">`;
-                    c.photoUrls.slice(0, 3).forEach(url => {
-                        photoHtml += `<div class="thumb" onclick="event.stopPropagation();openLightbox('${url}')">
-                            <img src="${url}" alt="Foto kejadian">
-                        </div>`;
-                    });
-                    if (c.photoUrls.length > 3) {
-                        photoHtml += `<span style="font-size:10px;color:var(--gray);">+${c.photoUrls.length - 3}</span>`;
+                    photoHtml = '<div class="image-gallery">';
+                    for (var j = 0; j < Math.min(c.photoUrls.length, 3); j++) {
+                        photoHtml += '<div class="thumb" onclick="event.stopPropagation();openLightbox(\'' + c.photoUrls[j] + '\')"><img src="' + c.photoUrls[j] + '" alt="Foto kejadian"></div>';
                     }
-                    photoHtml += `</div>`;
+                    if (c.photoUrls.length > 3) {
+                        photoHtml += '<span style="font-size:10px;color:var(--gray);">+' + (c.photoUrls.length - 3) + '</span>';
+                    }
+                    photoHtml += '</div>';
                 }
-                html += `<tr>
-                    <td>${c.date ? new Date(c.date).toLocaleDateString('id-ID') : '-'}</td>
-                    <td><strong>${c.studentName}</strong></td>
-                    <td><span class="badge-status info">${c.studentClass}</span></td>
-                    <td><span class="badge-status danger">${c.type || '-'}</span></td>
-                    <td style="max-width:200px;">${c.description || '-'}</td>
-                    <td>${photoHtml}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="deleteIncident('${c.id}')">🗑️</button>
-                    </td>
-                </tr>`;
-            });
+                html += '<tr><td>' + (c.date ? new Date(c.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + c.studentName + '</strong></td><td><span class="badge-status info">' + c.studentClass + '</span></td><td><span class="badge-status danger">' + (c.type || '-') + '</span></td><td style="max-width:200px;">' + (c.description || '-') + '</td><td>' + photoHtml + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteIncident(\'' + c.id + '\')">🗑️</button></td></tr>';
+            }
             html += '</tbody></table></div>';
             container.innerHTML = html;
         })
-        .catch(err => {
-            container.innerHTML = `<div class="alert alert-danger">❌ Gagal memuat data: ${err.message}</div>`;
+        .catch(function(err) {
+            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>';
         });
 }
 
 function saveIncident() {
-    const studentId = document.getElementById('incidentStudent').value;
-    const date = document.getElementById('incidentDate').value;
-    const type = document.getElementById('incidentType').value;
-    const description = document.getElementById('incidentDescription').value.trim();
-    const action = document.getElementById('incidentAction').value.trim();
-    const alertEl = document.getElementById('incidentModalAlert');
+    var studentId = document.getElementById('incidentStudent').value;
+    var date = document.getElementById('incidentDate').value;
+    var type = document.getElementById('incidentType').value;
+    var description = document.getElementById('incidentDescription').value.trim();
+    var action = document.getElementById('incidentAction').value.trim();
+    var alertEl = document.getElementById('incidentModalAlert');
 
     if (!studentId || !date || !type || !description || !action) {
         alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';
         return;
     }
 
-    const student = allStudents.find(s => s.id === studentId);
+    var student = null;
+    for (var i = 0; i < allStudents.length; i++) {
+        if (allStudents[i].id === studentId) {
+            student = allStudents[i];
+            break;
+        }
+    }
     alertEl.innerHTML = '<div class="alert alert-info">⏳ Mengupload foto dan menyimpan data...</div>';
 
-    const uploadPromises = incidentPhotos.map(file => {
-        const fileName = `incidents/${Date.now()}_${file.name}`;
-        const uploadTask = storage.ref(fileName).put(file);
-        return uploadTask.then(snapshot => snapshot.ref.getDownloadURL());
-    });
+    var uploadPromises = [];
+    for (var j = 0; j < incidentPhotos.length; j++) {
+        var file = incidentPhotos[j];
+        var fileName = 'incidents/' + Date.now() + '_' + file.name;
+        var uploadTask = storage.ref(fileName).put(file);
+        uploadPromises.push(uploadTask.then(function(snapshot) { return snapshot.ref.getDownloadURL(); }));
+    }
 
     Promise.all(uploadPromises)
-        .then(photoUrls => {
+        .then(function(photoUrls) {
             return db.collection('incidents').add({
-                studentId,
-                studentName: student?.name || 'Tidak diketahui',
-                studentClass: student?.class || 'Tidak diketahui',
-                date,
-                type,
-                description,
-                action,
+                studentId: studentId,
+                studentName: student ? student.name : 'Tidak diketahui',
+                studentClass: student ? student.class : 'Tidak diketahui',
+                date: date,
+                type: type,
+                description: description,
+                action: action,
                 photoUrls: photoUrls || [],
-                counselor: currentUser?.name || 'Guru BK',
+                counselor: currentUser ? currentUser.name : 'Guru BK',
                 createdAt: new Date().toISOString(),
                 school: schoolData.name || ''
             });
         })
-        .then(() => {
+        .then(function() {
             alertEl.innerHTML = '<div class="alert alert-success">✅ Laporan kejadian berhasil disimpan!</div>';
             incidentPhotos = [];
             document.getElementById('incidentPreview').innerHTML = '';
             document.getElementById('incidentPhotos').value = '';
-            setTimeout(() => {
+            setTimeout(function() {
                 closeModal('incidentModal');
                 loadIncidents();
                 updateDashboard();
             }, 1000);
         })
-        .catch(err => {
-            alertEl.innerHTML = `<div class="alert alert-danger">❌ Gagal: ${err.message}</div>`;
+        .catch(function(err) {
+            alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
         });
 }
 
 function deleteIncident(id) {
     if (!confirm('Yakin ingin menghapus laporan ini?')) return;
-    db.collection('incidents').doc(id).get().then(doc => {
-        const data = doc.data();
+    db.collection('incidents').doc(id).get().then(function(doc) {
+        var data = doc.data();
         if (data.photoUrls && data.photoUrls.length > 0) {
-            data.photoUrls.forEach(url => {
-                const ref = storage.refFromURL(url);
-                ref.delete().catch(() => {});
-            });
+            for (var i = 0; i < data.photoUrls.length; i++) {
+                var ref = storage.refFromURL(data.photoUrls[i]);
+                ref.delete().catch(function() {});
+            }
         }
         return db.collection('incidents').doc(id).delete();
-    }).then(() => {
+    }).then(function() {
         loadIncidents();
         updateDashboard();
-    }).catch(err => alert('Gagal menghapus: ' + err.message));
+    }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
 // ============================================================
 // DASHBOARD
 // ============================================================
 function updateDashboard() {
-    db.collection('students').get().then(snapshot => {
+    db.collection('students').get().then(function(snapshot) {
         document.getElementById('statStudents').textContent = snapshot.size;
     });
 
-    db.collection('teachers').get().then(snapshot => {
+    db.collection('teachers').get().then(function(snapshot) {
         document.getElementById('statTeachers').textContent = snapshot.size;
     });
 
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    db.collection('counseling')
-        .where('date', '>=', monthStart)
-        .get()
-        .then(snapshot => {
-            document.getElementById('statCounseling').textContent = snapshot.size;
-        });
+    var now = new Date();
+    var monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    db.collection('counseling').where('date', '>=', monthStart).get().then(function(snapshot) {
+        document.getElementById('statCounseling').textContent = snapshot.size;
+    });
 
-    db.collection('counseling')
-        .where('followUp', '!=', '')
-        .get()
-        .then(snapshot => {
-            const uniqueStudents = new Set();
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                if (data.studentId) uniqueStudents.add(data.studentId);
-            });
-            document.getElementById('statNeedsAttention').textContent = uniqueStudents.size;
+    db.collection('counseling').where('followUp', '!=', '').get().then(function(snapshot) {
+        var uniqueStudents = new Set();
+        snapshot.forEach(function(doc) {
+            var data = doc.data();
+            if (data.studentId) uniqueStudents.add(data.studentId);
         });
+        document.getElementById('statNeedsAttention').textContent = uniqueStudents.size;
+    });
 
-    db.collection('incidents')
-        .where('date', '>=', monthStart)
-        .get()
-        .then(snapshot => {
-            document.getElementById('statIncidents').textContent = snapshot.size;
-        });
+    db.collection('incidents').where('date', '>=', monthStart).get().then(function(snapshot) {
+        document.getElementById('statIncidents').textContent = snapshot.size;
+    });
 
     loadRecentActivities();
 }
 
 function loadRecentActivities() {
-    const container = document.getElementById('recentActivities');
-    let activities = [];
+    var container = document.getElementById('recentActivities');
+    var activities = [];
 
-    db.collection('counseling')
-        .orderBy('createdAt', 'desc')
-        .limit(5)
-        .get()
-        .then(snapshot => {
-            snapshot.forEach(doc => {
-                const data = doc.data();
+    db.collection('counseling').orderBy('createdAt', 'desc').limit(5).get()
+        .then(function(snapshot) {
+            snapshot.forEach(function(doc) {
+                var data = doc.data();
                 activities.push({
                     type: '📋 Konseling',
-                    text: `${data.studentName} - ${data.problem?.substring(0, 50)}...`,
+                    text: data.studentName + ' - ' + (data.problem ? data.problem.substring(0, 50) : '') + '...',
                     date: data.date ? new Date(data.date).toLocaleDateString('id-ID') : '-',
                     time: data.createdAt ? new Date(data.createdAt).toLocaleString('id-ID') : '-'
                 });
             });
             return db.collection('parentCalls').orderBy('createdAt', 'desc').limit(5).get();
         })
-        .then(snapshot => {
-            snapshot.forEach(doc => {
-                const data = doc.data();
+        .then(function(snapshot) {
+            snapshot.forEach(function(doc) {
+                var data = doc.data();
                 activities.push({
                     type: '📞 Panggilan OT',
-                    text: `${data.studentName} - ${data.problem?.substring(0, 50)}...`,
+                    text: data.studentName + ' - ' + (data.problem ? data.problem.substring(0, 50) : '') + '...',
                     date: data.date ? new Date(data.date).toLocaleDateString('id-ID') : '-',
                     time: data.createdAt ? new Date(data.createdAt).toLocaleString('id-ID') : '-'
                 });
             });
             return db.collection('homeVisits').orderBy('createdAt', 'desc').limit(5).get();
         })
-        .then(snapshot => {
-            snapshot.forEach(doc => {
-                const data = doc.data();
+        .then(function(snapshot) {
+            snapshot.forEach(function(doc) {
+                var data = doc.data();
                 activities.push({
                     type: '🏠 Home Visit',
-                    text: `${data.studentName} - ${data.problem?.substring(0, 50)}...`,
+                    text: data.studentName + ' - ' + (data.problem ? data.problem.substring(0, 50) : '') + '...',
                     date: data.date ? new Date(data.date).toLocaleDateString('id-ID') : '-',
                     time: data.createdAt ? new Date(data.createdAt).toLocaleString('id-ID') : '-'
                 });
             });
             return db.collection('incidents').orderBy('createdAt', 'desc').limit(5).get();
         })
-        .then(snapshot => {
-            snapshot.forEach(doc => {
-                const data = doc.data();
+        .then(function(snapshot) {
+            snapshot.forEach(function(doc) {
+                var data = doc.data();
                 activities.push({
                     type: '⚠️ Kejadian',
-                    text: `${data.studentName} - ${data.type} - ${data.description?.substring(0, 40)}...`,
+                    text: data.studentName + ' - ' + data.type + ' - ' + (data.description ? data.description.substring(0, 40) : '') + '...',
                     date: data.date ? new Date(data.date).toLocaleDateString('id-ID') : '-',
                     time: data.createdAt ? new Date(data.createdAt).toLocaleString('id-ID') : '-'
                 });
             });
 
-            activities.sort((a, b) => new Date(b.time) - new Date(a.time));
+            activities.sort(function(a, b) { return new Date(b.time) - new Date(a.time); });
             activities = activities.slice(0, 10);
 
             if (activities.length === 0) {
@@ -2146,18 +1984,19 @@ function loadRecentActivities() {
                 return;
             }
 
-            let html = '<div style="max-height:400px;overflow-y:auto;">';
-            activities.forEach(a => {
-                html += `<div style="display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;">
-                    <span><strong>${a.type}</strong> ${a.text}</span>
-                    <span style="color:var(--gray);font-size:11px;">${a.date}</span>
-                </div>`;
-            });
+            var html = '<div style="max-height:400px;overflow-y:auto;">';
+            for (var i = 0; i < activities.length; i++) {
+                var a = activities[i];
+                html += '<div style="display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;">';
+                html += '<span><strong>' + a.type + '</strong> ' + a.text + '</span>';
+                html += '<span style="color:var(--gray);font-size:11px;">' + a.date + '</span>';
+                html += '</div>';
+            }
             html += '</div>';
             container.innerHTML = html;
         })
-        .catch(err => {
-            container.innerHTML = `<div class="alert alert-danger">❌ Gagal memuat aktivitas: ${err.message}</div>`;
+        .catch(function(err) {
+            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat aktivitas: ' + err.message + '</div>';
         });
 }
 
@@ -2165,27 +2004,30 @@ function loadRecentActivities() {
 // REPORTS
 // ============================================================
 function populateReportFilters() {
-    const classSelect = document.getElementById('reportClass');
-    const currentVal = classSelect.value;
+    var classSelect = document.getElementById('reportClass');
+    var currentVal = classSelect.value;
     classSelect.innerHTML = '<option value="">Semua Kelas</option>';
-    const classes = new Set();
-    allStudents.forEach(s => classes.add(s.class));
-    [...classes].sort().forEach(c => {
-        classSelect.innerHTML += `<option value="${c}">${c}</option>`;
-    });
+    var classes = new Set();
+    for (var i = 0; i < allStudents.length; i++) {
+        classes.add(allStudents[i].class);
+    }
+    var classArray = Array.from(classes).sort();
+    for (var j = 0; j < classArray.length; j++) {
+        classSelect.innerHTML += '<option value="' + classArray[j] + '">' + classArray[j] + '</option>';
+    }
     classSelect.value = currentVal;
 }
 
 function generateReport() {
-    const period = document.getElementById('reportPeriod').value;
-    const classVal = document.getElementById('reportClass').value;
-    const type = document.getElementById('reportType').value;
-    const container = document.getElementById('reportContent');
+    var period = document.getElementById('reportPeriod').value;
+    var classVal = document.getElementById('reportClass').value;
+    var type = document.getElementById('reportType').value;
+    var container = document.getElementById('reportContent');
 
     container.innerHTML = '<div class="loading"><span class="spinner"></span> Menghasilkan laporan...</div>';
 
-    const now = new Date();
-    let startDate;
+    var now = new Date();
+    var startDate;
     if (period === 'weekly') {
         startDate = new Date(now);
         startDate.setDate(now.getDate() - 7);
@@ -2194,16 +2036,16 @@ function generateReport() {
     } else {
         startDate = new Date(now.getFullYear(), now.getMonth() < 6 ? 0 : 6, 1);
     }
-    const startDateStr = startDate.toISOString().split('T')[0];
+    var startDateStr = startDate.toISOString().split('T')[0];
 
-    let promises = [];
-    let reportData = { counseling: [], parentCalls: [], attendance: [], homeVisits: [], incidents: [] };
+    var promises = [];
+    var reportData = { counseling: [], parentCalls: [], attendance: [], homeVisits: [], incidents: [] };
 
     promises.push(
         db.collection('counseling').where('date', '>=', startDateStr).get()
-            .then(snapshot => {
-                snapshot.forEach(doc => {
-                    const data = doc.data();
+            .then(function(snapshot) {
+                snapshot.forEach(function(doc) {
+                    var data = doc.data();
                     if (!classVal || data.studentClass === classVal) reportData.counseling.push(data);
                 });
             })
@@ -2211,9 +2053,9 @@ function generateReport() {
 
     promises.push(
         db.collection('parentCalls').where('date', '>=', startDateStr).get()
-            .then(snapshot => {
-                snapshot.forEach(doc => {
-                    const data = doc.data();
+            .then(function(snapshot) {
+                snapshot.forEach(function(doc) {
+                    var data = doc.data();
                     if (!classVal || data.studentClass === classVal) reportData.parentCalls.push(data);
                 });
             })
@@ -2221,9 +2063,9 @@ function generateReport() {
 
     promises.push(
         db.collection('attendance').where('date', '>=', startDateStr).get()
-            .then(snapshot => {
-                snapshot.forEach(doc => {
-                    const data = doc.data();
+            .then(function(snapshot) {
+                snapshot.forEach(function(doc) {
+                    var data = doc.data();
                     if (!classVal || data.class === classVal) reportData.attendance.push(data);
                 });
             })
@@ -2231,9 +2073,9 @@ function generateReport() {
 
     promises.push(
         db.collection('homeVisits').where('date', '>=', startDateStr).get()
-            .then(snapshot => {
-                snapshot.forEach(doc => {
-                    const data = doc.data();
+            .then(function(snapshot) {
+                snapshot.forEach(function(doc) {
+                    var data = doc.data();
                     if (!classVal || data.studentClass === classVal) reportData.homeVisits.push(data);
                 });
             })
@@ -2241,41 +2083,35 @@ function generateReport() {
 
     promises.push(
         db.collection('incidents').where('date', '>=', startDateStr).get()
-            .then(snapshot => {
-                snapshot.forEach(doc => {
-                    const data = doc.data();
+            .then(function(snapshot) {
+                snapshot.forEach(function(doc) {
+                    var data = doc.data();
                     if (!classVal || data.studentClass === classVal) reportData.incidents.push(data);
                 });
             })
     );
 
-    Promise.all(promises).then(() => {
-        let html = `<div style="padding:16px;background:#f8fafc;border-radius:8px;">`;
-        html += `<h3 style="color:var(--primary-dark);margin-bottom:12px;">📊 Laporan Perkembangan ${period === 'weekly' ? 'Mingguan' : period === 'monthly' ? 'Bulanan' : 'Semester'}</h3>`;
-        html += `<p style="color:var(--gray);margin-bottom:16px;">Periode: ${startDate.toLocaleDateString('id-ID')} - ${now.toLocaleDateString('id-ID')}</p>`;
+    Promise.all(promises).then(function() {
+        var html = '<div style="padding:16px;background:#f8fafc;border-radius:8px;">';
+        html += '<h3 style="color:var(--primary-dark);margin-bottom:12px;">📊 Laporan Perkembangan ' + (period === 'weekly' ? 'Mingguan' : period === 'monthly' ? 'Bulanan' : 'Semester') + '</h3>';
+        html += '<p style="color:var(--gray);margin-bottom:16px;">Periode: ' + startDate.toLocaleDateString('id-ID') + ' - ' + now.toLocaleDateString('id-ID') + '</p>';
 
-        html += `<div class="stats-grid" style="margin-bottom:16px;">
-            <div class="stat-card"><div class="number">${reportData.counseling.length}</div><div class="label">Konseling</div></div>
-            <div class="stat-card warning"><div class="number warning">${reportData.parentCalls.length}</div><div class="label">Panggilan OT</div></div>
-            <div class="stat-card success"><div class="number success">${reportData.attendance.length}</div><div class="label">Kehadiran</div></div>
-            <div class="stat-card danger"><div class="number danger">${reportData.homeVisits.length}</div><div class="label">Home Visit</div></div>
-            <div class="stat-card"><div class="number">${reportData.incidents.length}</div><div class="label">Kejadian</div></div>
-        </div>`;
+        html += '<div class="stats-grid" style="margin-bottom:16px;">';
+        html += '<div class="stat-card"><div class="number">' + reportData.counseling.length + '</div><div class="label">Konseling</div></div>';
+        html += '<div class="stat-card warning"><div class="number warning">' + reportData.parentCalls.length + '</div><div class="label">Panggilan OT</div></div>';
+        html += '<div class="stat-card success"><div class="number success">' + reportData.attendance.length + '</div><div class="label">Kehadiran</div></div>';
+        html += '<div class="stat-card danger"><div class="number danger">' + reportData.homeVisits.length + '</div><div class="label">Home Visit</div></div>';
+        html += '<div class="stat-card"><div class="number">' + reportData.incidents.length + '</div><div class="label">Kejadian</div></div>';
+        html += '</div>';
 
         if (type === 'all' || type === 'counseling') {
-            html += `<h4 style="margin:12px 0 8px;color:var(--primary);">📋 Konseling (${reportData.counseling.length})</h4>`;
+            html += '<h4 style="margin:12px 0 8px;color:var(--primary);">📋 Konseling (' + reportData.counseling.length + ')</h4>';
             if (reportData.counseling.length > 0) {
-                html += `<div class="table-wrap" style="font-size:12px;"><table>
-                    <thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Masalah</th><th>Hasil</th></tr></thead><tbody>`;
-                reportData.counseling.forEach(c => {
-                    html += `<tr>
-                        <td>${c.date ? new Date(c.date).toLocaleDateString('id-ID') : '-'}</td>
-                        <td><strong>${c.studentName}</strong></td>
-                        <td>${c.studentClass}</td>
-                        <td style="max-width:150px;">${c.problem?.substring(0, 80) || '-'}</td>
-                        <td style="max-width:150px;">${c.result?.substring(0, 80) || '-'}</td>
-                    </tr>`;
-                });
+                html += '<div class="table-wrap" style="font-size:12px;"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Masalah</th><th>Hasil</th></tr></thead><tbody>';
+                for (var i = 0; i < reportData.counseling.length; i++) {
+                    var c = reportData.counseling[i];
+                    html += '<tr><td>' + (c.date ? new Date(c.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + c.studentName + '</strong></td><td>' + c.studentClass + '</td><td style="max-width:150px;">' + (c.problem ? c.problem.substring(0, 80) : '-') + '</td><td style="max-width:150px;">' + (c.result ? c.result.substring(0, 80) : '-') + '</td></tr>';
+                }
                 html += '</tbody></table></div>';
             } else {
                 html += '<div class="alert alert-info">Tidak ada data konseling.</div>';
@@ -2283,22 +2119,14 @@ function generateReport() {
         }
 
         if (type === 'all' || type === 'attendance') {
-            html += `<h4 style="margin:12px 0 8px;color:var(--success);">✅ Kehadiran (${reportData.attendance.length})</h4>`;
+            html += '<h4 style="margin:12px 0 8px;color:var(--success);">✅ Kehadiran (' + reportData.attendance.length + ')</h4>';
             if (reportData.attendance.length > 0) {
-                html += `<div class="table-wrap" style="font-size:12px;"><table>
-                    <thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Status</th><th>Keterangan</th></tr></thead><tbody>`;
-                reportData.attendance.forEach(a => {
-                    const statusClass = a.status === 'Hadir' ? 'success' : 
-                                       a.status === 'Sakit' ? 'warning' : 
-                                       a.status === 'Izin' ? 'info' : 'danger';
-                    html += `<tr>
-                        <td>${a.date ? new Date(a.date).toLocaleDateString('id-ID') : '-'}</td>
-                        <td><strong>${a.studentName}</strong></td>
-                        <td>${a.class}</td>
-                        <td><span class="badge-status ${statusClass}">${a.status || '-'}</span></td>
-                        <td>${a.note || '-'}</td>
-                    </tr>`;
-                });
+                html += '<div class="table-wrap" style="font-size:12px;"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Status</th><th>Keterangan</th></tr></thead><tbody>';
+                for (var j = 0; j < reportData.attendance.length; j++) {
+                    var a = reportData.attendance[j];
+                    var statusClass = a.status === 'Hadir' ? 'success' : a.status === 'Sakit' ? 'warning' : a.status === 'Izin' ? 'info' : 'danger';
+                    html += '<tr><td>' + (a.date ? new Date(a.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + a.studentName + '</strong></td><td>' + a.class + '</td><td><span class="badge-status ' + statusClass + '">' + (a.status || '-') + '</span></td><td>' + (a.note || '-') + '</td></tr>';
+                }
                 html += '</tbody></table></div>';
             } else {
                 html += '<div class="alert alert-info">Tidak ada data kehadiran.</div>';
@@ -2306,19 +2134,13 @@ function generateReport() {
         }
 
         if (type === 'all' || type === 'homevisit') {
-            html += `<h4 style="margin:12px 0 8px;color:var(--danger);">🏠 Home Visit (${reportData.homeVisits.length})</h4>`;
+            html += '<h4 style="margin:12px 0 8px;color:var(--danger);">🏠 Home Visit (' + reportData.homeVisits.length + ')</h4>';
             if (reportData.homeVisits.length > 0) {
-                html += `<div class="table-wrap" style="font-size:12px;"><table>
-                    <thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Masalah</th><th>Hasil</th></tr></thead><tbody>`;
-                reportData.homeVisits.forEach(h => {
-                    html += `<tr>
-                        <td>${h.date ? new Date(h.date).toLocaleDateString('id-ID') : '-'}</td>
-                        <td><strong>${h.studentName}</strong></td>
-                        <td>${h.studentClass}</td>
-                        <td style="max-width:150px;">${h.problem?.substring(0, 80) || '-'}</td>
-                        <td style="max-width:150px;">${h.result?.substring(0, 80) || '-'}</td>
-                    </tr>`;
-                });
+                html += '<div class="table-wrap" style="font-size:12px;"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Masalah</th><th>Hasil</th></tr></thead><tbody>';
+                for (var k = 0; k < reportData.homeVisits.length; k++) {
+                    var h = reportData.homeVisits[k];
+                    html += '<tr><td>' + (h.date ? new Date(h.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + h.studentName + '</strong></td><td>' + h.studentClass + '</td><td style="max-width:150px;">' + (h.problem ? h.problem.substring(0, 80) : '-') + '</td><td style="max-width:150px;">' + (h.result ? h.result.substring(0, 80) : '-') + '</td></tr>';
+                }
                 html += '</tbody></table></div>';
             } else {
                 html += '<div class="alert alert-info">Tidak ada data home visit.</div>';
@@ -2326,83 +2148,69 @@ function generateReport() {
         }
 
         if (type === 'all' || type === 'incident') {
-            html += `<h4 style="margin:12px 0 8px;color:var(--danger);">⚠️ Kejadian (${reportData.incidents.length})</h4>`;
+            html += '<h4 style="margin:12px 0 8px;color:var(--danger);">⚠️ Kejadian (' + reportData.incidents.length + ')</h4>';
             if (reportData.incidents.length > 0) {
-                html += `<div class="table-wrap" style="font-size:12px;"><table>
-                    <thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Deskripsi</th><th>Tindakan</th></tr></thead><tbody>`;
-                reportData.incidents.forEach(i => {
-                    html += `<tr>
-                        <td>${i.date ? new Date(i.date).toLocaleDateString('id-ID') : '-'}</td>
-                        <td><strong>${i.studentName}</strong></td>
-                        <td>${i.studentClass}</td>
-                        <td><span class="badge-status danger">${i.type || '-'}</span></td>
-                        <td style="max-width:150px;">${i.description?.substring(0, 60) || '-'}</td>
-                        <td style="max-width:150px;">${i.action?.substring(0, 60) || '-'}</td>
-                    </tr>`;
-                });
+                html += '<div class="table-wrap" style="font-size:12px;"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Deskripsi</th><th>Tindakan</th></tr></thead><tbody>';
+                for (var l = 0; l < reportData.incidents.length; l++) {
+                    var inc = reportData.incidents[l];
+                    html += '<tr><td>' + (inc.date ? new Date(inc.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + inc.studentName + '</strong></td><td>' + inc.studentClass + '</td><td><span class="badge-status danger">' + (inc.type || '-') + '</span></td><td style="max-width:150px;">' + (inc.description ? inc.description.substring(0, 60) : '-') + '</td><td style="max-width:150px;">' + (inc.action ? inc.action.substring(0, 60) : '-') + '</td></tr>';
+                }
                 html += '</tbody></table></div>';
             } else {
                 html += '<div class="alert alert-info">Tidak ada data kejadian.</div>';
             }
         }
 
-        html += `<div style="margin-top:16px;font-size:11px;color:var(--gray);text-align:center;">
-            Dicetak: ${new Date().toLocaleString('id-ID')} | Generated by SIM BK @NaFaSBK
-        </div>`;
+        html += '<div style="margin-top:16px;font-size:11px;color:var(--gray);text-align:center;">Dicetak: ' + new Date().toLocaleString('id-ID') + ' | Generated by SIM BK @NaFaSBK</div>';
         html += '</div>';
 
         container.innerHTML = html;
-    }).catch(err => {
-        container.innerHTML = `<div class="alert alert-danger">❌ Gagal generate laporan: ${err.message}</div>`;
+    }).catch(function(err) {
+        container.innerHTML = '<div class="alert alert-danger">❌ Gagal generate laporan: ' + err.message + '</div>';
     });
 }
 
 function printReport() {
-    const content = document.getElementById('reportContent');
+    var content = document.getElementById('reportContent');
     if (!content || content.innerHTML.includes('Pilih periode')) {
         alert('⚠️ Generate laporan terlebih dahulu!');
         return;
     }
 
-    const w = window.open('', '_blank', 'width=800,height=600');
+    var w = window.open('', '_blank', 'width=800,height=600');
     if (!w) {
         alert('⚠️ Izinkan pop-up untuk mencetak.');
         return;
     }
 
-    w.document.write(`<!DOCTYPE html>
-    <html><head><title>Laporan SIM BK</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; color: #1a2a3a; }
-        h2 { color: #0d3b6b; border-bottom: 2px solid #0d3b6b; padding-bottom: 8px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }
-        .stat-card { background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center; }
-        .stat-card .number { font-size: 24px; font-weight: 800; }
-        .stat-card .label { font-size: 12px; color: #6b7d90; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }
-        th { background: #0d3b6b; color: #fff; padding: 6px 10px; text-align: left; }
-        td { padding: 6px 10px; border-bottom: 1px solid #e8edf2; }
-        .badge-status { display: inline-block; padding: 1px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .badge-status.success { background: #d4edda; color: #155724; }
-        .badge-status.warning { background: #fff3cd; color: #856404; }
-        .badge-status.danger { background: #f8d7da; color: #721c24; }
-        .badge-status.info { background: #d1ecf1; color: #0c5460; }
-        .alert { padding: 8px 12px; border-radius: 6px; margin: 8px 0; }
-        .alert-info { background: #d1ecf1; color: #0c5460; }
-        .footer { margin-top: 20px; font-size: 10px; color: #6b7d90; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }
-        .footer .brand { font-weight: 600; color: #0d3b6b; }
-        @media print { body { padding: 10px; } .no-print { display: none; } }
-        h4 { margin: 12px 0 4px; }
-    </style>
-    </head><body>
-    <h2>📚 SIM BK - ${schoolData.name || 'Sekolah'}</h2>
-    <p style="color:var(--gray);">${new Date().toLocaleString('id-ID')}</p>
-    ${content.innerHTML}
-    <div class="footer">Dicetak dari SIM BK | <span class="brand">@NaFaSBK</span></div>
-    <script>
-        setTimeout(function() { window.print(); }, 500);
-    <\/script>
-    </body></html>`);
+    w.document.write('<!DOCTYPE html><html><head><title>Laporan SIM BK</title><style>');
+    w.document.write('body { font-family: Arial, sans-serif; padding: 20px; color: #1a2a3a; }');
+    w.document.write('h2 { color: #0d3b6b; border-bottom: 2px solid #0d3b6b; padding-bottom: 8px; }');
+    w.document.write('.stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }');
+    w.document.write('.stat-card { background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center; }');
+    w.document.write('.stat-card .number { font-size: 24px; font-weight: 800; }');
+    w.document.write('.stat-card .label { font-size: 12px; color: #6b7d90; }');
+    w.document.write('table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }');
+    w.document.write('th { background: #0d3b6b; color: #fff; padding: 6px 10px; text-align: left; }');
+    w.document.write('td { padding: 6px 10px; border-bottom: 1px solid #e8edf2; }');
+    w.document.write('.badge-status { display: inline-block; padding: 1px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }');
+    w.document.write('.badge-status.success { background: #d4edda; color: #155724; }');
+    w.document.write('.badge-status.warning { background: #fff3cd; color: #856404; }');
+    w.document.write('.badge-status.danger { background: #f8d7da; color: #721c24; }');
+    w.document.write('.badge-status.info { background: #d1ecf1; color: #0c5460; }');
+    w.document.write('.alert { padding: 8px 12px; border-radius: 6px; margin: 8px 0; }');
+    w.document.write('.alert-info { background: #d1ecf1; color: #0c5460; }');
+    w.document.write('.footer { margin-top: 20px; font-size: 10px; color: #6b7d90; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }');
+    w.document.write('.footer .brand { font-weight: 600; color: #0d3b6b; }');
+    w.document.write('@media print { body { padding: 10px; } .no-print { display: none; } }');
+    w.document.write('h4 { margin: 12px 0 4px; }');
+    w.document.write('</style></head><body>');
+    w.document.write('<h2>📚 SIM BK - ' + (schoolData.name || 'Sekolah') + '</h2>');
+    w.document.write('<p style="color:var(--gray);">' + new Date().toLocaleString('id-ID') + '</p>');
+    w.document.write(content.innerHTML);
+    w.document.write('<div class="footer">Dicetak dari SIM BK | <span class="brand">@NaFaSBK</span></div>');
+    w.document.write('<script>setTimeout(function() { window.print(); }, 500);<\/script>');
+    w.document.write('</body></html>');
     w.document.close();
 }
 
@@ -2410,11 +2218,11 @@ function printReport() {
 // SETTINGS
 // ============================================================
 function saveSettings() {
-    const name = document.getElementById('settingsSchool').value.trim();
-    const year = document.getElementById('settingsYear').value.trim();
-    const address = document.getElementById('settingsAddress').value.trim();
+    var name = document.getElementById('settingsSchool').value.trim();
+    var year = document.getElementById('settingsYear').value.trim();
+    var address = document.getElementById('settingsAddress').value.trim();
 
-    schoolData = { name, year, address };
+    schoolData = { name: name, year: year, address: address };
     saveSchoolData(schoolData);
     document.getElementById('schoolDisplay').textContent = name || 'Sekolah';
 
@@ -2422,23 +2230,24 @@ function saveSettings() {
 }
 
 function loadUsersList() {
-    const users = getUsers();
-    const container = document.getElementById('userList');
+    var users = getUsers();
+    var container = document.getElementById('userList');
     
-    const emails = Object.keys(users);
+    var emails = Object.keys(users);
     if (emails.length === 0) {
         container.innerHTML = '<div class="alert alert-info">Belum ada pengguna terdaftar.</div>';
         return;
     }
 
-    let html = '<div style="max-height:300px;overflow-y:auto;">';
-    emails.forEach(email => {
-        const user = users[email];
-        html += `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;">
-            <span>${email}</span>
-            <span style="color:var(--gray);font-size:11px;">${user.name || 'Tidak diketahui'}</span>
-        </div>`;
-    });
+    var html = '<div style="max-height:300px;overflow-y:auto;">';
+    for (var i = 0; i < emails.length; i++) {
+        var email = emails[i];
+        var user = users[email];
+        html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;">';
+        html += '<span>' + email + '</span>';
+        html += '<span style="color:var(--gray);font-size:11px;">' + (user.name || 'Tidak diketahui') + '</span>';
+        html += '</div>';
+    }
     html += '</div>';
     container.innerHTML = html;
 }
@@ -2447,30 +2256,30 @@ function loadUsersList() {
 // BACKUP & RESTORE
 // ============================================================
 function exportAllData() {
-    const data = {
+    var data = {
         school: schoolData,
         users: getUsers(),
         exportedAt: new Date().toISOString(),
         version: '1.0'
     };
 
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
     a.href = url;
-    a.download = `backup-sim-bk-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = 'backup-sim-bk-' + new Date().toISOString().slice(0, 10) + '.json';
     a.click();
     URL.revokeObjectURL(url);
 }
 
 function restoreData(event) {
-    const file = event.target.files[0];
+    var file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
+    var reader = new FileReader();
     reader.onload = function(e) {
         try {
-            const data = JSON.parse(e.target.result);
+            var data = JSON.parse(e.target.result);
             if (data.school) saveSchoolData(data.school);
             if (data.users) saveUsers(data.users);
             alert('✅ Data berhasil dipulihkan!');
@@ -2487,25 +2296,28 @@ function resetAllData() {
     if (!confirm('⚠️ Yakin ingin menghapus SEMUA data? Ini tidak bisa dibatalkan!')) return;
     if (!confirm('⚠️⚠️ Konfirmasi terakhir: Hapus semua data?')) return;
 
-    const collections = ['students', 'teachers', 'counseling', 'parentCalls', 'attendance', 'homeVisits', 'incidents'];
-    let promises = [];
-    collections.forEach(col => {
+    var collections = ['students', 'teachers', 'counseling', 'parentCalls', 'attendance', 'homeVisits', 'incidents'];
+    var promises = [];
+    for (var i = 0; i < collections.length; i++) {
+        var col = collections[i];
         promises.push(
-            db.collection(col).get().then(snapshot => {
-                snapshot.forEach(doc => {
-                    db.collection(col).doc(doc.id).delete();
-                });
-            })
+            db.collection(col).get().then(function(snapshot, colName) {
+                return function() {
+                    snapshot.forEach(function(doc) {
+                        db.collection(colName).doc(doc.id).delete();
+                    });
+                };
+            }(col))
         );
-    });
+    }
 
-    Promise.all(promises).then(() => {
+    Promise.all(promises).then(function() {
         localStorage.removeItem(SCHOOL_KEY);
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(SESSION_KEY);
         alert('✅ Semua data telah direset. Halaman akan dimuat ulang.');
         location.reload();
-    }).catch(err => {
+    }).catch(function(err) {
         alert('❌ Gagal reset: ' + err.message);
     });
 }
@@ -2514,104 +2326,79 @@ function resetAllData() {
 // UTILITY FUNCTIONS
 // ============================================================
 function populateStudentDropdown(modalId) {
-    const selectId = modalId === 'counselingModal' ? 'counselingStudent' :
+    var selectId = modalId === 'counselingModal' ? 'counselingStudent' :
                      modalId === 'parentCallModal' ? 'parentCallStudent' :
                      modalId === 'homeVisitModal' ? 'homeVisitStudent' :
                      'incidentStudent';
-    const select = document.getElementById(selectId);
+    var select = document.getElementById(selectId);
     if (!select) return;
 
-    const currentVal = select.value;
+    var currentVal = select.value;
     select.innerHTML = '<option value="">Pilih siswa</option>';
-    allStudents.sort((a, b) => a.name.localeCompare(b.name)).forEach(s => {
-        select.innerHTML += `<option value="${s.id}">${s.name} (${s.class || '-'})</option>`;
-    });
+    var sortedStudents = allStudents.slice().sort(function(a, b) { return a.name.localeCompare(b.name); });
+    for (var i = 0; i < sortedStudents.length; i++) {
+        var s = sortedStudents[i];
+        select.innerHTML += '<option value="' + s.id + '">' + s.name + ' (' + (s.class || '-') + ')</option>';
+    }
     select.value = currentVal;
 }
 
 function populateClassDropdown(selectId) {
-    const select = document.getElementById(selectId);
+    var select = document.getElementById(selectId);
     if (!select) return;
 
-    const currentVal = select.value;
+    var currentVal = select.value;
     select.innerHTML = '<option value="">Pilih kelas</option>';
-    const classes = new Set();
-    allStudents.forEach(s => classes.add(s.class));
-    [...classes].sort().forEach(c => {
-        select.innerHTML += `<option value="${c}">${c}</option>`;
-    });
+    var classes = new Set();
+    for (var i = 0; i < allStudents.length; i++) {
+        classes.add(allStudents[i].class);
+    }
+    var classArray = Array.from(classes).sort();
+    for (var j = 0; j < classArray.length; j++) {
+        select.innerHTML += '<option value="' + classArray[j] + '">' + classArray[j] + '</option>';
+    }
     select.value = currentVal;
 
-    ['filterAttendanceClass', 'filterIncidentClass'].forEach(id => {
-        const el = document.getElementById(id);
+    var filterIds = ['filterAttendanceClass', 'filterIncidentClass'];
+    for (var k = 0; k < filterIds.length; k++) {
+        var el = document.getElementById(filterIds[k]);
         if (el) {
-            const val = el.value;
+            var val = el.value;
             el.innerHTML = '<option value="">Semua Kelas</option>';
-            [...classes].sort().forEach(c => {
-                el.innerHTML += `<option value="${c}">${c}</option>`;
-            });
+            for (var l = 0; l < classArray.length; l++) {
+                el.innerHTML += '<option value="' + classArray[l] + '">' + classArray[l] + '</option>';
+            }
             el.value = val;
         }
-    });
+    }
 
-    const filterCounseling = document.getElementById('filterCounselingClass');
+    var filterCounseling = document.getElementById('filterCounselingClass');
     if (filterCounseling) {
-        const val = filterCounseling.value;
+        var val = filterCounseling.value;
         filterCounseling.innerHTML = '<option value="">Semua Kelas</option>';
-        [...classes].sort().forEach(c => {
-            filterCounseling.innerHTML += `<option value="${c}">${c}</option>`;
-        });
+        for (var m = 0; m < classArray.length; m++) {
+            filterCounseling.innerHTML += '<option value="' + classArray[m] + '">' + classArray[m] + '</option>';
+        }
         filterCounseling.value = val;
     }
 }
 
 // ============================================================
-// EXPOSE FUNCTIONS
+// CHECK SESSION ON LOAD
 // ============================================================
-window.showTab = showTab;
-window.openModal = openModal;
-window.closeModal = closeModal;
-window.saveStudent = saveStudent;
-window.saveTeacher = saveTeacher;
-window.saveCounseling = saveCounseling;
-window.saveParentCall = saveParentCall;
-window.saveAttendance = saveAttendance;
-window.saveHomeVisit = saveHomeVisit;
-window.saveIncident = saveIncident;
-window.loadAttendanceStudents = loadAttendanceStudents;
-window.loadStudents = loadStudents;
-window.loadTeachers = loadTeachers;
-window.loadCounseling = loadCounseling;
-window.loadParentCalls = loadParentCalls;
-window.loadAttendance = loadAttendance;
-window.loadHomeVisits = loadHomeVisits;
-window.loadIncidents = loadIncidents;
-window.deleteStudent = deleteStudent;
-window.deleteTeacher = deleteTeacher;
-window.deleteCounseling = deleteCounseling;
-window.deleteParentCall = deleteParentCall;
-window.deleteHomeVisit = deleteHomeVisit;
-window.deleteIncident = deleteIncident;
-window.generateReport = generateReport;
-window.printReport = printReport;
-window.saveSettings = saveSettings;
-window.exportAllData = exportAllData;
-window.restoreData = restoreData;
-window.resetAllData = resetAllData;
-window.populateReportFilters = populateReportFilters;
-window.previewIncidentPhotos = previewIncidentPhotos;
-window.removeIncidentPhoto = removeIncidentPhoto;
-window.openLightbox = openLightbox;
-window.closeLightbox = closeLightbox;
+if (!checkSession()) {
+    showLoginPage();
+}
 
 // Listener untuk update data siswa
-db.collection('students').onSnapshot(() => {
+db.collection('students').onSnapshot(function() {
     loadStudents();
-    ['counselingModal', 'parentCallModal', 'homeVisitModal', 'incidentModal'].forEach(id => {
-        if (document.getElementById(id).classList.contains('active')) {
-            populateStudentDropdown(id);
+    var modalIds = ['counselingModal', 'parentCallModal', 'homeVisitModal', 'incidentModal'];
+    for (var i = 0; i < modalIds.length; i++) {
+        if (document.getElementById(modalIds[i]).classList.contains('active')) {
+            populateStudentDropdown(modalIds[i]);
         }
-    });
+    }
     populateClassDropdown('attendanceClass');
 });
 </script>
