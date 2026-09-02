@@ -25,7 +25,7 @@
             --shadow: 0 2px 12px rgba(0,0,0,0.08);
             --radius: 12px;
         }
-        a { text-decoration: none; color: var(--primary); }
+        a { text-decoration: none; color: var(--primary); cursor: pointer; }
         
         /* ===== LAYOUT ===== */
         .app-container { max-width: 1400px; margin: 0 auto; padding: 12px; flex: 1; }
@@ -514,6 +514,18 @@
         .auth-container .toggle-link a:hover {
             text-decoration: underline;
         }
+        .auth-container .demo-info {
+            margin-top: 12px;
+            padding: 10px;
+            background: #f0f4f8;
+            border-radius: 6px;
+            font-size: 11px;
+            color: var(--gray);
+            text-align: center;
+        }
+        .auth-container .demo-info b {
+            color: var(--primary-dark);
+        }
     </style>
 </head>
 <body>
@@ -537,11 +549,11 @@
                 <label>🔒 Password</label>
                 <input type="password" id="loginPassword" class="form-control" placeholder="Masukkan password" value="admin123">
             </div>
-            <button class="btn btn-primary btn-block" onclick="login()">🚀 Masuk</button>
+            <button class="btn btn-primary btn-block" id="btnLogin">🚀 Masuk</button>
             <div class="toggle-link">
-                Belum punya akun? <a onclick="showRegister()">Daftar di sini</a>
+                Belum punya akun? <a id="linkToRegister">Daftar di sini</a>
             </div>
-            <div style="margin-top:12px;padding:8px;background:#f0f4f8;border-radius:6px;font-size:11px;color:var(--gray);text-align:center;">
+            <div class="demo-info">
                 💡 <b>Demo:</b> Email: admin@sekolah.com | Password: admin123
             </div>
         </div>
@@ -573,9 +585,9 @@
                 <label>🏫 Nama Sekolah <span class="required">*</span></label>
                 <input type="text" id="registerSchool" class="form-control" placeholder="Nama sekolah">
             </div>
-            <button class="btn btn-success btn-block" onclick="register()">📝 Daftar</button>
+            <button class="btn btn-success btn-block" id="btnRegister">📝 Daftar</button>
             <div class="toggle-link">
-                Sudah punya akun? <a onclick="showLogin()">Masuk di sini</a>
+                Sudah punya akun? <a id="linkToLogin">Masuk di sini</a>
             </div>
         </div>
     </div>
@@ -593,22 +605,22 @@
             <div class="header-info">
                 <span class="school-name" id="schoolDisplay">Sekolah</span>
                 <span id="userDisplay" style="background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:20px;">👤 Guru</span>
-                <button class="btn-logout" onclick="logout()">🚪 Keluar</button>
+                <button class="btn-logout" id="btnLogout">🚪 Keluar</button>
             </div>
         </div>
 
         <!-- Navigasi -->
         <div class="nav" id="mainNav">
-            <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
-            <button onclick="showTab('students')">👨‍🎓 Data Siswa</button>
-            <button onclick="showTab('teachers')">👩‍🏫 Guru BK</button>
-            <button onclick="showTab('counseling')">📋 Konseling</button>
-            <button onclick="showTab('parent-call')">📞 Panggilan OT</button>
-            <button onclick="showTab('attendance')">✅ Kehadiran</button>
-            <button onclick="showTab('home-visit')">🏠 Home Visit</button>
-            <button onclick="showTab('incident')">⚠️ Kejadian</button>
-            <button onclick="showTab('reports')">📊 Laporan</button>
-            <button onclick="showTab('settings')">⚙️ Pengaturan</button>
+            <button class="active" data-tab="dashboard">📊 Dashboard</button>
+            <button data-tab="students">👨‍🎓 Data Siswa</button>
+            <button data-tab="teachers">👩‍🏫 Guru BK</button>
+            <button data-tab="counseling">📋 Konseling</button>
+            <button data-tab="parent-call">📞 Panggilan OT</button>
+            <button data-tab="attendance">✅ Kehadiran</button>
+            <button data-tab="home-visit">🏠 Home Visit</button>
+            <button data-tab="incident">⚠️ Kejadian</button>
+            <button data-tab="reports">📊 Laporan</button>
+            <button data-tab="settings">⚙️ Pengaturan</button>
         </div>
 
         <!-- ===== DASHBOARD ===== -->
@@ -1104,7 +1116,6 @@ const firebaseConfig = {
     appId: "1:562983012848:web:aced97fe045efed03cf535"
 };
 
-// Inisialisasi Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const storage = firebase.storage();
@@ -1168,21 +1179,21 @@ let incidentPhotos = [];
 // ============================================================
 // AUTH FUNCTIONS
 // ============================================================
-function showLogin() {
+function showLoginPage() {
     document.getElementById('loginPage').style.display = 'block';
     document.getElementById('registerPage').style.display = 'none';
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('loginAlert').innerHTML = '';
 }
 
-function showRegister() {
+function showRegisterPage() {
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('registerPage').style.display = 'block';
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('registerAlert').innerHTML = '';
 }
 
-function register() {
+function doRegister() {
     const email = document.getElementById('registerEmail').value.trim();
     const password = document.getElementById('registerPassword').value.trim();
     const name = document.getElementById('registerName').value.trim();
@@ -1220,10 +1231,10 @@ function register() {
     document.getElementById('registerSchool').value = '';
 
     // Redirect ke login setelah 2 detik
-    setTimeout(showLogin, 2000);
+    setTimeout(showLoginPage, 2000);
 }
 
-function login() {
+function doLogin() {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
     const alertEl = document.getElementById('loginAlert');
@@ -1266,12 +1277,12 @@ function login() {
     }, 1000);
 }
 
-function logout() {
+function doLogout() {
     if (confirm('Yakin ingin keluar?')) {
         clearSession();
         currentUser = null;
         document.getElementById('mainApp').style.display = 'none';
-        showLogin();
+        showLoginPage();
     }
 }
 
@@ -1304,6 +1315,58 @@ function checkSession() {
 }
 
 // ============================================================
+// EVENT BINDING - DILAKUKAN SETELAH DOM LOAD
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Binding tombol login
+    document.getElementById('btnLogin').addEventListener('click', doLogin);
+    
+    // Binding tombol register
+    document.getElementById('btnRegister').addEventListener('click', doRegister);
+    
+    // Binding link toggle
+    document.getElementById('linkToRegister').addEventListener('click', showRegisterPage);
+    document.getElementById('linkToLogin').addEventListener('click', showLoginPage);
+    
+    // Binding logout
+    document.getElementById('btnLogout').addEventListener('click', doLogout);
+    
+    // Binding Enter key untuk login
+    document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') doLogin();
+    });
+    document.getElementById('loginEmail').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') doLogin();
+    });
+    
+    // Binding Enter key untuk register
+    document.getElementById('registerPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') doRegister();
+    });
+    document.getElementById('registerEmail').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') doRegister();
+    });
+    document.getElementById('registerName').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') doRegister();
+    });
+    document.getElementById('registerSchool').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') doRegister();
+    });
+    
+    // Binding navigasi
+    document.querySelectorAll('#mainNav button[data-tab]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            showTab(this.dataset.tab);
+        });
+    });
+    
+    // Cek session
+    if (!checkSession()) {
+        showLoginPage();
+    }
+});
+
+// ============================================================
 // LOAD ALL DATA
 // ============================================================
 function loadAllData() {
@@ -1326,8 +1389,8 @@ function showTab(tabId) {
     const target = document.getElementById('tab-' + tabId);
     if (target) target.classList.add('active');
     
-    document.querySelectorAll('.nav button').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`.nav button[onclick="showTab('${tabId}')"]`)?.classList.add('active');
+    document.querySelectorAll('#mainNav button').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`#mainNav button[data-tab="${tabId}"]`)?.classList.add('active');
 
     if (tabId === 'students') loadStudents();
     if (tabId === 'teachers') loadTeachers();
@@ -2783,26 +2846,11 @@ window.saveSettings = saveSettings;
 window.exportAllData = exportAllData;
 window.restoreData = restoreData;
 window.resetAllData = resetAllData;
-window.showLogin = showLogin;
-window.showRegister = showRegister;
-window.register = register;
-window.login = login;
-window.logout = logout;
 window.populateReportFilters = populateReportFilters;
 window.previewIncidentPhotos = previewIncidentPhotos;
 window.removeIncidentPhoto = removeIncidentPhoto;
 window.openLightbox = openLightbox;
 window.closeLightbox = closeLightbox;
-
-// ============================================================
-// AUTO-LOAD & CHECK SESSION
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    // Cek session
-    if (!checkSession()) {
-        showLogin();
-    }
-});
 
 // Listener untuk update data siswa
 db.collection('students').onSnapshot(() => {
