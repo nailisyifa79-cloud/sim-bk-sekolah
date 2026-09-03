@@ -3,253 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - SIM BK</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#0d3b6b,#1a5a9e);display:flex;justify-content:center;align-items:center;min-height:100vh}
-        .box{background:#fff;padding:40px;border-radius:12px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
-        .box h1{text-align:center;font-size:32px;color:#0d3b6b}
-        .box h1 span{color:#f4b400}
-        .box p{text-align:center;color:#666;margin-bottom:20px}
-        input{width:100%;padding:12px;border:2px solid #ddd;border-radius:8px;margin-bottom:12px;font-size:14px}
-        input:focus{border-color:#1a5a9e;outline:none}
-        button{width:100%;padding:12px;border:0;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;color:#fff;background:#1a5a9e}
-        button:hover{background:#0d3b6b}
-        button.success{background:#159a7c}
-        button.success:hover{background:#0d7a62}
-        .alert{padding:10px;border-radius:6px;margin-bottom:12px;font-size:13px}
-        .alert-danger{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
-        .alert-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
-        .link{text-align:center;margin-top:12px;font-size:13px;color:#666}
-        .link a{color:#1a5a9e;font-weight:bold;cursor:pointer}
-        .link a:hover{text-decoration:underline}
-        .demo{background:#f0f4f8;padding:10px;border-radius:6px;font-size:11px;color:#666;text-align:center;margin-top:12px}
-        .hidden{display:none}
-    </style>
-</head>
-<body>
-
-<div class="box" id="loginPage">
-    <h1>SIM <span>BK</span></h1>
-    <p>Sistem Informasi Manajemen BK</p>
-    <div id="loginAlert"></div>
-    <input type="email" id="loginEmail" placeholder="Email" value="admin@sekolah.com">
-    <input type="password" id="loginPassword" placeholder="Password" value="admin123">
-    <button onclick="handleLogin()">🚀 Masuk</button>
-    <div class="link">Belum punya akun? <a onclick="showRegister()">Daftar</a></div>
-    <div class="demo">💡 <b>Demo:</b> admin@sekolah.com | admin123</div>
-</div>
-
-<div class="box hidden" id="registerPage">
-    <h1>SIM <span>BK</span></h1>
-    <p>Daftar Akun Baru</p>
-    <div id="registerAlert"></div>
-    <input type="email" id="registerEmail" placeholder="Email">
-    <input type="password" id="registerPassword" placeholder="Password (min 6)">
-    <input type="text" id="registerSchool" placeholder="Nama Sekolah">
-    <button class="success" onclick="handleRegister()">📝 Daftar</button>
-    <div class="link">Sudah punya akun? <a onclick="showLogin()">Masuk</a></div>
-</div>
-
-<script>
-// FIREBASE
-var firebaseConfig = {
-    apiKey: "AIzaSyA2AQNbuiqycFQ4S-vsthw9NFMNyb-acFA",
-    authDomain: "sosio-digital.firebaseapp.com",
-    projectId: "sosio-digital",
-    storageBucket: "sosio-digital.firebasestorage.app",
-    messagingSenderId: "562983012848",
-    appId: "1:562983012848:web:aced97fe045efed03cf535"
-};
-firebase.initializeApp(firebaseConfig);
-
-// LOCAL STORAGE
-function getUsers() {
-    try { return JSON.parse(localStorage.getItem('SIMBK_USERS')) || {}; } catch(e) { return {}; }
-}
-function saveUsers(users) { localStorage.setItem('SIMBK_USERS', JSON.stringify(users)); }
-function getSession() {
-    try { return JSON.parse(localStorage.getItem('SIMBK_SESSION')); } catch(e) { return null; }
-}
-function saveSession(email) { localStorage.setItem('SIMBK_SESSION', JSON.stringify({email:email})); }
-function clearSession() { localStorage.removeItem('SIMBK_SESSION'); }
-
-function showLogin() {
-    document.getElementById('loginPage').classList.remove('hidden');
-    document.getElementById('registerPage').classList.add('hidden');
-    document.getElementById('loginAlert').innerHTML = '';
-}
-
-function showRegister() {
-    document.getElementById('loginPage').classList.add('hidden');
-    document.getElementById('registerPage').classList.remove('hidden');
-    document.getElementById('registerAlert').innerHTML = '';
-}
-
-function handleLogin() {
-    var email = document.getElementById('loginEmail').value.trim();
-    var pass = document.getElementById('loginPassword').value.trim();
-    var alertEl = document.getElementById('loginAlert');
-    
-    if (!email || !pass) {
-        alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Email dan password harus diisi!</div>';
-        return;
-    }
-    
-    var users = getUsers();
-    if (!users[email]) {
-        alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Email tidak terdaftar!</div>';
-        return;
-    }
-    if (users[email].password !== pass) {
-        alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Password salah!</div>';
-        return;
-    }
-    
-    saveSession(email);
-    alertEl.innerHTML = '<div class="alert alert-success">✅ Login berhasil! Mengarahkan...</div>';
-    setTimeout(function() {
-        window.location.href = 'dashboard.html';
-    }, 1000);
-}
-
-function handleRegister() {
-    var email = document.getElementById('registerEmail').value.trim();
-    var pass = document.getElementById('registerPassword').value.trim();
-    var school = document.getElementById('registerSchool').value.trim();
-    var alertEl = document.getElementById('registerAlert');
-    
-    if (!email || !pass || !school) {
-        alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Semua field harus diisi!</div>';
-        return;
-    }
-    if (pass.length < 6) {
-        alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Password minimal 6 karakter!</div>';
-        return;
-    }
-    
-    var users = getUsers();
-    if (users[email]) {
-        alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Email sudah terdaftar!</div>';
-        return;
-    }
-    
-    users[email] = { password: pass, school: school, registeredAt: new Date().toISOString() };
-    saveUsers(users);
-    alertEl.innerHTML = '<div class="alert alert-success">✅ Pendaftaran berhasil! Silakan login.</div>';
-    setTimeout(showLogin, 2000);
-}
-
-// CEK SESSION
-var session = getSession();
-if (session && session.email) {
-    var users = getUsers();
-    if (users[session.email]) {
-        window.location.href = 'dashboard.html';
-    }
-}
-
-// ENTER KEY
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        if (!document.getElementById('loginPage').classList.contains('hidden')) {
-            handleLogin();
-        } else {
-            handleRegister();
-        }
-    }
-});
-</script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIM BK - Dashboard</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:Arial,sans-serif;background:#f0f4f8;color:#1a2a3a}
-        .header{background:#0d3b6b;color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
-        .header h1{font-size:20px}
+        .header{background:#0d3b6b;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+        .header h1{font-size:18px}
         .header h1 span{color:#f4b400}
-        .btn-logout{background:#d96b7b;color:#fff;border:0;padding:6px 16px;border-radius:6px;cursor:pointer;font-weight:bold}
+        .btn-logout{background:#d96b7b;color:#fff;border:0;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:bold;font-size:12px}
         .btn-logout:hover{background:#c45566}
-        .nav{background:#fff;padding:8px 16px;display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid #ddd;overflow-x:auto}
-        .nav button{padding:6px 14px;border:0;background:transparent;border-radius:6px;cursor:pointer;font-weight:bold;font-size:12px;color:#666;white-space:nowrap}
+        .nav{background:#fff;padding:6px 12px;display:flex;gap:3px;flex-wrap:wrap;border-bottom:1px solid #ddd;overflow-x:auto}
+        .nav button{padding:5px 12px;border:0;background:transparent;border-radius:6px;cursor:pointer;font-weight:bold;font-size:11px;color:#666;white-space:nowrap}
         .nav button:hover{background:#e8f0fe;color:#1a5a9e}
         .nav button.active{background:#1a5a9e;color:#fff}
-        .container{max-width:1200px;margin:0 auto;padding:16px}
-        .panel{background:#fff;border-radius:8px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
-        .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-        .panel-header h2{font-size:16px;color:#0d3b6b}
-        .btn{padding:8px 16px;border:0;border-radius:6px;font-weight:bold;cursor:pointer;color:#fff}
+        .container{max-width:1200px;margin:0 auto;padding:12px}
+        .panel{background:#fff;border-radius:8px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+        .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+        .panel-header h2{font-size:15px;color:#0d3b6b}
+        .btn{padding:6px 14px;border:0;border-radius:6px;font-weight:bold;cursor:pointer;color:#fff;font-size:12px}
         .btn-primary{background:#1a5a9e}
         .btn-primary:hover{background:#0d3b6b}
         .btn-success{background:#159a7c}
         .btn-success:hover{background:#0d7a62}
         .btn-danger{background:#d96b7b}
         .btn-danger:hover{background:#c45566}
-        .btn-warning{background:#f4b400}
+        .btn-warning{background:#f4b400;color:#333}
         .btn-warning:hover{background:#d49c00}
         .btn-outline{background:transparent;border:2px solid #ddd;color:#666}
         .btn-outline:hover{border-color:#1a5a9e;color:#1a5a9e}
-        .btn-sm{padding:4px 10px;font-size:11px}
-        .form-group{margin-bottom:12px}
-        .form-group label{display:block;font-weight:bold;font-size:13px;color:#0d3b6b;margin-bottom:4px}
-        .form-control{width:100%;padding:10px 12px;border:2px solid #ddd;border-radius:6px;font-size:14px}
+        .btn-sm{padding:3px 10px;font-size:10px}
+        .form-group{margin-bottom:10px}
+        .form-group label{display:block;font-weight:bold;font-size:12px;color:#0d3b6b;margin-bottom:3px}
+        .form-control{width:100%;padding:8px 12px;border:2px solid #ddd;border-radius:6px;font-size:13px}
         .form-control:focus{border-color:#1a5a9e;outline:none}
-        .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px}
-        .stat-card{background:#fff;padding:12px 16px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border-left:4px solid #1a5a9e}
-        .stat-card .number{font-size:24px;font-weight:bold;color:#0d3b6b}
-        .stat-card .label{font-size:11px;color:#666}
+        .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:12px}
+        .stat-card{background:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-left:4px solid #1a5a9e}
+        .stat-card .number{font-size:22px;font-weight:bold;color:#0d3b6b}
+        .stat-card .label{font-size:10px;color:#666}
         .stat-card.success{border-left-color:#159a7c}
         .stat-card.success .number{color:#159a7c}
         .stat-card.danger{border-left-color:#d96b7b}
         .stat-card.danger .number{color:#d96b7b}
         .stat-card.warning{border-left-color:#f4b400}
         .stat-card.warning .number{color:#b8860b}
-        .table-wrap{overflow-x:auto;border:1px solid #ddd;border-radius:6px;max-height:500px;overflow-y:auto}
-        table{width:100%;border-collapse:collapse;font-size:13px}
-        table th{background:#0d3b6b;color:#fff;padding:8px 12px;text-align:left;position:sticky;top:0;z-index:10}
-        table td{padding:8px 12px;border-bottom:1px solid #eee}
+        .table-wrap{overflow-x:auto;border:1px solid #ddd;border-radius:6px;max-height:450px;overflow-y:auto}
+        table{width:100%;border-collapse:collapse;font-size:12px}
+        table th{background:#0d3b6b;color:#fff;padding:6px 10px;text-align:left;position:sticky;top:0;z-index:10;font-size:11px}
+        table td{padding:6px 10px;border-bottom:1px solid #eee}
         table tr:hover{background:#f8fafc}
-        .badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:bold}
+        .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:bold}
         .badge-info{background:#d1ecf1;color:#0c5460}
         .badge-success{background:#d4edda;color:#155724}
         .badge-danger{background:#f8d7da;color:#721c24}
         .badge-warning{background:#fff3cd;color:#856404}
         .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;justify-content:center;align-items:center}
         .modal.active{display:flex}
-        .modal-box{background:#fff;border-radius:12px;padding:24px;max-width:500px;width:95%;max-height:90vh;overflow-y:auto}
-        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #eee}
-        .modal-header h2{font-size:18px;color:#0d3b6b}
-        .close-btn{background:none;border:0;font-size:24px;cursor:pointer;color:#999}
+        .modal-box{background:#fff;border-radius:12px;padding:20px;max-width:500px;width:95%;max-height:90vh;overflow-y:auto}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #eee}
+        .modal-header h2{font-size:17px;color:#0d3b6b}
+        .close-btn{background:none;border:0;font-size:22px;cursor:pointer;color:#999}
         .close-btn:hover{color:#d96b7b}
-        .alert{padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:13px}
+        .alert{padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:12px}
         .alert-danger{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
         .alert-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
         .alert-info{background:#d1ecf1;color:#0c5460;border:1px solid #bee5eb}
+        .alert-warning{background:#fff3cd;color:#856404;border:1px solid #ffeeba}
         .tab-content{display:none}
         .tab-content.active{display:block}
-        .loading{text-align:center;padding:40px;color:#666}
-        .spinner{display:inline-block;width:30px;height:30px;border:3px solid #ddd;border-top-color:#1a5a9e;border-radius:50%;animation:spin 0.8s linear infinite}
+        .loading{text-align:center;padding:30px;color:#666;font-size:13px}
+        .spinner{display:inline-block;width:25px;height:25px;border:3px solid #ddd;border-top-color:#1a5a9e;border-radius:50%;animation:spin 0.8s linear infinite}
         @keyframes spin{to{transform:rotate(360deg)}}
-        .footer{text-align:center;padding:16px;color:#999;font-size:11px;border-top:1px solid #ddd;margin-top:16px;background:#fff;border-radius:8px}
+        .footer{text-align:center;padding:12px;color:#999;font-size:10px;border-top:1px solid #ddd;margin-top:12px;background:#fff;border-radius:8px}
         .hidden{display:none!important}
-        .pagination{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:10px;gap:8px}
-        .pagination .pages{display:flex;gap:4px;flex-wrap:wrap}
-        .pagination .page-btn{padding:4px 10px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:12px}
+        .pagination{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:8px;gap:6px}
+        .pagination .pages{display:flex;gap:3px;flex-wrap:wrap}
+        .pagination .page-btn{padding:3px 8px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:11px}
         .pagination .page-btn:hover{background:#e8f0fe}
         .pagination .page-btn.active{background:#1a5a9e;color:#fff;border-color:#1a5a9e}
         .pagination .page-btn:disabled{opacity:0.5;cursor:not-allowed}
-        @media(max-width:768px){.header{flex-direction:column;text-align:center;gap:8px}.nav{justify-content:center}.nav button{font-size:10px;padding:4px 8px}}
+        .toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+        .toolbar .btn{font-size:11px;padding:4px 12px}
+        @media(max-width:768px){.header{flex-direction:column;text-align:center;gap:4px}.nav{justify-content:center}.nav button{font-size:10px;padding:4px 8px}.container{padding:8px}.panel{padding:10px}.stats-grid{grid-template-columns:repeat(2,1fr)}}
+        @media print{.no-print{display:none!important}}
     </style>
 </head>
 <body>
@@ -258,12 +96,12 @@ document.addEventListener('keydown', function(e) {
 <div class="header">
     <h1>📚 SIM <span>BK</span></h1>
     <div>
-        <span id="userDisplay" style="margin-right:12px;">👤 Admin</span>
+        <span id="userDisplay" style="margin-right:10px;font-size:13px;">👤 Admin</span>
         <button class="btn-logout" onclick="handleLogout()">🚪 Keluar</button>
     </div>
 </div>
 
-<!-- NAVIGASI -->
+<!-- NAVIGASI (tanpa menu Laporan) -->
 <div class="nav" id="mainNav">
     <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
     <button onclick="showTab('students')">👨‍🎓 Siswa</button>
@@ -275,7 +113,6 @@ document.addEventListener('keydown', function(e) {
     <button onclick="showTab('mutation')">📝 Mutasi</button>
     <button onclick="showTab('graduation')">🎓 Lulusan</button>
     <button onclick="showTab('presensi')">📋 Presensi</button>
-    <button onclick="showTab('reports')">📊 Laporan</button>
     <button onclick="showTab('settings')">⚙️ Pengaturan</button>
 </div>
 
@@ -305,10 +142,11 @@ document.addEventListener('keydown', function(e) {
                 <h2>👨‍🎓 Data Siswa</h2>
                 <div>
                     <button class="btn btn-primary" onclick="openModal('studentModal')">➕ Tambah</button>
-                    <button class="btn btn-success" onclick="openModal('bulkStudentModal')">📋 Tambah Per Kelas</button>
+                    <button class="btn btn-success" onclick="openModal('bulkStudentModal')">📋 Per Kelas</button>
+                    <button class="btn btn-warning" onclick="cetakLaporan('siswa')">🖨️ Cetak</button>
                 </div>
             </div>
-            <div class="form-row" style="margin-bottom:12px;">
+            <div class="form-row" style="margin-bottom:8px;">
                 <div><label>Filter Kelas</label><select id="filterClass" class="form-control" onchange="loadStudents()"><option value="">Semua</option></select></div>
                 <div><label>Cari</label><input type="text" id="searchStudent" class="form-control" placeholder="Cari nama..." oninput="loadStudents()"></div>
             </div>
@@ -319,7 +157,12 @@ document.addEventListener('keydown', function(e) {
     <!-- TEACHERS -->
     <div id="tab-teachers" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>👩‍🏫 Guru BK</h2><button class="btn btn-primary" onclick="openModal('teacherModal')">➕ Tambah</button></div>
+            <div class="panel-header"><h2>👩‍🏫 Guru BK</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="openModal('teacherModal')">➕ Tambah</button>
+                    <button class="btn btn-warning" onclick="cetakLaporan('guru')">🖨️ Cetak</button>
+                </div>
+            </div>
             <div id="teacherList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
         </div>
     </div>
@@ -327,7 +170,17 @@ document.addEventListener('keydown', function(e) {
     <!-- COUNSELING -->
     <div id="tab-counseling" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>📋 Konseling</h2><button class="btn btn-primary" onclick="openModal('counselingModal')">➕ Tambah</button></div>
+            <div class="panel-header">
+                <h2>📋 Konseling</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="openModal('counselingModal')">➕ Tambah</button>
+                    <button class="btn btn-warning" onclick="cetakLaporan('konseling')">🖨️ Cetak</button>
+                </div>
+            </div>
+            <div class="toolbar">
+                <select id="filterCounselingClass" class="form-control" style="width:150px;padding:4px 8px;font-size:12px;" onchange="loadCounseling()"><option value="">Semua Kelas</option></select>
+                <input type="month" id="filterCounselingMonth" class="form-control" style="width:150px;padding:4px 8px;font-size:12px;" onchange="loadCounseling()">
+            </div>
             <div id="counselingList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
         </div>
     </div>
@@ -335,7 +188,12 @@ document.addEventListener('keydown', function(e) {
     <!-- PARENT CALL -->
     <div id="tab-parent-call" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>📞 Panggilan Orang Tua</h2><button class="btn btn-primary" onclick="openModal('parentCallModal')">➕ Tambah</button></div>
+            <div class="panel-header"><h2>📞 Panggilan Orang Tua</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="openModal('parentCallModal')">➕ Tambah</button>
+                    <button class="btn btn-warning" onclick="cetakLaporan('panggilan')">🖨️ Cetak</button>
+                </div>
+            </div>
             <div id="parentCallList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
         </div>
     </div>
@@ -343,7 +201,12 @@ document.addEventListener('keydown', function(e) {
     <!-- HOME VISIT -->
     <div id="tab-home-visit" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>🏠 Home Visit</h2><button class="btn btn-primary" onclick="openModal('homeVisitModal')">➕ Tambah</button></div>
+            <div class="panel-header"><h2>🏠 Home Visit</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="openModal('homeVisitModal')">➕ Tambah</button>
+                    <button class="btn btn-warning" onclick="cetakLaporan('homevisit')">🖨️ Cetak</button>
+                </div>
+            </div>
             <div id="homeVisitList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
         </div>
     </div>
@@ -351,7 +214,17 @@ document.addEventListener('keydown', function(e) {
     <!-- INCIDENT -->
     <div id="tab-incident" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>⚠️ Kejadian</h2><button class="btn btn-primary" onclick="openModal('incidentModal')">➕ Tambah</button></div>
+            <div class="panel-header"><h2>⚠️ Kejadian</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="openModal('incidentModal')">➕ Tambah</button>
+                    <button class="btn btn-warning" onclick="cetakLaporan('kejadian')">🖨️ Cetak</button>
+                </div>
+            </div>
+            <div class="toolbar">
+                <select id="filterIncidentClass" class="form-control" style="width:150px;padding:4px 8px;font-size:12px;" onchange="loadIncidents()"><option value="">Semua Kelas</option></select>
+                <select id="filterIncidentType" class="form-control" style="width:150px;padding:4px 8px;font-size:12px;" onchange="loadIncidents()"><option value="">Semua</option><option value="Terlambat">⏰ Terlambat</option><option value="Perkelahian">👊 Perkelahian</option><option value="Pelanggaran">📜 Pelanggaran</option><option value="Lainnya">📌 Lainnya</option></select>
+                <input type="month" id="filterIncidentMonth" class="form-control" style="width:150px;padding:4px 8px;font-size:12px;" onchange="loadIncidents()">
+            </div>
             <div id="incidentList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
         </div>
     </div>
@@ -359,7 +232,16 @@ document.addEventListener('keydown', function(e) {
     <!-- MUTATION -->
     <div id="tab-mutation" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>📝 Mutasi Siswa</h2><button class="btn btn-primary" onclick="openModal('mutationModal')">➕ Tambah</button></div>
+            <div class="panel-header"><h2>📝 Mutasi Siswa</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="openModal('mutationModal')">➕ Tambah</button>
+                    <button class="btn btn-warning" onclick="cetakLaporan('mutasi')">🖨️ Cetak</button>
+                </div>
+            </div>
+            <div class="toolbar">
+                <select id="filterMutationClass" class="form-control" style="width:150px;padding:4px 8px;font-size:12px;" onchange="loadMutations()"><option value="">Semua Kelas</option></select>
+                <input type="month" id="filterMutationMonth" class="form-control" style="width:150px;padding:4px 8px;font-size:12px;" onchange="loadMutations()">
+            </div>
             <div id="mutationList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
         </div>
     </div>
@@ -367,7 +249,16 @@ document.addEventListener('keydown', function(e) {
     <!-- GRADUATION -->
     <div id="tab-graduation" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>🎓 Lulusan SNBP/SNBT</h2><button class="btn btn-primary" onclick="openModal('graduationModal')">➕ Tambah</button></div>
+            <div class="panel-header"><h2>🎓 Lulusan SNBP/SNBT</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="openModal('graduationModal')">➕ Tambah</button>
+                    <button class="btn btn-warning" onclick="cetakLaporan('lulusan')">🖨️ Cetak</button>
+                </div>
+            </div>
+            <div class="toolbar">
+                <select id="filterGraduationYear" class="form-control" style="width:150px;padding:4px 8px;font-size:12px;" onchange="loadGraduations()"><option value="">Semua Tahun</option></select>
+                <select id="filterGraduationPath" class="form-control" style="width:150px;padding:4px 8px;font-size:12px;" onchange="loadGraduations()"><option value="">Semua</option><option value="SNBP">SNBP</option><option value="SNBT">SNBT</option></select>
+            </div>
             <div id="graduationList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
         </div>
     </div>
@@ -376,19 +267,29 @@ document.addEventListener('keydown', function(e) {
     <div id="tab-presensi" class="tab-content">
         <div class="panel">
             <div class="panel-header"><h2>📋 Presensi</h2>
-                <div><button class="btn btn-success" onclick="openPresensiLink()">🔗 Link</button></div>
+                <div>
+                    <button class="btn btn-success" onclick="openPresensiLink()">🔗 Link</button>
+                    <button class="btn btn-warning" onclick="cetakLaporan('presensi')">🖨️ Cetak</button>
+                </div>
+            </div>
+            <div class="toolbar">
+                <select id="filterPresensiClass" class="form-control" style="width:150px;padding:4px 8px;font-size:12px;" onchange="loadPresensi()"><option value="">Semua Kelas</option></select>
+                <input type="date" id="filterPresensiDate" class="form-control" style="width:180px;padding:4px 8px;font-size:12px;" onchange="loadPresensi()">
             </div>
             <div id="presensiList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
         </div>
-    </div>
-
-    <!-- REPORTS -->
-    <div id="tab-reports" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>📊 Laporan</h2>
-                <div><button class="btn btn-success" onclick="generateReport()">📄 Generate</button></div>
+            <div class="panel-header"><h2>🔗 Link Presensi untuk Ketua Kelas</h2></div>
+            <div class="alert alert-info">📌 Bagikan link ini ke ketua kelas. <b>HANYA form presensi</b> yang muncul!</div>
+            <div class="form-group">
+                <label>Link Presensi</label>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <input type="text" id="presensiLinkDisplay" class="form-control" readonly style="flex:1;min-width:200px;background:#f5f7fa;font-size:12px;" value="">
+                    <button class="btn btn-success btn-sm" onclick="copyText(document.getElementById('presensiLinkDisplay').value)">📋 Salin</button>
+                    <button class="btn btn-warning btn-sm" onclick="bagikanWA()">💬 WA</button>
+                </div>
             </div>
-            <div id="reportContent"><div class="alert alert-info">Klik "Generate" untuk melihat laporan</div></div>
+            <div style="font-size:11px;color:#666;">💡 Ketua kelas pilih kelas → pilih tanggal → isi presensi → kirim.</div>
         </div>
     </div>
 
@@ -396,8 +297,25 @@ document.addEventListener('keydown', function(e) {
     <div id="tab-settings" class="tab-content">
         <div class="panel">
             <div class="panel-header"><h2>⚙️ Pengaturan</h2></div>
-            <div id="settingsContent">
-                <div class="alert alert-info">Fitur pengaturan akan segera hadir</div>
+            <div class="settings-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;">
+                <div class="settings-card" style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid #ddd;">
+                    <h3 style="font-size:13px;color:#0d3b6b;margin-bottom:8px;">🏫 Data Sekolah</h3>
+                    <div class="form-group"><label>Nama Sekolah</label><input type="text" id="settingsSchool" class="form-control"></div>
+                    <div class="form-group"><label>Tahun Ajaran</label><input type="text" id="settingsYear" class="form-control"></div>
+                    <button class="btn btn-primary" onclick="saveSettings()">💾 Simpan</button>
+                </div>
+                <div class="settings-card" style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid #ddd;">
+                    <h3 style="font-size:13px;color:#0d3b6b;margin-bottom:8px;">📋 Backup</h3>
+                    <button class="btn btn-success" onclick="exportAllData()" style="width:100%;margin-bottom:6px;">📤 Backup Data</button>
+                    <button class="btn btn-outline" onclick="document.getElementById('restoreInput').click()" style="width:100%;">📥 Restore Data</button>
+                    <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(event)">
+                    <hr style="margin:10px 0;">
+                    <button class="btn btn-danger" onclick="resetAllData()" style="width:100%;">🗑️ Reset Semua</button>
+                </div>
+                <div class="settings-card" style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid #ddd;">
+                    <h3 style="font-size:13px;color:#0d3b6b;margin-bottom:8px;">👥 Pengguna</h3>
+                    <div id="userList"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -406,7 +324,7 @@ document.addEventListener('keydown', function(e) {
 
 <div class="footer">© 2026 <strong>@NaFaSBK</strong> | Sistem Informasi Manajemen Bimbingan Konseling</div>
 
-<!-- MODALS -->
+<!-- MODALS (tetap sama) -->
 <div class="modal" id="studentModal">
     <div class="modal-box">
         <div class="modal-header"><h2>➕ Tambah Siswa</h2><button class="close-btn" onclick="closeModal('studentModal')">&times;</button></div>
@@ -448,8 +366,8 @@ document.addEventListener('keydown', function(e) {
         <div class="form-group"><label>Kelas</label><select id="counselingClassSelect" class="form-control" onchange="updateCounselingStudent()"><option value="">Pilih Kelas</option></select></div>
         <div class="form-group"><label>Siswa</label><select id="counselingStudent" class="form-control"><option value="">Pilih Siswa</option></select></div>
         <div class="form-group"><label>Tanggal</label><input type="date" id="counselingDate" class="form-control"></div>
-        <div class="form-group"><label>Masalah</label><textarea id="counselingProblem" class="form-control"></textarea></div>
-        <div class="form-group"><label>Hasil</label><textarea id="counselingResult" class="form-control"></textarea></div>
+        <div class="form-group"><label>Masalah</label><textarea id="counselingProblem" class="form-control" rows="2"></textarea></div>
+        <div class="form-group"><label>Hasil</label><textarea id="counselingResult" class="form-control" rows="2"></textarea></div>
         <button class="btn btn-success" onclick="saveCounseling()">💾 Simpan</button>
     </div>
 </div>
@@ -461,8 +379,8 @@ document.addEventListener('keydown', function(e) {
         <div class="form-group"><label>Kelas</label><select id="parentCallClassSelect" class="form-control" onchange="updateParentCallStudent()"><option value="">Pilih Kelas</option></select></div>
         <div class="form-group"><label>Siswa</label><select id="parentCallStudent" class="form-control"><option value="">Pilih Siswa</option></select></div>
         <div class="form-group"><label>Tanggal</label><input type="date" id="parentCallDate" class="form-control"></div>
-        <div class="form-group"><label>Masalah</label><textarea id="parentCallProblem" class="form-control"></textarea></div>
-        <div class="form-group"><label>Hasil</label><textarea id="parentCallResult" class="form-control"></textarea></div>
+        <div class="form-group"><label>Masalah</label><textarea id="parentCallProblem" class="form-control" rows="2"></textarea></div>
+        <div class="form-group"><label>Hasil</label><textarea id="parentCallResult" class="form-control" rows="2"></textarea></div>
         <button class="btn btn-success" onclick="saveParentCall()">💾 Simpan</button>
     </div>
 </div>
@@ -474,8 +392,8 @@ document.addEventListener('keydown', function(e) {
         <div class="form-group"><label>Kelas</label><select id="homeVisitClassSelect" class="form-control" onchange="updateHomeVisitStudent()"><option value="">Pilih Kelas</option></select></div>
         <div class="form-group"><label>Siswa</label><select id="homeVisitStudent" class="form-control"><option value="">Pilih Siswa</option></select></div>
         <div class="form-group"><label>Tanggal</label><input type="date" id="homeVisitDate" class="form-control"></div>
-        <div class="form-group"><label>Masalah</label><textarea id="homeVisitProblem" class="form-control"></textarea></div>
-        <div class="form-group"><label>Hasil</label><textarea id="homeVisitResult" class="form-control"></textarea></div>
+        <div class="form-group"><label>Masalah</label><textarea id="homeVisitProblem" class="form-control" rows="2"></textarea></div>
+        <div class="form-group"><label>Hasil</label><textarea id="homeVisitResult" class="form-control" rows="2"></textarea></div>
         <button class="btn btn-success" onclick="saveHomeVisit()">💾 Simpan</button>
     </div>
 </div>
@@ -488,7 +406,7 @@ document.addEventListener('keydown', function(e) {
         <div class="form-group"><label>Siswa</label><select id="incidentStudent" class="form-control"><option value="">Pilih Siswa</option></select></div>
         <div class="form-group"><label>Tanggal</label><input type="date" id="incidentDate" class="form-control"></div>
         <div class="form-group"><label>Jenis</label><select id="incidentType" class="form-control"><option value="Terlambat">⏰ Terlambat</option><option value="Perkelahian">👊 Perkelahian</option><option value="Pelanggaran">📜 Pelanggaran</option><option value="Lainnya">📌 Lainnya</option></select></div>
-        <div class="form-group"><label>Deskripsi</label><textarea id="incidentDescription" class="form-control"></textarea></div>
+        <div class="form-group"><label>Deskripsi</label><textarea id="incidentDescription" class="form-control" rows="2"></textarea></div>
         <button class="btn btn-success" onclick="saveIncident()">💾 Simpan</button>
     </div>
 </div>
@@ -501,7 +419,7 @@ document.addEventListener('keydown', function(e) {
         <div class="form-group"><label>Siswa</label><select id="mutationStudent" class="form-control"><option value="">Pilih Siswa</option></select></div>
         <div class="form-group"><label>Tanggal</label><input type="date" id="mutationDate" class="form-control"></div>
         <div class="form-group"><label>Jenis</label><select id="mutationType" class="form-control"><option value="Masuk">📥 Masuk</option><option value="Keluar">📤 Keluar</option><option value="Pindah">🔄 Pindah</option><option value="Drop Out">⛔ Drop Out</option></select></div>
-        <div class="form-group"><label>Alasan</label><textarea id="mutationReason" class="form-control"></textarea></div>
+        <div class="form-group"><label>Alasan</label><textarea id="mutationReason" class="form-control" rows="2"></textarea></div>
         <button class="btn btn-success" onclick="saveMutation()">💾 Simpan</button>
     </div>
 </div>
@@ -540,6 +458,10 @@ function getSession() {
     try { return JSON.parse(localStorage.getItem('SIMBK_SESSION')); } catch(e) { return null; }
 }
 function clearSession() { localStorage.removeItem('SIMBK_SESSION'); }
+function getSchoolData() {
+    try { return JSON.parse(localStorage.getItem('SIMBK_SCHOOL')) || { name: '', year: '', address: '' }; } catch(e) { return { name: '', year: '', address: '' }; }
+}
+function saveSchoolData(data) { localStorage.setItem('SIMBK_SCHOOL', JSON.stringify(data)); }
 
 // ============ CEK SESSION ============
 var session = getSession();
@@ -553,6 +475,9 @@ if (!users[session.email]) {
 }
 var currentUser = users[session.email];
 document.getElementById('userDisplay').textContent = '👤 ' + (currentUser.school || 'Admin');
+var schoolData = getSchoolData();
+document.getElementById('settingsSchool').value = schoolData.name || '';
+document.getElementById('settingsYear').value = schoolData.year || '';
 
 // ============ VARIABEL ============
 var allStudents = [];
@@ -571,26 +496,25 @@ function showTab(tabId) {
     for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
     var activeBtn = document.querySelector('#mainNav button[onclick="showTab(\'' + tabId + '\')"]');
     if (activeBtn) activeBtn.classList.add('active');
+    
+    // Load data sesuai tab
     if (tabId === 'students') loadStudents();
-    if (tabId === 'teachers') loadTeachers();
-    if (tabId === 'counseling') loadCounseling();
-    if (tabId === 'parent-call') loadParentCalls();
-    if (tabId === 'home-visit') loadHomeVisits();
-    if (tabId === 'incident') loadIncidents();
-    if (tabId === 'mutation') loadMutations();
-    if (tabId === 'graduation') loadGraduations();
-    if (tabId === 'presensi') loadPresensi();
-    if (tabId === 'reports') generateReport();
+    else if (tabId === 'teachers') loadTeachers();
+    else if (tabId === 'counseling') loadCounseling();
+    else if (tabId === 'parent-call') loadParentCalls();
+    else if (tabId === 'home-visit') loadHomeVisits();
+    else if (tabId === 'incident') loadIncidents();
+    else if (tabId === 'mutation') loadMutations();
+    else if (tabId === 'graduation') loadGraduations();
+    else if (tabId === 'presensi') loadPresensi();
 }
 
 function openModal(id) {
     document.getElementById(id).classList.add('active');
     document.getElementById(id + 'Alert').innerHTML = '';
     var today = new Date().toISOString().split('T')[0];
-    if (id === 'counselingModal' || id === 'parentCallModal' || id === 'homeVisitModal' || id === 'incidentModal' || id === 'mutationModal') {
-        var dateInput = document.getElementById(id.replace('Modal', 'Date'));
-        if (dateInput) dateInput.value = today;
-    }
+    var dateInput = document.getElementById(id.replace('Modal', 'Date'));
+    if (dateInput) dateInput.value = today;
 }
 
 function closeModal(id) {
@@ -610,6 +534,120 @@ function handleLogout() {
     }
 }
 
+function copyText(text) {
+    try {
+        navigator.clipboard.writeText(text).then(function() { alert('✅ Disalin!'); });
+    } catch(e) {
+        var a = document.createElement('textarea');
+        a.value = text;
+        document.body.appendChild(a);
+        a.select();
+        document.execCommand('copy');
+        a.remove();
+        alert('✅ Disalin!');
+    }
+}
+
+function bagikanWA() {
+    var link = document.getElementById('presensiLinkDisplay').value;
+    var pesan = encodeURIComponent('📋 *Presensi Harian - SIM BK*\n\nKlik link berikut untuk mengisi presensi:\n' + link + '\n\n📌 Pilih kelas dan tanggal, isi presensi, kirim.');
+    window.open('https://wa.me/?text=' + pesan, '_blank');
+}
+
+function openPresensiLink() {
+    var link = window.location.href.replace('dashboard.html', '') + '?mode=presensi';
+    document.getElementById('presensiLinkDisplay').value = link;
+    window.open(link, '_blank');
+}
+
+// ============ CETAK LAPORAN ============
+function cetakLaporan(jenis) {
+    var title = '';
+    var content = '';
+    
+    // Ambil data sesuai jenis
+    if (jenis === 'siswa') {
+        title = '📋 LAPORAN DATA SISWA';
+        var table = document.querySelector('#tab-students .table-wrap');
+        if (!table || !table.innerHTML) { alert('⚠️ Tidak ada data siswa untuk dicetak!'); return; }
+        content = table.innerHTML;
+    } else if (jenis === 'guru') {
+        title = '📋 LAPORAN GURU BK';
+        var table = document.querySelector('#tab-teachers .table-wrap');
+        if (!table || !table.innerHTML) { alert('⚠️ Tidak ada data guru untuk dicetak!'); return; }
+        content = table.innerHTML;
+    } else if (jenis === 'konseling') {
+        title = '📋 LAPORAN KONSELING';
+        var table = document.querySelector('#tab-counseling .table-wrap');
+        if (!table || !table.innerHTML) { alert('⚠️ Tidak ada data konseling untuk dicetak!'); return; }
+        content = table.innerHTML;
+    } else if (jenis === 'panggilan') {
+        title = '📋 LAPORAN PANGGILAN ORANG TUA';
+        var table = document.querySelector('#tab-parent-call .table-wrap');
+        if (!table || !table.innerHTML) { alert('⚠️ Tidak ada data panggilan untuk dicetak!'); return; }
+        content = table.innerHTML;
+    } else if (jenis === 'homevisit') {
+        title = '📋 LAPORAN HOME VISIT';
+        var table = document.querySelector('#tab-home-visit .table-wrap');
+        if (!table || !table.innerHTML) { alert('⚠️ Tidak ada data home visit untuk dicetak!'); return; }
+        content = table.innerHTML;
+    } else if (jenis === 'kejadian') {
+        title = '📋 LAPORAN KEJADIAN';
+        var table = document.querySelector('#tab-incident .table-wrap');
+        if (!table || !table.innerHTML) { alert('⚠️ Tidak ada data kejadian untuk dicetak!'); return; }
+        content = table.innerHTML;
+    } else if (jenis === 'mutasi') {
+        title = '📋 LAPORAN MUTASI SISWA';
+        var table = document.querySelector('#tab-mutation .table-wrap');
+        if (!table || !table.innerHTML) { alert('⚠️ Tidak ada data mutasi untuk dicetak!'); return; }
+        content = table.innerHTML;
+    } else if (jenis === 'lulusan') {
+        title = '📋 LAPORAN LULUSAN SNBP/SNBT';
+        var table = document.querySelector('#tab-graduation .table-wrap');
+        if (!table || !table.innerHTML) { alert('⚠️ Tidak ada data lulusan untuk dicetak!'); return; }
+        content = table.innerHTML;
+    } else if (jenis === 'presensi') {
+        title = '📋 LAPORAN PRESENSI';
+        var table = document.querySelector('#tab-presensi .table-wrap');
+        if (!table || !table.innerHTML) { alert('⚠️ Tidak ada data presensi untuk dicetak!'); return; }
+        content = table.innerHTML;
+    } else {
+        alert('⚠️ Jenis laporan tidak dikenal!');
+        return;
+    }
+    
+    // Buat window cetak
+    var w = window.open('', '_blank', 'width=900,height=700');
+    if (!w) { alert('⚠️ Izinkan pop-up untuk mencetak.'); return; }
+    
+    var now = new Date();
+    var tanggal = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    
+    w.document.write('<!DOCTYPE html><html><head><title>' + title + '</title><style>');
+    w.document.write('body{font-family:Arial,sans-serif;padding:20px;color:#1a2a3a}');
+    w.document.write('h2{color:#0d3b6b;border-bottom:3px solid #0d3b6b;padding-bottom:8px;text-align:center}');
+    w.document.write('.sub{text-align:center;color:#666;font-size:13px;margin-bottom:16px}');
+    w.document.write('table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}');
+    w.document.write('table th{background:#0d3b6b;color:#fff;padding:6px 10px;text-align:left}');
+    w.document.write('table td{padding:5px 10px;border-bottom:1px solid #eee}');
+    w.document.write('table tr:nth-child(even){background:#f8fafc}');
+    w.document.write('.badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:bold}');
+    w.document.write('.badge-info{background:#d1ecf1;color:#0c5460}');
+    w.document.write('.badge-success{background:#d4edda;color:#155724}');
+    w.document.write('.badge-danger{background:#f8d7da;color:#721c24}');
+    w.document.write('.badge-warning{background:#fff3cd;color:#856404}');
+    w.document.write('.footer{text-align:center;font-size:10px;color:#999;border-top:1px solid #ddd;padding-top:10px;margin-top:16px}');
+    w.document.write('@media print{body{padding:10px}}');
+    w.document.write('</style></head><body>');
+    w.document.write('<h2>' + title + '</h2>');
+    w.document.write('<div class="sub">' + schoolData.name + ' | Dicetak: ' + tanggal + '</div>');
+    w.document.write(content);
+    w.document.write('<div class="footer">Dicetak dari SIM BK | @NaFaSBK</div>');
+    w.document.write('<script>setTimeout(function(){window.print()},500)<\/script>');
+    w.document.write('</body></html>');
+    w.document.close();
+}
+
 // ============ STUDENTS ============
 function loadStudents() {
     var container = document.getElementById('studentList');
@@ -625,7 +663,6 @@ function loadStudents() {
             if (data.class) classes.add(data.class);
         });
         
-        // Update filter kelas
         var classArray = Array.from(classes).sort();
         var filter = document.getElementById('filterClass');
         var currentVal = filter.value;
@@ -635,7 +672,6 @@ function loadStudents() {
         }
         filter.value = currentVal;
         
-        // Filter
         var classFilter = document.getElementById('filterClass').value;
         var search = document.getElementById('searchStudent').value.toLowerCase();
         filteredStudents = allStudents;
@@ -671,7 +707,7 @@ function renderStudents() {
     
     var totalPages = Math.ceil(totalStudents / pageSize);
     html += '<div class="pagination">';
-    html += '<span style="font-size:12px;color:#666;">' + (start + 1) + '-' + end + ' dari ' + totalStudents + '</span>';
+    html += '<span style="font-size:11px;color:#666;">' + (start + 1) + '-' + end + ' dari ' + totalStudents + '</span>';
     html += '<div class="pages">';
     html += '<button class="page-btn" onclick="goToPage(1)" ' + (currentPage === 1 ? 'disabled' : '') + '>⏮</button>';
     html += '<button class="page-btn" onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + '>◀</button>';
@@ -705,7 +741,7 @@ function saveStudent() {
         createdAt: new Date().toISOString()
     }).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Berhasil!</div>';
-        setTimeout(function() { closeModal('studentModal'); loadStudents(); updateDashboard(); }, 1000);
+        setTimeout(function() { closeModal('studentModal'); loadStudents(); updateDashboard(); }, 800);
     }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
 }
 
@@ -727,7 +763,7 @@ function saveBulkStudents() {
     }
     Promise.all(promises).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ ' + names.length + ' siswa berhasil ditambahkan!</div>';
-        setTimeout(function() { closeModal('bulkStudentModal'); loadStudents(); updateDashboard(); }, 1500);
+        setTimeout(function() { closeModal('bulkStudentModal'); loadStudents(); updateDashboard(); }, 1200);
     }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
 }
 
@@ -762,7 +798,7 @@ function saveTeacher() {
     var alertEl = document.getElementById('teacherModalAlert');
     if (!name || !classes) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Nama dan kelas harus diisi!</div>'; return; }
     db.collection('teachers').add({ name: name, classes: classes, createdAt: new Date().toISOString() })
-        .then(function() { alertEl.innerHTML = '<div class="alert alert-success">✅ Berhasil!</div>'; setTimeout(function() { closeModal('teacherModal'); loadTeachers(); updateDashboard(); }, 1000); })
+        .then(function() { alertEl.innerHTML = '<div class="alert alert-success">✅ Berhasil!</div>'; setTimeout(function() { closeModal('teacherModal'); loadTeachers(); updateDashboard(); }, 800); })
         .catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
 }
 
@@ -774,9 +810,15 @@ function deleteTeacher(id) {
 // ============ COUNSELING ============
 function loadCounseling() {
     var container = document.getElementById('counselingList');
-    db.collection('counseling').orderBy('date', 'desc').get().then(function(snapshot) {
+    var classFilter = document.getElementById('filterCounselingClass').value;
+    var monthFilter = document.getElementById('filterCounselingMonth').value;
+    
+    var query = db.collection('counseling').orderBy('date', 'desc');
+    query.get().then(function(snapshot) {
         var items = [];
         snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
+        if (classFilter) items = items.filter(function(c) { return c.studentClass === classFilter; });
+        if (monthFilter) items = items.filter(function(c) { return c.date && c.date.startsWith(monthFilter); });
         if (items.length === 0) { container.innerHTML = '<div class="alert alert-info">📭 Belum ada konseling.</div>'; return; }
         var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Masalah</th><th>Hasil</th><th>Aksi</th></tr></thead><tbody>';
         for (var i = 0; i < items.length; i++) {
@@ -785,7 +827,7 @@ function loadCounseling() {
         }
         html += '</tbody></table></div>';
         container.innerHTML = html;
-    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
 
 function saveCounseling() {
@@ -803,7 +845,7 @@ function saveCounseling() {
         createdAt: new Date().toISOString()
     }).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Berhasil!</div>';
-        setTimeout(function() { closeModal('counselingModal'); loadCounseling(); updateDashboard(); }, 1000);
+        setTimeout(function() { closeModal('counselingModal'); loadCounseling(); updateDashboard(); }, 800);
     }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
 }
 
@@ -836,7 +878,7 @@ function loadParentCalls() {
         }
         html += '</tbody></table></div>';
         container.innerHTML = html;
-    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
 
 function saveParentCall() {
@@ -854,8 +896,8 @@ function saveParentCall() {
         createdAt: new Date().toISOString()
     }).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Berhasil!</div>';
-        setTimeout(function() { closeModal('parentCallModal'); loadParentCalls(); updateDashboard(); }, 1000);
-    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+        setTimeout(function() { closeModal('parentCallModal'); loadParentCalls(); updateDashboard(); }, 800);
+    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
 
 function deleteParentCall(id) {
@@ -887,7 +929,7 @@ function loadHomeVisits() {
         }
         html += '</tbody></table></div>';
         container.innerHTML = html;
-    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
 
 function saveHomeVisit() {
@@ -905,8 +947,8 @@ function saveHomeVisit() {
         createdAt: new Date().toISOString()
     }).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Berhasil!</div>';
-        setTimeout(function() { closeModal('homeVisitModal'); loadHomeVisits(); updateDashboard(); }, 1000);
-    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+        setTimeout(function() { closeModal('homeVisitModal'); loadHomeVisits(); updateDashboard(); }, 800);
+    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
 
 function deleteHomeVisit(id) {
@@ -927,9 +969,16 @@ function updateHomeVisitStudent() {
 // ============ INCIDENT ============
 function loadIncidents() {
     var container = document.getElementById('incidentList');
+    var classFilter = document.getElementById('filterIncidentClass').value;
+    var typeFilter = document.getElementById('filterIncidentType').value;
+    var monthFilter = document.getElementById('filterIncidentMonth').value;
+    
     db.collection('incidents').orderBy('date', 'desc').get().then(function(snapshot) {
         var items = [];
         snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
+        if (classFilter) items = items.filter(function(c) { return c.studentClass === classFilter; });
+        if (typeFilter) items = items.filter(function(c) { return c.type === typeFilter; });
+        if (monthFilter) items = items.filter(function(c) { return c.date && c.date.startsWith(monthFilter); });
         if (items.length === 0) { container.innerHTML = '<div class="alert alert-info">📭 Belum ada kejadian.</div>'; return; }
         var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Deskripsi</th><th>Aksi</th></tr></thead><tbody>';
         for (var i = 0; i < items.length; i++) {
@@ -938,7 +987,7 @@ function loadIncidents() {
         }
         html += '</tbody></table></div>';
         container.innerHTML = html;
-    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
 
 function saveIncident() {
@@ -956,8 +1005,8 @@ function saveIncident() {
         createdAt: new Date().toISOString()
     }).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Berhasil!</div>';
-        setTimeout(function() { closeModal('incidentModal'); loadIncidents(); updateDashboard(); }, 1000);
-    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+        setTimeout(function() { closeModal('incidentModal'); loadIncidents(); updateDashboard(); }, 800);
+    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
 
 function deleteIncident(id) {
@@ -978,9 +1027,14 @@ function updateIncidentStudent() {
 // ============ MUTATION ============
 function loadMutations() {
     var container = document.getElementById('mutationList');
+    var classFilter = document.getElementById('filterMutationClass').value;
+    var monthFilter = document.getElementById('filterMutationMonth').value;
+    
     db.collection('mutations').orderBy('date', 'desc').get().then(function(snapshot) {
         var items = [];
         snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
+        if (classFilter) items = items.filter(function(m) { return m.studentClass === classFilter; });
+        if (monthFilter) items = items.filter(function(m) { return m.date && m.date.startsWith(monthFilter); });
         if (items.length === 0) { container.innerHTML = '<div class="alert alert-info">📭 Belum ada mutasi.</div>'; return; }
         var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Alasan</th><th>Aksi</th></tr></thead><tbody>';
         for (var i = 0; i < items.length; i++) {
@@ -990,7 +1044,7 @@ function loadMutations() {
         }
         html += '</tbody></table></div>';
         container.innerHTML = html;
-    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
 
 function saveMutation() {
@@ -1008,8 +1062,8 @@ function saveMutation() {
         createdAt: new Date().toISOString()
     }).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Berhasil!</div>';
-        setTimeout(function() { closeModal('mutationModal'); loadMutations(); updateDashboard(); }, 1000);
-    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+        setTimeout(function() { closeModal('mutationModal'); loadMutations(); updateDashboard(); }, 800);
+    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
 
 function deleteMutation(id) {
@@ -1030,9 +1084,14 @@ function updateMutationStudent() {
 // ============ GRADUATION ============
 function loadGraduations() {
     var container = document.getElementById('graduationList');
+    var yearFilter = document.getElementById('filterGraduationYear').value;
+    var pathFilter = document.getElementById('filterGraduationPath').value;
+    
     db.collection('graduations').orderBy('year', 'desc').get().then(function(snapshot) {
         var items = [];
         snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
+        if (yearFilter) items = items.filter(function(g) { return g.year === yearFilter; });
+        if (pathFilter) items = items.filter(function(g) { return g.path === pathFilter; });
         if (items.length === 0) { container.innerHTML = '<div class="alert alert-info">📭 Belum ada lulusan.</div>'; return; }
         var html = '<div class="table-wrap"><table><thead><tr><th>Tahun</th><th>Siswa</th><th>Kelas</th><th>Jalur</th><th>Kampus</th><th>Jurusan</th><th>Aksi</th></tr></thead><tbody>';
         for (var i = 0; i < items.length; i++) {
@@ -1042,7 +1101,7 @@ function loadGraduations() {
         }
         html += '</tbody></table></div>';
         container.innerHTML = html;
-    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
 
 function saveGraduation() {
@@ -1060,8 +1119,8 @@ function saveGraduation() {
         createdAt: new Date().toISOString()
     }).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Berhasil!</div>';
-        setTimeout(function() { closeModal('graduationModal'); loadGraduations(); updateDashboard(); }, 1000);
-    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+        setTimeout(function() { closeModal('graduationModal'); loadGraduations(); updateDashboard(); }, 800);
+    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
 
 function deleteGraduation(id) {
@@ -1082,9 +1141,21 @@ function updateGraduationStudent() {
 // ============ PRESENSI ============
 function loadPresensi() {
     var container = document.getElementById('presensiList');
-    db.collection('presensiHarian').orderBy('tanggal', 'desc').limit(20).get().then(function(snapshot) {
+    var classFilter = document.getElementById('filterPresensiClass').value;
+    var dateFilter = document.getElementById('filterPresensiDate').value;
+    
+    if (!dateFilter) {
+        var today = new Date().toISOString().split('T')[0];
+        document.getElementById('filterPresensiDate').value = today;
+        dateFilter = today;
+    }
+    
+    var query = db.collection('presensiHarian').orderBy('tanggal', 'desc').limit(30);
+    query.get().then(function(snapshot) {
         var items = [];
         snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
+        if (classFilter) items = items.filter(function(p) { return p.kelas === classFilter; });
+        if (dateFilter) items = items.filter(function(p) { return p.tanggal === dateFilter; });
         if (items.length === 0) { container.innerHTML = '<div class="alert alert-info">📭 Belum ada presensi.</div>'; return; }
         var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alfa</th><th>Aksi</th></tr></thead><tbody>';
         for (var i = 0; i < items.length; i++) {
@@ -1102,37 +1173,12 @@ function loadPresensi() {
         }
         html += '</tbody></table></div>';
         container.innerHTML = html;
-    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
 
 function deletePresensi(id) {
     if (!confirm('Yakin ingin menghapus presensi ini?')) return;
     db.collection('presensiHarian').doc(id).delete().then(function() { loadPresensi(); updateDashboard(); }).catch(function(err) { alert('Gagal: ' + err.message); });
-}
-
-function openPresensiLink() {
-    var link = 'https://' + window.location.host + window.location.pathname.replace('dashboard.html', '') + '?mode=presensi';
-    window.open(link, '_blank');
-}
-
-// ============ REPORT ============
-function generateReport() {
-    var container = document.getElementById('reportContent');
-    container.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat laporan...</div>';
-    
-    var totalSiswa = allStudents.length;
-    var totalGuru = allTeachers.length;
-    
-    var html = '<div class="panel" style="margin-top:8px;">';
-    html += '<h3 style="color:#0d3b6b;">📊 Laporan Perkembangan Siswa</h3>';
-    html += '<p style="color:#666;font-size:13px;">Tanggal: ' + new Date().toLocaleDateString('id-ID') + '</p>';
-    html += '<div class="stats-grid" style="margin-top:12px;">';
-    html += '<div class="stat-card"><div class="number">' + totalSiswa + '</div><div class="label">Total Siswa</div></div>';
-    html += '<div class="stat-card success"><div class="number success">' + totalGuru + '</div><div class="label">Guru BK</div></div>';
-    html += '</div>';
-    html += '<div class="alert alert-info">💡 Laporan lengkap akan segera hadir di update selanjutnya.</div>';
-    html += '</div>';
-    container.innerHTML = html;
 }
 
 // ============ DASHBOARD ============
@@ -1145,6 +1191,113 @@ function updateDashboard() {
     db.collection('graduations').get().then(function(snapshot) { document.getElementById('statGraduations').textContent = snapshot.size; });
     var today = new Date().toISOString().split('T')[0];
     db.collection('presensiHarian').where('tanggal', '==', today).get().then(function(snapshot) { document.getElementById('statPresensi').textContent = snapshot.size; });
+    loadRecentActivities();
+}
+
+function loadRecentActivities() {
+    var container = document.getElementById('recentActivities');
+    db.collection('presensiHarian').orderBy('createdAt', 'desc').limit(5).get().then(function(snapshot) {
+        var html = '';
+        var count = 0;
+        snapshot.forEach(function(doc) {
+            var data = doc.data();
+            var total = data.siswa ? data.siswa.length : 0;
+            var hadir = 0;
+            if (data.siswa) {
+                for (var i = 0; i < data.siswa.length; i++) {
+                    if (data.siswa[i].status === 'Hadir') hadir++;
+                }
+            }
+            html += '<div style="display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid #eee;font-size:12px;">';
+            html += '<span>📋 Presensi <strong>' + data.kelas + '</strong> - ' + hadir + '/' + total + ' hadir</span>';
+            html += '<span style="color:#999;font-size:10px;">' + new Date(data.tanggal).toLocaleDateString('id-ID') + '</span>';
+            html += '</div>';
+            count++;
+        });
+        if (count === 0) {
+            container.innerHTML = '<div class="alert alert-info">Belum ada aktivitas.</div>';
+        } else {
+            container.innerHTML = html;
+        }
+    }).catch(function(err) {
+        container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
+    });
+}
+
+// ============ SETTINGS ============
+function saveSettings() {
+    var name = document.getElementById('settingsSchool').value.trim();
+    var year = document.getElementById('settingsYear').value.trim();
+    schoolData = { name: name, year: year, address: '' };
+    saveSchoolData(schoolData);
+    alert('✅ Pengaturan berhasil disimpan!');
+}
+
+function loadUsersList() {
+    var users = getUsers();
+    var container = document.getElementById('userList');
+    var emails = Object.keys(users);
+    if (emails.length === 0) { container.innerHTML = '<div class="alert alert-info">Belum ada pengguna.</div>'; return; }
+    var html = '<div style="max-height:200px;overflow-y:auto;font-size:12px;">';
+    for (var i = 0; i < emails.length; i++) {
+        var email = emails[i];
+        var user = users[email];
+        html += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;">';
+        html += '<span>' + email + '</span>';
+        html += '<span style="color:#999;font-size:10px;">' + (user.school || '-') + '</span>';
+        html += '</div>';
+    }
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function exportAllData() {
+    var data = { school: schoolData, users: getUsers(), exportedAt: new Date().toISOString() };
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'backup-sim-bk-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    alert('✅ Backup berhasil!');
+}
+
+function restoreData(event) {
+    var file = event.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            var data = JSON.parse(e.target.result);
+            if (data.school) saveSchoolData(data.school);
+            if (data.users) saveUsers(data.users);
+            alert('✅ Data berhasil dipulihkan! Halaman akan dimuat ulang.');
+            location.reload();
+        } catch(err) { alert('❌ File tidak valid: ' + err.message); }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+function resetAllData() {
+    if (!confirm('⚠️ Yakin ingin menghapus SEMUA data?')) return;
+    if (!confirm('⚠️ Konfirmasi terakhir: Hapus semua data?')) return;
+    var collections = ['students', 'teachers', 'counseling', 'parentCalls', 'homeVisits', 'incidents', 'mutations', 'graduations', 'presensiHarian'];
+    var promises = [];
+    for (var i = 0; i < collections.length; i++) {
+        var col = collections[i];
+        promises.push(db.collection(col).get().then(function(snapshot, colName) {
+            return function() { snapshot.forEach(function(doc) { db.collection(colName).doc(doc.id).delete(); }); };
+        }(col)));
+    }
+    Promise.all(promises).then(function() {
+        localStorage.removeItem('SIMBK_SCHOOL');
+        localStorage.removeItem('SIMBK_USERS');
+        localStorage.removeItem('SIMBK_SESSION');
+        alert('✅ Semua data direset. Halaman dimuat ulang.');
+        location.reload();
+    }).catch(function(err) { alert('❌ Gagal reset: ' + err.message); });
 }
 
 // ============ PRESENSI MODE ============
@@ -1159,10 +1312,9 @@ function updateDashboard() {
         
         var div = document.createElement('div');
         div.className = 'container';
-        div.innerHTML = '<div class="panel"><h2>📋 Form Presensi</h2><div id="presensiModeContent"><div class="loading"><span class="spinner"></span> Memuat...</div></div></div>';
+        div.innerHTML = '<div class="panel"><h2 style="font-size:16px;color:#0d3b6b;margin-bottom:12px;">📋 Form Presensi</h2><div id="presensiModeContent"><div class="loading"><span class="spinner"></span> Memuat...</div></div></div>';
         document.querySelector('.container').appendChild(div);
         
-        // Load data siswa untuk presensi
         db.collection('students').orderBy('class').orderBy('name').get().then(function(snapshot) {
             var students = [];
             var classes = new Set();
@@ -1172,6 +1324,7 @@ function updateDashboard() {
                 students.push(data);
                 if (data.class) classes.add(data.class);
             });
+            window._presensiStudents = students;
             
             var today = new Date().toISOString().split('T')[0];
             var html = '<div class="form-group"><label>📚 Pilih Kelas</label><select id="presensiKelas" class="form-control" onchange="loadPresensiSiswa()"><option value="">Pilih Kelas</option>';
@@ -1181,13 +1334,10 @@ function updateDashboard() {
             }
             html += '</select></div>';
             html += '<div class="form-group"><label>📅 Tanggal</label><input type="date" id="presensiTanggal" class="form-control" value="' + today + '" onchange="loadPresensiSiswa()"></div>';
-            html += '<div id="presensiFormContent"></div>';
+            html += '<div id="presensiFormContent"><div class="alert alert-info">Pilih kelas dan tanggal</div></div>';
             document.getElementById('presensiModeContent').innerHTML = html;
-            
-            // Simpan students ke global
-            window._presensiStudents = students;
         }).catch(function(err) {
-            document.getElementById('presensiModeContent').innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>';
+            document.getElementById('presensiModeContent').innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
         });
     }
 })();
@@ -1209,25 +1359,25 @@ function loadPresensiSiswa() {
         return;
     }
     
-    var html = '<div style="margin-top:12px;"><h3 style="font-size:14px;color:#0d3b6b;">📋 Presensi ' + kelas + ' - ' + new Date(tanggal).toLocaleDateString('id-ID') + '</h3>';
-    html += '<button class="btn btn-success btn-sm" onclick="setAllHadir()" style="margin:8px 0;padding:4px 12px;">✅ Semua Hadir</button>';
+    var html = '<div style="margin-top:8px;"><h3 style="font-size:14px;color:#0d3b6b;">📋 ' + kelas + ' - ' + new Date(tanggal).toLocaleDateString('id-ID') + '</h3>';
+    html += '<button class="btn btn-success btn-sm" onclick="setAllHadir()" style="margin:6px 0;padding:4px 12px;">✅ Semua Hadir</button>';
     html += '<div class="table-wrap" style="max-height:400px;"><table><thead><tr><th>No</th><th>Nama</th><th>Status</th><th>Keterangan</th></tr></thead><tbody>';
     for (var i = 0; i < filtered.length; i++) {
         var s = filtered[i];
         html += '<tr>';
         html += '<td>' + (i + 1) + '</td>';
         html += '<td><strong>' + s.name + '</strong></td>';
-        html += '<td><select class="form-control" style="width:120px;padding:4px 8px;font-size:12px;" id="ps_' + i + '">';
+        html += '<td><select class="form-control" style="width:110px;padding:4px 6px;font-size:11px;" id="ps_' + i + '">';
         html += '<option value="Hadir">✅ Hadir</option>';
         html += '<option value="Sakit">🤒 Sakit</option>';
         html += '<option value="Izin">📝 Izin</option>';
         html += '<option value="Alfa">❌ Alfa</option>';
         html += '</select></td>';
-        html += '<td><input type="text" class="form-control" style="width:150px;padding:4px 8px;font-size:12px;" id="pn_' + i + '" placeholder="Keterangan"></td>';
+        html += '<td><input type="text" class="form-control" style="width:130px;padding:4px 6px;font-size:11px;" id="pn_' + i + '" placeholder="Keterangan"></td>';
         html += '</tr>';
     }
     html += '</tbody></table></div>';
-    html += '<button class="btn btn-success" onclick="kirimPresensiSiswa()" style="margin-top:12px;">📤 Kirim Presensi</button>';
+    html += '<button class="btn btn-success" onclick="kirimPresensiSiswa()" style="margin-top:8px;">📤 Kirim Presensi</button>';
     html += '<div id="presensiAlert" style="margin-top:8px;"></div>';
     html += '</div>';
     container.innerHTML = html;
@@ -1235,10 +1385,10 @@ function loadPresensiSiswa() {
 
 function setAllHadir() {
     var selects = document.querySelectorAll('#presensiFormContent select');
-    var inputs = document.querySelectorAll('#presensiFormContent input');
     for (var i = 0; i < selects.length; i++) {
         if (selects[i].id && selects[i].id.startsWith('ps_')) selects[i].value = 'Hadir';
     }
+    var inputs = document.querySelectorAll('#presensiFormContent input[type="text"]');
     for (var j = 0; j < inputs.length; j++) {
         if (inputs[j].id && inputs[j].id.startsWith('pn_')) inputs[j].value = '';
     }
@@ -1279,6 +1429,11 @@ function kirimPresensiSiswa() {
 }
 
 // ============ LOAD AWAL ============
+// Tampilkan link presensi
+var baseUrl = window.location.href.replace('dashboard.html', '');
+document.getElementById('presensiLinkDisplay').value = baseUrl + '?mode=presensi';
+
+// Load data
 loadStudents();
 loadTeachers();
 loadCounseling();
@@ -1289,9 +1444,10 @@ loadMutations();
 loadGraduations();
 loadPresensi();
 updateDashboard();
+loadUsersList();
 
-console.log('✅ SIM BK siap digunakan!');
-console.log('🔗 Link Presensi: ' + window.location.href.replace('dashboard.html', '') + '?mode=presensi');
+console.log('✅ SIM BK siap digunakan! (Tanpa menu Laporan)');
+console.log('🔗 Link Presensi: ' + baseUrl + '?mode=presensi');
 </script>
 </body>
 </html>
