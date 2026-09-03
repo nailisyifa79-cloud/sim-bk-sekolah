@@ -203,8 +203,8 @@
                 <label>🔒 Password</label>
                 <input type="password" id="loginPassword" class="form-control" placeholder="Masukkan password" value="admin123">
             </div>
-            <button class="btn btn-primary btn-block" id="btnLogin">🚀 Masuk</button>
-            <div class="toggle-link">Belum punya akun? <a id="goToRegister">Daftar di sini</a></div>
+            <button class="btn btn-primary btn-block" onclick="handleLogin()">🚀 Masuk</button>
+            <div class="toggle-link">Belum punya akun? <a onclick="showRegisterPage()">Daftar di sini</a></div>
             <div class="demo-info">💡 <b>Demo:</b> admin@sekolah.com | admin123</div>
         </div>
     </div>
@@ -231,8 +231,8 @@
                 <label>🏫 Nama Sekolah <span class="required">*</span></label>
                 <input type="text" id="registerSchool" class="form-control" placeholder="Nama sekolah">
             </div>
-            <button class="btn btn-success btn-block" id="btnRegister">📝 Daftar</button>
-            <div class="toggle-link">Sudah punya akun? <a id="goToLogin">Masuk di sini</a></div>
+            <button class="btn btn-success btn-block" onclick="handleRegister()">📝 Daftar</button>
+            <div class="toggle-link">Sudah punya akun? <a onclick="showLoginPage()">Masuk di sini</a></div>
         </div>
     </div>
 
@@ -378,7 +378,7 @@
             <div class="panel">
                 <div class="panel-header"><h2>📊 Laporan Perkembangan Siswa</h2><div class="actions"><button class="btn btn-success" onclick="generateReport()">📄 Generate Laporan</button><button class="btn btn-outline" onclick="printReport()">🖨️ Cetak</button></div></div>
                 <div class="form-row">
-                    <div><label>Periode Laporan</label><select id="reportPeriod" class="form-control"><option value="weekly">Mingguan</option><option value="monthly" selected>Bulanan</option><option value="semester">Semester</option></select></div>
+                    <div><label>Periode Laporan</label><select id="reportPeriod" class="form-control" onchange="generateReport()"><option value="weekly">Mingguan</option><option value="monthly" selected>Bulanan</option><option value="semester">Semester</option></select></div>
                     <div><label>Kelas</label><select id="reportClass" class="form-control" onchange="generateReport()"><option value="">Semua Kelas</option></select></div>
                     <div><label>Jenis Laporan</label><select id="reportType" class="form-control" onchange="generateReport()"><option value="all">Semua</option><option value="counseling">Konseling</option><option value="homevisit">Home Visit</option><option value="incident">Kejadian</option><option value="mutation">Mutasi</option><option value="graduation">Lulusan SNBP/SNBT</option><option value="presensi">Presensi</option></select></div>
                 </div>
@@ -416,7 +416,7 @@
 
     <div class="modal-overlay" id="teacherModal"><div class="modal-box"><div class="modal-header"><h2>➕ Tambah Guru BK</h2><button class="close-btn" onclick="closeModal('teacherModal')">&times;</button></div><div id="teacherModalAlert"></div><div class="form-group"><label>Nama Guru <span class="required">*</span></label><input type="text" id="teacherName" class="form-control" placeholder="Nama lengkap"></div><div class="form-group"><label>Kelas yang Dipegang <span class="required">*</span></label><input type="text" id="teacherClasses" class="form-control" placeholder="Pisahkan dengan koma: 10 IPA 1, 10 IPA 2"></div><button class="btn btn-success" onclick="saveTeacher()">💾 Simpan</button></div></div>
 
-    <!-- COUNSELING MODAL - Kelas di atas, Siswa di bawah -->
+    <!-- COUNSELING MODAL -->
     <div class="modal-overlay" id="counselingModal"><div class="modal-box"><div class="modal-header"><h2>📋 Konseling Individu</h2><button class="close-btn" onclick="closeModal('counselingModal')">&times;</button></div><div id="counselingModalAlert"></div><div class="form-group"><label>Kelas <span class="required">*</span></label><select id="counselingClassSelect" class="form-control" onchange="updateCounselingStudent()"><option value="">Pilih Kelas</option></select></div><div class="form-group"><label>Siswa <span class="required">*</span></label><select id="counselingStudent" class="form-control"><option value="">Pilih Siswa</option></select></div><div class="form-group"><label>Tanggal Konseling <span class="required">*</span></label><input type="date" id="counselingDate" class="form-control"></div><div class="form-group"><label>Masalah <span class="required">*</span></label><textarea id="counselingProblem" class="form-control" placeholder="Deskripsikan masalah siswa"></textarea></div><div class="form-group"><label>Hasil Konseling <span class="required">*</span></label><textarea id="counselingResult" class="form-control" placeholder="Hasil dari sesi konseling"></textarea></div><div class="form-group"><label>Tindak Lanjut</label><textarea id="counselingFollowUp" class="form-control" placeholder="Rencana tindak lanjut"></textarea></div><button class="btn btn-success" onclick="saveCounseling()">💾 Simpan</button></div></div>
 
     <!-- PARENT CALL MODAL -->
@@ -644,30 +644,15 @@ function checkSession() {
 
 // ============ EVENT LISTENER ============
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('btnLogin').addEventListener('click', handleLogin);
-    document.getElementById('loginPassword').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') handleLogin();
-    });
-    document.getElementById('loginEmail').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') handleLogin();
-    });
-    
-    document.getElementById('btnRegister').addEventListener('click', handleRegister);
-    document.getElementById('registerPassword').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') handleRegister();
-    });
-    
-    document.getElementById('goToRegister').addEventListener('click', showRegisterPage);
-    document.getElementById('goToLogin').addEventListener('click', showLoginPage);
+    // Cek session
+    if (!checkSession()) {
+        showLoginPage();
+    }
     
     // Set tanggal hari ini untuk presensi siswa
     var today = new Date().toISOString().split('T')[0];
     var presensiTanggal = document.getElementById('presensiTanggal');
     if (presensiTanggal) presensiTanggal.value = today;
-    
-    if (!checkSession()) {
-        showLoginPage();
-    }
 });
 
 // ============ LOAD DATA ============
@@ -687,7 +672,6 @@ function loadAllData() {
     populateClassDropdowns();
     populateGraduationYearFilter();
     populatePresensiKelas();
-    // Generate report otomatis saat pertama kali buka
     setTimeout(generateReport, 1500);
 }
 
@@ -798,7 +782,6 @@ function openModal(id) {
     document.getElementById(id + 'Alert').innerHTML = '';
     var today = new Date().toISOString().split('T')[0];
     
-    // Reset dropdown siswa
     if (id === 'counselingModal') { populateClassDropdowns(); document.getElementById('counselingDate').value = today; updateCounselingStudent(); }
     else if (id === 'parentCallModal') { populateClassDropdowns(); document.getElementById('parentCallDate').value = today; updateParentCallStudent(); }
     else if (id === 'homeVisitModal') { populateClassDropdowns(); document.getElementById('homeVisitDate').value = today; updateHomeVisitStudent(); }
@@ -1829,7 +1812,7 @@ function generateReport() {
     } else if (period === 'monthly') {
         startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
         endDate = now.toISOString().split('T')[0];
-    } else { // semester
+    } else {
         var month = now.getMonth();
         var year = now.getFullYear();
         if (month < 6) {
@@ -1840,7 +1823,6 @@ function generateReport() {
         endDate = now.toISOString().split('T')[0];
     }
     
-    // Kumpulkan data dari semua koleksi
     var collections = ['counseling', 'homeVisits', 'incidents', 'mutations', 'graduations', 'presensiHarian'];
     var collectionNames = ['Konseling', 'Home Visit', 'Kejadian', 'Mutasi', 'Lulusan SNBP/SNBT', 'Presensi'];
     
@@ -1883,7 +1865,6 @@ function generateReport() {
         html += '</div>';
         html += '</div>';
         
-        // Statistik Ringkas
         html += '<div class="stats-grid" style="margin-bottom:12px;">';
         var totalItems = 0;
         for (var key in allData) {
@@ -1903,7 +1884,6 @@ function generateReport() {
         }
         html += '</div>';
         
-        // Detail per kategori
         for (var key in allData) {
             var items = allData[key];
             if (!items || items.length === 0) continue;
@@ -1980,7 +1960,6 @@ function generateReport() {
             html += '</tbody></table></div>';
         }
         
-        // Jika tidak ada data
         if (totalItems === 0) {
             html += '<div class="alert alert-info">📭 Belum ada data untuk periode dan filter yang dipilih.</div>';
         }
@@ -2126,7 +2105,6 @@ function resetAllData() {
         document.querySelector('.app-container').style.padding = '0';
         document.getElementById('app').classList.add('presensi-mode-only');
         
-        // Set tanggal hari ini
         var today = new Date().toISOString().split('T')[0];
         document.getElementById('presensiTanggal').value = today;
         
@@ -2157,15 +2135,8 @@ db.collection('students').onSnapshot(function() {
     populatePresensiKelas();
 });
 
-console.log('✅ SIM BK siap digunakan (Optimasi + Pagination + Hapus Massal)!');
-console.log('📌 Fitur Presensi dengan pilihan tanggal!');
+console.log('✅ SIM BK siap digunakan');
 console.log('🔗 Link Presensi: https://nailisyifa79-cloud.github.io/sim-bk-sekolah/?mode=presensi');
-console.log('✏️ Ketua kelas bisa EDIT presensi jika salah!');
-console.log('🔒 HANYA form presensi yang muncul untuk siswa!');
-console.log('📊 Pagination 50 siswa per halaman, search & filter berfungsi!');
-console.log('🗑️ Fitur hapus massal dengan checkbox!');
-console.log('✏️ Guru BK bisa EDIT & HAPUS presensi dari laporan!');
-console.log('📊 Laporan akhir bisa generate dan cetak!');
 </script>
 </body>
 </html>
