@@ -7,6 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f0f4f8; color: #1a2a3a; display: flex; flex-direction: column; min-height: 100vh; }
@@ -563,6 +564,8 @@
                     <div class="actions">
                         <button class="btn btn-primary" onclick="openModal('studentModal')">➕ Tambah Siswa</button>
                         <button class="btn btn-success" onclick="openModal('bulkStudentModal')">📋 Tambah Per Kelas</button>
+                        <button class="btn btn-warning" onclick="document.getElementById('importAllInput').click()">📥 Impor Semua Siswa</button>
+                        <input type="file" id="importAllInput" accept=".csv" style="display:none" onchange="importAllStudents(event)">
                     </div>
                 </div>
                 <div class="form-row" style="margin-bottom:12px;">
@@ -1053,9 +1056,10 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 var storage = firebase.storage();
+var auth = firebase.auth();
 
 // ============================================================
-// AUTHENTICATION - localStorage
+// AUTHENTICATION
 // ============================================================
 var USER_KEY = 'SIMBK_USERS';
 var SESSION_KEY = 'SIMBK_SESSION';
@@ -1075,9 +1079,6 @@ function getSchoolData() {
 }
 function saveSchoolData(data) { localStorage.setItem(SCHOOL_KEY, JSON.stringify(data)); }
 
-// ============================================================
-// STATE
-// ============================================================
 var currentUser = null;
 var schoolData = { name: '', year: '', address: '' };
 var allStudents = [];
@@ -1269,7 +1270,6 @@ function populateClassDropdowns() {
         }
     }
     
-    // Populate student dropdowns based on class filter
     populateFilteredStudents('counselingStudent', document.getElementById('counselingClassSelect').value);
     populateFilteredStudents('parentCallStudent', document.getElementById('parentCallClassSelect').value);
     populateFilteredStudents('homeVisitStudent', document.getElementById('homeVisitClassSelect').value);
@@ -1301,22 +1301,18 @@ function updateCounselingStudent() {
     var classVal = document.getElementById('counselingClassSelect').value;
     populateFilteredStudents('counselingStudent', classVal);
 }
-
 function updateParentCallStudent() {
     var classVal = document.getElementById('parentCallClassSelect').value;
     populateFilteredStudents('parentCallStudent', classVal);
 }
-
 function updateHomeVisitStudent() {
     var classVal = document.getElementById('homeVisitClassSelect').value;
     populateFilteredStudents('homeVisitStudent', classVal);
 }
-
 function updateIncidentStudent() {
     var classVal = document.getElementById('incidentClassSelect').value;
     populateFilteredStudents('incidentStudent', classVal);
 }
-
 function updateMutationStudent() {
     var classVal = document.getElementById('mutationClassSelect').value;
     populateFilteredStudents('mutationStudent', classVal);
@@ -1531,6 +1527,100 @@ function loadStudents() {
         });
 }
 
+// ============================================================
+// IMPOR SEMUA SISWA SEKALIGUS (DARI CSV)
+// ============================================================
+function importAllStudents(event) {
+    var file = event.target.files[0];
+    if (!file) return;
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var text = e.target.result;
+        var lines = text.split('\n');
+        
+        // Cek header
+        var header = lines[0].trim().toLowerCase();
+        var hasClass = header.includes('class');
+        var hasName = header.includes('name');
+        
+        var students = [];
+        var startRow = (hasClass && hasName) ? 1 : 0;
+        
+        for (var i = startRow; i < lines.length; i++) {
+            var line = lines[i].trim();
+            if (!line) continue;
+            
+            var parts = line.split(',');
+            var className = parts[0] ? parts[0].trim() : '';
+            var name = parts[1] ? parts[1].trim() : '';
+            
+            // Jika header tidak ada, coba tebak format: class,name
+            if (!hasClass && !hasName) {
+                className = parts[0] ? parts[0].trim() : '';
+                name = parts[1] ? parts[1].trim() : '';
+            }
+            
+            if (className && name) {
+                students.push({ class: className, name: name });
+            }
+        }
+        
+        if (students.length === 0) {
+            alert('⚠️ Tidak ada data yang ditemukan. Pastikan format: class,name');
+            return;
+        }
+        
+        // Konfirmasi sebelum menyimpan
+        var confirmMsg = '📋 ' + students.length + ' siswa akan ditambahkan.\n\n';
+        var classCount = {};
+        for (var j = 0; j < students.length; j++) {
+            var c = students[j].class;
+            if (!classCount[c]) classCount[c] = 0;
+            classCount[c]++;
+        }
+        for (var cls in classCount) {
+            confirmMsg += '📚 ' + cls + ': ' + classCount[cls] + ' siswa\n';
+        }
+        confirmMsg += '\nLanjutkan?';
+        
+        if (!confirm(confirmMsg)) return;
+        
+        // Simpan ke Firestore
+        var container = document.getElementById('studentList');
+        container.innerHTML = '<div class="loading"><span class="spinner"></span> Menyimpan ' + students.length + ' siswa...</div>';
+        
+        var promises = [];
+        var year = schoolData.year || '2025/2026';
+        var school = schoolData.name || 'Sekolah';
+        
+        for (var k = 0; k < students.length; k++) {
+            var s = students[k];
+            promises.push(
+                db.collection('students').add({
+                    name: s.name,
+                    class: s.class,
+                    year: year,
+                    nisn: '',
+                    gender: 'L',
+                    createdAt: new Date().toISOString(),
+                    school: school
+                })
+            );
+        }
+        
+        Promise.all(promises).then(function() {
+            container.innerHTML = '<div class="alert alert-success">✅ ' + students.length + ' siswa berhasil ditambahkan!</div>';
+            loadStudents();
+            updateDashboard();
+        }).catch(function(err) {
+            container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
+        });
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
 function saveStudent() {
     var name = document.getElementById('studentName').value.trim();
     var classVal = document.getElementById('studentClass').value.trim();
@@ -1625,7 +1715,7 @@ function deleteStudent(id) {
 }
 
 // ============================================================
-// TEACHER FUNCTIONS (sama seperti sebelumnya)
+// TEACHER FUNCTIONS
 // ============================================================
 function loadTeachers() {
     var container = document.getElementById('teacherList');
@@ -2743,7 +2833,7 @@ function loadRecentActivities() {
 }
 
 // ============================================================
-// REPORTS (updated with mutation)
+// REPORTS
 // ============================================================
 function populateReportFilters() {
     var classSelect = document.getElementById('reportClass');
