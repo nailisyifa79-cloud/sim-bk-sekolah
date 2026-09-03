@@ -398,6 +398,38 @@
             font-size: 13px;
         }
         
+        .absent-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            padding: 8px;
+            margin: 8px 0;
+        }
+        .absent-list .absent-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .absent-list .absent-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .absent-list .absent-item .a-name {
+            flex: 1;
+            font-size: 13px;
+        }
+        .absent-list .absent-item .a-note {
+            width: 150px;
+            padding: 4px 8px;
+            border: 1px solid var(--gray-light);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
         @media (max-width: 768px) {
             .header { flex-direction: column; align-items: stretch; text-align: center; }
             .header-info { justify-content: center; }
@@ -408,6 +440,8 @@
             .form-row { grid-template-columns: 1fr; }
             .settings-grid { grid-template-columns: 1fr; }
             .modal-box { padding: 20px; }
+            .absent-list .absent-item { flex-wrap: wrap; }
+            .absent-list .absent-item .a-note { width: 100%; }
         }
         @media print {
             .no-print { display: none !important; }
@@ -862,13 +896,18 @@
             </div>
             <div class="form-group">
                 <label>Kelas <span class="required">*</span></label>
-                <select id="attendanceClass" class="form-control" onchange="loadAttendanceStudents()"></select>
+                <select id="attendanceClass" class="form-control" onchange="loadAttendanceStudents()">
+                    <option value="">Pilih Kelas</option>
+                </select>
             </div>
             <div class="form-group">
-                <label>Status Kehadiran</label>
+                <label>Mode Pengisian</label>
                 <div style="display:flex;gap:12px;flex-wrap:wrap;margin:8px 0;">
-                    <button class="btn btn-success btn-sm" onclick="setAllAttendance('Hadir')">✅ Semua Hadir</button>
-                    <button class="btn btn-danger btn-sm" onclick="setAllAttendance('Alfa')">❌ Semua Tidak Hadir</button>
+                    <button class="btn btn-success btn-sm" onclick="setAllPresent()">✅ Semua Hadir</button>
+                    <button class="btn btn-warning btn-sm" onclick="toggleAbsentMode()">❌ Pilih Tidak Hadir</button>
+                </div>
+                <div id="absentModeInfo" class="alert alert-info" style="display:none;font-size:12px;">
+                    ⚠️ Centang nama siswa yang <b>TIDAK HADIR</b>, lalu isi alasan di kolom keterangan.
                 </div>
             </div>
             <div id="attendanceStudentList"></div>
@@ -984,6 +1023,7 @@ var schoolData = { name: '', year: '', address: '' };
 var allStudents = [];
 var allTeachers = [];
 var photoFiles = {};
+var absentMode = false;
 
 // ============================================================
 // AUTH FUNCTIONS
@@ -1125,6 +1165,7 @@ function loadAllData() {
     updateDashboard();
     loadUsersList();
     populateYearFilter();
+    populateClassDropdowns();
 }
 
 function populateYearFilter() {
@@ -1133,6 +1174,38 @@ function populateYearFilter() {
     yearSelect.innerHTML = '<option value="">Semua</option>';
     for (var i = 0; i < years.length; i++) {
         yearSelect.innerHTML += '<option value="' + years[i] + '">' + years[i] + '</option>';
+    }
+}
+
+// ============================================================
+// POPULATE CLASS DROPDOWNS - OTOMATIS DARI DATA SISWA
+// ============================================================
+function populateClassDropdowns() {
+    var classes = new Set();
+    for (var i = 0; i < allStudents.length; i++) {
+        if (allStudents[i].class) classes.add(allStudents[i].class);
+    }
+    var classArray = Array.from(classes).sort();
+    
+    // Daftar dropdown yang perlu diisi
+    var dropdownIds = [
+        'filterClass', 'filterCounselingClass', 'filterAttendanceClass', 
+        'filterIncidentClass', 'reportClass', 'attendanceClass'
+    ];
+    
+    for (var d = 0; d < dropdownIds.length; d++) {
+        var select = document.getElementById(dropdownIds[d]);
+        if (!select) continue;
+        var currentVal = select.value;
+        select.innerHTML = '<option value="">Semua Kelas</option>';
+        for (var j = 0; j < classArray.length; j++) {
+            var selected = (classArray[j] === currentVal) ? 'selected' : '';
+            select.innerHTML += '<option value="' + classArray[j] + '" ' + selected + '>' + classArray[j] + '</option>';
+        }
+        // Jika currentVal tidak ada di list, tetap pertahankan
+        if (currentVal && !classArray.includes(currentVal)) {
+            select.value = currentVal;
+        }
     }
 }
 
@@ -1173,6 +1246,8 @@ function openModal(id) {
     photoFiles[id] = [];
     var previewEl = document.getElementById(id.replace('Modal', '') + 'Preview');
     if (previewEl) previewEl.innerHTML = '';
+    absentMode = false;
+    document.getElementById('absentModeInfo').style.display = 'none';
     
     var today = new Date().toISOString().split('T')[0];
     
@@ -1335,14 +1410,8 @@ function loadStudents() {
                 if (data.class) classes.add(data.class);
             });
 
-            var filterSelect = document.getElementById('filterClass');
-            var currentVal = filterSelect.value;
-            filterSelect.innerHTML = '<option value="">Semua Kelas</option>';
-            var classArray = Array.from(classes).sort();
-            for (var i = 0; i < classArray.length; i++) {
-                filterSelect.innerHTML += '<option value="' + classArray[i] + '">' + classArray[i] + '</option>';
-            }
-            filterSelect.value = currentVal;
+            // Update semua dropdown kelas
+            populateClassDropdowns();
 
             var filtered = allStudents;
             if (classFilter) filtered = filtered.filter(function(s) { return s.class === classFilter; });
@@ -1788,7 +1857,7 @@ function deleteParentCall(id) {
 }
 
 // ============================================================
-// ATTENDANCE FUNCTIONS
+// ATTENDANCE FUNCTIONS - DENGAN FITUR ABSEN BARU
 // ============================================================
 function loadAttendance() {
     var date = document.getElementById('filterAttendanceDate').value;
@@ -1843,26 +1912,70 @@ function loadAttendanceStudents() {
         return;
     }
 
-    var html = '<div style="margin-top:8px;"><div style="display:flex;gap:10px;font-weight:600;padding:4px 0;border-bottom:2px solid var(--gray-light);font-size:12px;"><span style="width:30px;">No</span><span style="flex:1;">Nama</span><span style="width:120px;">Status</span><span style="width:120px;">Keterangan</span></div>';
+    // Cek apakah sudah ada data kehadiran untuk tanggal ini
+    var date = document.getElementById('attendanceDate').value;
+    if (date) {
+        db.collection('attendance')
+            .where('date', '==', date)
+            .where('class', '==', classVal)
+            .get()
+            .then(function(snapshot) {
+                var existingData = {};
+                snapshot.forEach(function(doc) {
+                    var data = doc.data();
+                    existingData[data.studentId] = { status: data.status, note: data.note };
+                });
+                renderAttendanceList(students, existingData, classVal);
+            })
+            .catch(function() {
+                renderAttendanceList(students, {}, classVal);
+            });
+    } else {
+        renderAttendanceList(students, {}, classVal);
+    }
+}
+
+function renderAttendanceList(students, existingData, classVal) {
+    var container = document.getElementById('attendanceStudentList');
+    var html = '<div style="margin-top:8px;">';
+    html += '<div style="display:flex;gap:10px;font-weight:600;padding:4px 0;border-bottom:2px solid var(--gray-light);font-size:12px;">';
+    html += '<span style="width:30px;">No</span>';
+    html += '<span style="flex:1;">Nama</span>';
+    html += '<span style="width:100px;">Status</span>';
+    html += '<span style="width:120px;">Keterangan</span>';
+    html += '</div>';
+
     for (var i = 0; i < students.length; i++) {
         var s = students[i];
+        var existing = existingData[s.id] || {};
+        var status = existing.status || 'Hadir';
+        var note = existing.note || '';
+        
         html += '<div style="display:flex;align-items:center;gap:10px;padding:4px 0;border-bottom:1px solid #f0f0f0;">';
         html += '<span style="font-weight:600;width:30px;font-size:12px;">' + (i + 1) + '.</span>';
         html += '<span style="flex:1;font-size:13px;">' + s.name + '</span>';
-        html += '<select class="form-control" style="width:120px;padding:4px 8px;font-size:12px;" id="att_' + s.id + '">';
-        html += '<option value="Hadir">✅ Hadir</option>';
-        html += '<option value="Sakit">🤒 Sakit</option>';
-        html += '<option value="Izin">📝 Izin</option>';
-        html += '<option value="Alfa">❌ Alfa</option>';
+        
+        // Status dropdown
+        html += '<select class="form-control" style="width:100px;padding:4px 8px;font-size:12px;" id="att_status_' + s.id + '">';
+        html += '<option value="Hadir" ' + (status === 'Hadir' ? 'selected' : '') + '>✅ Hadir</option>';
+        html += '<option value="Sakit" ' + (status === 'Sakit' ? 'selected' : '') + '>🤒 Sakit</option>';
+        html += '<option value="Izin" ' + (status === 'Izin' ? 'selected' : '') + '>📝 Izin</option>';
+        html += '<option value="Alfa" ' + (status === 'Alfa' ? 'selected' : '') + '>❌ Alfa</option>';
         html += '</select>';
-        html += '<input type="text" class="form-control" style="width:120px;padding:4px 8px;font-size:12px;" id="att_note_' + s.id + '" placeholder="Keterangan">';
+        
+        // Keterangan
+        html += '<input type="text" class="form-control" style="width:120px;padding:4px 8px;font-size:12px;" id="att_note_' + s.id + '" placeholder="Keterangan" value="' + note + '">';
         html += '</div>';
     }
     html += '</div>';
     container.innerHTML = html;
+    
+    // Sembunyikan info absent mode
+    document.getElementById('absentModeInfo').style.display = 'none';
+    absentMode = false;
 }
 
-function setAllAttendance(status) {
+function setAllPresent() {
     var classVal = document.getElementById('attendanceClass').value;
     if (!classVal) {
         alert('⚠️ Pilih kelas terlebih dahulu!');
@@ -1870,13 +1983,108 @@ function setAllAttendance(status) {
     }
     var students = allStudents.filter(function(s) { return s.class === classVal; });
     for (var i = 0; i < students.length; i++) {
-        var select = document.getElementById('att_' + students[i].id);
-        if (select) select.value = status;
+        var select = document.getElementById('att_status_' + students[i].id);
+        if (select) select.value = 'Hadir';
+        var note = document.getElementById('att_note_' + students[i].id);
+        if (note) note.value = '';
     }
-    if (status === 'Hadir') {
-        alert('✅ Semua siswa diisi HADIR');
+    document.getElementById('absentModeInfo').style.display = 'none';
+    absentMode = false;
+    alert('✅ Semua siswa diisi HADIR');
+}
+
+function toggleAbsentMode() {
+    var classVal = document.getElementById('attendanceClass').value;
+    if (!classVal) {
+        alert('⚠️ Pilih kelas terlebih dahulu!');
+        return;
+    }
+    absentMode = !absentMode;
+    var info = document.getElementById('absentModeInfo');
+    var students = allStudents.filter(function(s) { return s.class === classVal; });
+    
+    if (absentMode) {
+        info.style.display = 'block';
+        // Set semua ke Hadir dulu, lalu user bisa pilih yang tidak hadir
+        for (var i = 0; i < students.length; i++) {
+            var select = document.getElementById('att_status_' + students[i].id);
+            if (select) select.value = 'Hadir';
+        }
+        alert('⚠️ Mode Pilih Tidak Hadir Aktif!\nCentang nama siswa yang TIDAK HADIR di bawah ini.');
+        // Tambahkan checkbox untuk setiap siswa
+        addAbsentCheckboxes(students);
     } else {
-        alert('⚠️ Semua siswa diisi TIDAK HADIR (Alfa). Silakan isi keterangan untuk yang tidak hadir.');
+        info.style.display = 'none';
+        removeAbsentCheckboxes(students);
+    }
+}
+
+function addAbsentCheckboxes(students) {
+    var container = document.getElementById('attendanceStudentList');
+    // Cari elemen checkbox yang sudah ada
+    var existingCheckboxes = container.querySelectorAll('.absent-checkbox');
+    if (existingCheckboxes.length > 0) {
+        // Sudah ada, tidak perlu tambah lagi
+        return;
+    }
+    
+    // Tambahkan checkbox sebelum status dropdown
+    var items = container.querySelectorAll('div[style*="display:flex"]');
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        // Skip header
+        if (item.querySelector('span[style*="font-weight:600"]')) continue;
+        
+        var checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'absent-checkbox';
+        checkbox.style.width = '18px';
+        checkbox.style.height = '18px';
+        checkbox.style.cursor = 'pointer';
+        checkbox.dataset.studentId = students[i] ? students[i].id : '';
+        checkbox.onchange = function() {
+            var studentId = this.dataset.studentId;
+            var select = document.getElementById('att_status_' + studentId);
+            if (select) {
+                if (this.checked) {
+                    select.value = 'Alfa';
+                    select.style.borderColor = 'var(--danger)';
+                    select.style.borderWidth = '2px';
+                    // Fokus ke keterangan
+                    var note = document.getElementById('att_note_' + studentId);
+                    if (note) note.focus();
+                } else {
+                    select.value = 'Hadir';
+                    select.style.borderColor = '';
+                    select.style.borderWidth = '';
+                }
+            }
+        };
+        
+        // Sisipkan checkbox setelah nomor
+        var firstChild = item.firstChild;
+        var noSpan = item.querySelector('span[style*="font-weight:600"]');
+        if (noSpan) {
+            item.insertBefore(checkbox, noSpan.nextSibling);
+        } else {
+            // Jika tidak ada nomor, tambahkan di awal
+            item.insertBefore(checkbox, item.firstChild);
+        }
+    }
+}
+
+function removeAbsentCheckboxes(students) {
+    var container = document.getElementById('attendanceStudentList');
+    var checkboxes = container.querySelectorAll('.absent-checkbox');
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].remove();
+    }
+    for (var j = 0; j < students.length; j++) {
+        var select = document.getElementById('att_status_' + students[j].id);
+        if (select) {
+            select.style.borderColor = '';
+            select.style.borderWidth = '';
+        }
     }
 }
 
@@ -1901,8 +2109,14 @@ function saveAttendance() {
     var promises = [];
     for (var i = 0; i < students.length; i++) {
         var s = students[i];
-        var status = document.getElementById('att_' + s.id) ? document.getElementById('att_' + s.id).value : 'Hadir';
+        var status = document.getElementById('att_status_' + s.id) ? document.getElementById('att_status_' + s.id).value : 'Hadir';
         var note = document.getElementById('att_note_' + s.id) ? document.getElementById('att_note_' + s.id).value : '';
+        
+        // Validasi: jika status tidak hadir tapi tidak ada keterangan
+        if (status !== 'Hadir' && !note) {
+            alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Siswa ' + s.name + ' tidak hadir tetapi keterangan kosong!</div>';
+            return;
+        }
 
         var query = db.collection('attendance').where('date', '==', date).where('studentId', '==', s.id);
         (function(studentId, studentName, status, note) {
@@ -2308,7 +2522,7 @@ function loadRecentActivities() {
 }
 
 // ============================================================
-// REPORTS (Sama seperti sebelumnya)
+// REPORTS
 // ============================================================
 function populateReportFilters() {
     var classSelect = document.getElementById('reportClass');
@@ -2661,19 +2875,6 @@ function populateClassDropdown(selectId) {
         select.innerHTML += '<option value="' + classArray[j] + '">' + classArray[j] + '</option>';
     }
     select.value = currentVal;
-
-    var filterIds = ['filterAttendanceClass', 'filterIncidentClass', 'filterCounselingClass'];
-    for (var k = 0; k < filterIds.length; k++) {
-        var el = document.getElementById(filterIds[k]);
-        if (el) {
-            var val = el.value;
-            el.innerHTML = '<option value="">Semua Kelas</option>';
-            for (var l = 0; l < classArray.length; l++) {
-                el.innerHTML += '<option value="' + classArray[l] + '">' + classArray[l] + '</option>';
-            }
-            el.value = val;
-        }
-    }
 }
 
 // ============================================================
