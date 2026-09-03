@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIM BK - Presensi Harian</title>
+    <title>SIM BK - Sistem Informasi Manajemen BK</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
@@ -16,7 +16,7 @@
         .app-container{max-width:1400px;margin:0 auto;padding:12px;flex:1}
         .hidden{display:none!important}
         
-        /* ===== HEADER ===== */
+        /* HEADER */
         .header{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;padding:16px 24px;border-radius:var(--radius);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px}
         .header-brand h1{font-size:20px;font-weight:800}
         .header-brand h1 span{color:var(--secondary)}
@@ -26,19 +26,19 @@
         .btn-logout{background:var(--danger);color:#fff;border:0;padding:6px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px}
         .btn-logout:hover{background:#c45566}
         
-        /* ===== NAV ===== */
+        /* NAV */
         .nav{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;background:#fff;padding:6px 12px;border-radius:var(--radius);box-shadow:var(--shadow);overflow-x:auto}
         .nav button{padding:8px 16px;border:0;background:transparent;border-radius:8px;font-weight:600;font-size:12px;cursor:pointer;color:var(--gray);transition:.2s;white-space:nowrap}
         .nav button:hover{background:var(--primary-light);color:var(--primary)}
         .nav button.active{background:var(--primary);color:#fff}
         
-        /* ===== PANEL ===== */
+        /* PANEL */
         .panel{background:#fff;border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
         .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
         .panel-header h2{font-size:18px;color:var(--primary-dark)}
         .panel-header .actions{display:flex;gap:8px;flex-wrap:wrap}
         
-        /* ===== FORM ===== */
+        /* FORM */
         .form-group{margin-bottom:14px}
         .form-group label{display:block;font-weight:600;font-size:13px;color:var(--primary-dark);margin-bottom:4px}
         .form-group label .required{color:var(--danger)}
@@ -47,7 +47,7 @@
         .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
         textarea.form-control{min-height:80px;resize:vertical}
         
-        /* ===== BUTTONS ===== */
+        /* BUTTONS */
         .btn{padding:10px 24px;border:0;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:6px;justify-content:center}
         .btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
         .btn-primary{background:var(--primary);color:#fff}
@@ -63,10 +63,10 @@
         .btn-sm{padding:4px 12px;font-size:11px}
         .btn-block{width:100%}
         
-        /* ===== TABLE ===== */
-        .table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--gray-light)}
+        /* TABLE */
+        .table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--gray-light);max-height:600px;overflow-y:auto}
         table{width:100%;border-collapse:collapse;font-size:13px}
-        table th{background:var(--primary-dark);color:#fff;padding:10px 12px;text-align:left;font-weight:600;font-size:12px}
+        table th{background:var(--primary-dark);color:#fff;padding:10px 12px;text-align:left;font-weight:600;font-size:12px;position:sticky;top:0;z-index:10}
         table td{padding:10px 12px;border-bottom:1px solid var(--gray-light);vertical-align:middle}
         table tr:hover{background:#f8fafc}
         .badge-status{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600}
@@ -75,7 +75,7 @@
         .badge-status.info{background:#d1ecf1;color:#0c5460}
         .badge-status.warning{background:#fff3cd;color:#856404}
         
-        /* ===== STATS CARDS ===== */
+        /* STATS CARDS */
         .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
         .stat-card{background:#fff;padding:14px 18px;border-radius:var(--radius);box-shadow:var(--shadow);border-left:4px solid var(--primary)}
         .stat-card .number{font-size:26px;font-weight:800;color:var(--primary-dark)}
@@ -87,7 +87,7 @@
         .stat-card .number.success{color:var(--success)}
         .stat-card .number.warning{color:#b8860b}
         
-        /* ===== MODAL ===== */
+        /* MODAL */
         .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;justify-content:center;align-items:center}
         .modal-overlay.active{display:flex}
         .modal-box{background:#fff;border-radius:var(--radius);padding:30px;max-width:650px;width:95%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:modalIn .3s ease}
@@ -97,14 +97,14 @@
         .modal-box .close-btn{background:none;border:0;font-size:28px;cursor:pointer;color:var(--gray);padding:0 8px}
         .modal-box .close-btn:hover{color:var(--danger)}
         
-        /* ===== ALERT ===== */
+        /* ALERT */
         .alert{padding:12px 16px;border-radius:8px;margin-bottom:12px;font-size:14px}
         .alert-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
         .alert-danger{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
         .alert-info{background:#d1ecf1;color:#0c5460;border:1px solid #bee5eb}
         .alert-warning{background:#fff3cd;color:#856404;border:1px solid #ffeeba}
         
-        /* ===== AUTH ===== */
+        /* AUTH */
         .auth-container{max-width:420px;margin:60px auto 40px;background:#fff;border-radius:var(--radius);padding:40px 32px;box-shadow:var(--shadow)}
         .auth-container .auth-logo{text-align:center;margin-bottom:24px}
         .auth-container .auth-logo h1{font-size:28px;color:var(--primary-dark)}
@@ -119,7 +119,7 @@
         .auth-container .demo-info{margin-top:12px;padding:10px;background:#f0f4f8;border-radius:6px;font-size:11px;color:var(--gray);text-align:center}
         .auth-container .demo-info b{color:var(--primary-dark)}
         
-        /* ===== UPLOAD PREVIEW ===== */
+        /* UPLOAD PREVIEW */
         .upload-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
         .upload-preview .preview-item{position:relative;width:100px;height:100px;border-radius:8px;overflow:hidden;border:2px solid var(--gray-light)}
         .upload-preview .preview-item img{width:100%;height:100%;object-fit:cover}
@@ -128,26 +128,26 @@
         .file-input-wrapper{position:relative;overflow:hidden;display:inline-block}
         .file-input-wrapper input[type="file"]{position:absolute;left:0;top:0;opacity:0;width:100%;height:100%;cursor:pointer}
         
-        /* ===== IMAGE GALLERY ===== */
+        /* IMAGE GALLERY */
         .image-gallery{display:flex;gap:6px;flex-wrap:wrap}
         .image-gallery .thumb{width:50px;height:50px;border-radius:6px;overflow:hidden;border:1px solid var(--gray-light);cursor:pointer}
         .image-gallery .thumb:hover{transform:scale(1.05);border-color:var(--primary)}
         .image-gallery .thumb img{width:100%;height:100%;object-fit:cover}
         
-        /* ===== LIGHTBOX ===== */
+        /* LIGHTBOX */
         .lightbox{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:1000;justify-content:center;align-items:center;cursor:pointer}
         .lightbox.active{display:flex}
         .lightbox img{max-width:90%;max-height:90%;object-fit:contain;border-radius:8px}
         .lightbox .close-lightbox{position:absolute;top:20px;right:30px;color:#fff;font-size:40px;cursor:pointer;background:none;border:0}
         .lightbox .close-lightbox:hover{color:var(--danger)}
         
-        /* ===== FOOTER ===== */
+        /* FOOTER */
         .footer{text-align:center;padding:16px 20px;color:var(--gray);font-size:11px;border-top:1px solid var(--gray-light);margin-top:16px;background:#fff;border-radius:var(--radius)}
         .footer .brand-name{font-weight:600;color:var(--primary);letter-spacing:.5px}
         .footer .brand-name span{color:var(--secondary)}
         .footer .version{font-size:9px;color:#b0c0d0;margin-left:4px}
         
-        /* ===== LOADING ===== */
+        /* LOADING */
         .loading{text-align:center;padding:40px;color:var(--gray)}
         .loading .spinner{display:inline-block;width:30px;height:30px;border:3px solid var(--gray-light);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
         @keyframes spin{to{transform:rotate(360deg)}}
@@ -159,7 +159,7 @@
         .settings-card{background:#f8fafc;border-radius:var(--radius);padding:16px;border:1px solid var(--gray-light)}
         .settings-card h3{font-size:14px;color:var(--primary-dark);margin-bottom:12px}
         
-        /* ===== PRESENSI ===== */
+        /* PRESENSI */
         .presensi-student-list{max-height:500px;overflow-y:auto;border:1px solid var(--gray-light);border-radius:8px;padding:8px;margin:8px 0}
         .presensi-student-list .student-item{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #f0f0f0}
         .presensi-student-list .student-item .s-name{flex:1;font-size:13px;font-weight:500}
@@ -172,7 +172,7 @@
         .presensi-rekap-grid .rekap-item.izin .num{color:var(--primary)}
         .presensi-rekap-grid .rekap-item.alfa .num{color:var(--danger)}
         
-        /* ===== PRESENSI MODE - SEMBUNYIKAN SEMUA ELEMEN GURU ===== */
+        /* PRESENSI MODE - SEMBUNYIKAN SEMUA ELEMEN GURU */
         .presensi-mode-only #mainApp,
         .presensi-mode-only #loginPage,
         .presensi-mode-only #registerPage,
@@ -195,36 +195,21 @@
         .presensi-mode-only .footer:not(.presensi-footer) {
             display: none !important;
         }
+        .presensi-mode-only #presensiMode{display:block!important}
+        .presensi-mode-only header{border-radius:10px 10px 0 0}
+        .presensi-mode-only .brand{font-size:16px}
+        .presensi-mode-only .tag{font-size:9px}
+        .presensi-mode-only .flex-header{justify-content:center!important}
+        .presensi-mode-only .panel:first-child{margin-top:0!important}
+        .presensi-mode-only .header-info{justify-content:center!important}
         
-        .presensi-mode-only #presensiMode {
-            display: block !important;
-        }
-        
-        .presensi-mode-only header {
-            border-radius: 10px 10px 0 0;
-        }
-        
-        .presensi-mode-only .brand {
-            font-size: 16px;
-        }
-        .presensi-mode-only .tag {
-            font-size: 9px;
-        }
-        .presensi-mode-only .flex-header {
-            justify-content: center !important;
-        }
-        .presensi-mode-only .panel:first-child {
-            margin-top: 0 !important;
-        }
-        .presensi-mode-only .header-info {
-            justify-content: center !important;
-        }
-        
-        /* ===== EDIT BUTTON ===== */
         .edit-btn{background:var(--warning);color:#fff;border:0;padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer;margin-left:4px}
         .edit-btn:hover{background:#d49c00}
         
-        /* ===== RESPONSIVE ===== */
+        /* LOADING PROGRESS BAR */
+        .progress-container{width:100%;background:#f0f0f0;border-radius:8px;margin:8px 0;overflow:hidden}
+        .progress-bar{height:20px;background:linear-gradient(90deg,var(--primary),var(--success));border-radius:8px;transition:width .3s;color:#fff;text-align:center;font-size:12px;line-height:20px;font-weight:600}
+        
         @media(max-width:768px){.header{flex-direction:column;align-items:stretch;text-align:center}.header-info{justify-content:center}.nav{justify-content:center}.nav button{font-size:10px;padding:5px 10px}.panel{padding:14px}.stats-grid{grid-template-columns:repeat(2,1fr)}.form-row{grid-template-columns:1fr}.settings-grid{grid-template-columns:1fr}.modal-box{padding:20px}.presensi-student-list .student-item{flex-wrap:wrap}}
         @media print{.no-print{display:none!important}.footer{display:none!important}}
     </style>
@@ -232,7 +217,7 @@
 <body>
 
 <div class="app-container" id="app">
-    <!-- ===== LOGIN ===== -->
+    <!-- LOGIN -->
     <div id="loginPage">
         <div class="auth-container">
             <div class="auth-logo">
@@ -260,7 +245,7 @@
         </div>
     </div>
 
-    <!-- ===== REGISTER ===== -->
+    <!-- REGISTER -->
     <div id="registerPage" style="display:none;">
         <div class="auth-container">
             <div class="auth-logo">
@@ -289,9 +274,8 @@
         </div>
     </div>
 
-    <!-- ===== MAIN APP (GURU) ===== -->
+    <!-- MAIN APP -->
     <div id="mainApp" style="display:none;">
-        <!-- Header Guru -->
         <div class="header">
             <div class="header-brand">
                 <div>
@@ -306,7 +290,6 @@
             </div>
         </div>
 
-        <!-- Navigasi Guru -->
         <div class="nav" id="mainNav">
             <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
             <button onclick="showTab('students')">👨‍🎓 Data Siswa</button>
@@ -351,9 +334,22 @@
                     </div>
                 </div>
                 <div class="form-row" style="margin-bottom:12px;">
-                    <div><label>Filter Kelas</label><select id="filterClass" class="form-control" onchange="loadStudents()"><option value="">Semua Kelas</option></select></div>
-                    <div><label>Tahun Ajaran</label><select id="filterYear" class="form-control" onchange="loadStudents()"><option value="">Semua</option></select></div>
-                    <div><label>Cari</label><input type="text" id="searchStudent" class="form-control" placeholder="Cari nama..." oninput="loadStudents()"></div>
+                    <div>
+                        <label>Filter Kelas</label>
+                        <select id="filterClass" class="form-control" onchange="loadStudents()">
+                            <option value="">Semua Kelas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Tahun Ajaran</label>
+                        <select id="filterYear" class="form-control" onchange="loadStudents()">
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Cari</label>
+                        <input type="text" id="searchStudent" class="form-control" placeholder="Cari nama..." oninput="loadStudents()">
+                    </div>
                 </div>
                 <div id="studentList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
             </div>
@@ -362,7 +358,12 @@
         <!-- TEACHERS -->
         <div id="tab-teachers" class="tab-content">
             <div class="panel">
-                <div class="panel-header"><h2>👩‍🏫 Guru BK & Pembagian Kelas</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('teacherModal')">➕ Tambah Guru BK</button></div></div>
+                <div class="panel-header">
+                    <h2>👩‍🏫 Guru BK & Pembagian Kelas</h2>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="openModal('teacherModal')">➕ Tambah Guru BK</button>
+                    </div>
+                </div>
                 <div id="teacherList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
             </div>
         </div>
@@ -370,10 +371,23 @@
         <!-- COUNSELING -->
         <div id="tab-counseling" class="tab-content">
             <div class="panel">
-                <div class="panel-header"><h2>📋 Konseling Individu</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('counselingModal')">➕ Tambah Konseling</button></div></div>
+                <div class="panel-header">
+                    <h2>📋 Konseling Individu</h2>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="openModal('counselingModal')">➕ Tambah Konseling</button>
+                    </div>
+                </div>
                 <div class="form-row" style="margin-bottom:12px;">
-                    <div><label>Filter Kelas</label><select id="filterCounselingClass" class="form-control" onchange="loadCounseling()"><option value="">Semua Kelas</option></select></div>
-                    <div><label>Periode</label><input type="month" id="filterCounselingMonth" class="form-control" onchange="loadCounseling()"></div>
+                    <div>
+                        <label>Filter Kelas</label>
+                        <select id="filterCounselingClass" class="form-control" onchange="loadCounseling()">
+                            <option value="">Semua Kelas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Periode</label>
+                        <input type="month" id="filterCounselingMonth" class="form-control" onchange="loadCounseling()">
+                    </div>
                 </div>
                 <div id="counselingList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
             </div>
@@ -382,7 +396,12 @@
         <!-- PARENT CALL -->
         <div id="tab-parent-call" class="tab-content">
             <div class="panel">
-                <div class="panel-header"><h2>📞 Rekap Panggilan Orang Tua</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('parentCallModal')">➕ Tambah Panggilan</button></div></div>
+                <div class="panel-header">
+                    <h2>📞 Rekap Panggilan Orang Tua</h2>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="openModal('parentCallModal')">➕ Tambah Panggilan</button>
+                    </div>
+                </div>
                 <div id="parentCallList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
             </div>
         </div>
@@ -390,7 +409,12 @@
         <!-- HOME VISIT -->
         <div id="tab-home-visit" class="tab-content">
             <div class="panel">
-                <div class="panel-header"><h2>🏠 Laporan Home Visit</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('homeVisitModal')">➕ Tambah Home Visit</button></div></div>
+                <div class="panel-header">
+                    <h2>🏠 Laporan Home Visit</h2>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="openModal('homeVisitModal')">➕ Tambah Home Visit</button>
+                    </div>
+                </div>
                 <div id="homeVisitList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
             </div>
         </div>
@@ -398,11 +422,34 @@
         <!-- INCIDENT -->
         <div id="tab-incident" class="tab-content">
             <div class="panel">
-                <div class="panel-header"><h2>⚠️ Laporan Kejadian</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('incidentModal')">➕ Tambah Laporan</button></div></div>
+                <div class="panel-header">
+                    <h2>⚠️ Laporan Kejadian</h2>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="openModal('incidentModal')">➕ Tambah Laporan</button>
+                    </div>
+                </div>
                 <div class="form-row" style="margin-bottom:12px;">
-                    <div><label>Filter Kelas</label><select id="filterIncidentClass" class="form-control" onchange="loadIncidents()"><option value="">Semua Kelas</option></select></div>
-                    <div><label>Jenis Kejadian</label><select id="filterIncidentType" class="form-control" onchange="loadIncidents()"><option value="">Semua</option><option value="Terlambat">⏰ Terlambat</option><option value="Perkelahian">👊 Perkelahian</option><option value="Pelanggaran Aturan">📜 Pelanggaran Aturan</option><option value="Kecelakaan">🚑 Kecelakaan</option><option value="Lainnya">📌 Lainnya</option></select></div>
-                    <div><label>Periode</label><input type="month" id="filterIncidentMonth" class="form-control" onchange="loadIncidents()"></div>
+                    <div>
+                        <label>Filter Kelas</label>
+                        <select id="filterIncidentClass" class="form-control" onchange="loadIncidents()">
+                            <option value="">Semua Kelas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Jenis Kejadian</label>
+                        <select id="filterIncidentType" class="form-control" onchange="loadIncidents()">
+                            <option value="">Semua</option>
+                            <option value="Terlambat">⏰ Terlambat</option>
+                            <option value="Perkelahian">👊 Perkelahian</option>
+                            <option value="Pelanggaran Aturan">📜 Pelanggaran Aturan</option>
+                            <option value="Kecelakaan">🚑 Kecelakaan</option>
+                            <option value="Lainnya">📌 Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Periode</label>
+                        <input type="month" id="filterIncidentMonth" class="form-control" onchange="loadIncidents()">
+                    </div>
                 </div>
                 <div id="incidentList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
             </div>
@@ -411,10 +458,23 @@
         <!-- MUTATION -->
         <div id="tab-mutation" class="tab-content">
             <div class="panel">
-                <div class="panel-header"><h2>📝 Laporan Mutasi Siswa</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('mutationModal')">➕ Tambah Mutasi</button></div></div>
+                <div class="panel-header">
+                    <h2>📝 Laporan Mutasi Siswa</h2>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="openModal('mutationModal')">➕ Tambah Mutasi</button>
+                    </div>
+                </div>
                 <div class="form-row" style="margin-bottom:12px;">
-                    <div><label>Filter Kelas</label><select id="filterMutationClass" class="form-control" onchange="loadMutations()"><option value="">Semua Kelas</option></select></div>
-                    <div><label>Periode</label><input type="month" id="filterMutationMonth" class="form-control" onchange="loadMutations()"></div>
+                    <div>
+                        <label>Filter Kelas</label>
+                        <select id="filterMutationClass" class="form-control" onchange="loadMutations()">
+                            <option value="">Semua Kelas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Periode</label>
+                        <input type="month" id="filterMutationMonth" class="form-control" onchange="loadMutations()">
+                    </div>
                 </div>
                 <div id="mutationList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
             </div>
@@ -423,10 +483,27 @@
         <!-- GRADUATION -->
         <div id="tab-graduation" class="tab-content">
             <div class="panel">
-                <div class="panel-header"><h2>🎓 Laporan Lulusan SNBP/SNBT</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('graduationModal')">➕ Tambah Lulusan</button></div></div>
+                <div class="panel-header">
+                    <h2>🎓 Laporan Lulusan SNBP/SNBT</h2>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="openModal('graduationModal')">➕ Tambah Lulusan</button>
+                    </div>
+                </div>
                 <div class="form-row" style="margin-bottom:12px;">
-                    <div><label>Filter Tahun</label><select id="filterGraduationYear" class="form-control" onchange="loadGraduations()"><option value="">Semua Tahun</option></select></div>
-                    <div><label>Jalur</label><select id="filterGraduationPath" class="form-control" onchange="loadGraduations()"><option value="">Semua</option><option value="SNBP">SNBP</option><option value="SNBT">SNBT</option></select></div>
+                    <div>
+                        <label>Filter Tahun</label>
+                        <select id="filterGraduationYear" class="form-control" onchange="loadGraduations()">
+                            <option value="">Semua Tahun</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Jalur</label>
+                        <select id="filterGraduationPath" class="form-control" onchange="loadGraduations()">
+                            <option value="">Semua</option>
+                            <option value="SNBP">SNBP</option>
+                            <option value="SNBT">SNBT</option>
+                        </select>
+                    </div>
                 </div>
                 <div id="graduationList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
             </div>
@@ -443,15 +520,29 @@
                     </div>
                 </div>
                 <div class="form-row" style="margin-bottom:12px;">
-                    <div><label>Filter Kelas</label><select id="filterPresensiClass" class="form-control" onchange="loadPresensiRekap()"><option value="">Semua Kelas</option></select></div>
-                    <div><label>Tanggal</label><input type="date" id="filterPresensiDate" class="form-control" onchange="loadPresensiRekap()"></div>
+                    <div>
+                        <label>Filter Kelas</label>
+                        <select id="filterPresensiClass" class="form-control" onchange="loadPresensiRekap()">
+                            <option value="">Semua Kelas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Tanggal</label>
+                        <input type="date" id="filterPresensiDate" class="form-control" onchange="loadPresensiRekap()">
+                    </div>
                 </div>
-                <div id="presensiRekapContainer"><div class="loading"><span class="spinner"></span> Memuat data presensi...</div></div>
+                <div id="presensiRekapContainer">
+                    <div class="loading"><span class="spinner"></span> Memuat data presensi...</div>
+                </div>
             </div>
 
             <div class="panel">
-                <div class="panel-header"><h2>🔗 Link Presensi untuk Ketua Kelas</h2></div>
-                <div class="alert alert-info">📌 Bagikan link ini ke ketua kelas. <b>HANYA form presensi</b> yang muncul, tidak ada menu guru! ✅</div>
+                <div class="panel-header">
+                    <h2>🔗 Link Presensi untuk Ketua Kelas</h2>
+                </div>
+                <div class="alert alert-info">
+                    📌 Bagikan link ini ke ketua kelas. <b>HANYA form presensi</b> yang muncul, tidak ada menu guru! ✅
+                </div>
                 <div class="form-group">
                     <label>Link Presensi</label>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -460,11 +551,18 @@
                         <button class="btn btn-warning" onclick="bagikanPresensiWA()">💬 Bagikan WA</button>
                     </div>
                 </div>
-                <div style="font-size:11px;color:var(--gray);">💡 Ketua kelas pilih kelas → isi presensi → kirim. <b>Bisa diedit jika salah!</b></div>
+                <div style="font-size:11px;color:var(--gray);">
+                    💡 Ketua kelas pilih kelas → isi presensi → kirim. <b>Bisa diedit jika salah!</b>
+                </div>
             </div>
 
             <div class="panel">
-                <div class="panel-header"><h2>📊 Rekap Presensi</h2><div class="actions"><button class="btn btn-outline" onclick="cetakPresensi()">🖨️ Cetak</button></div></div>
+                <div class="panel-header">
+                    <h2>📊 Rekap Presensi</h2>
+                    <div class="actions">
+                        <button class="btn btn-outline" onclick="cetakPresensi()">🖨️ Cetak</button>
+                    </div>
+                </div>
                 <div id="presensiRekapList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
             </div>
         </div>
@@ -472,13 +570,44 @@
         <!-- REPORTS -->
         <div id="tab-reports" class="tab-content">
             <div class="panel">
-                <div class="panel-header"><h2>📊 Laporan Perkembangan Siswa</h2><div class="actions"><button class="btn btn-success" onclick="generateReport()">📄 Generate Laporan</button><button class="btn btn-outline" onclick="printReport()">🖨️ Cetak</button></div></div>
-                <div class="form-row">
-                    <div><label>Periode Laporan</label><select id="reportPeriod" class="form-control"><option value="weekly">Mingguan</option><option value="monthly" selected>Bulanan</option><option value="semester">Semester</option></select></div>
-                    <div><label>Kelas</label><select id="reportClass" class="form-control"><option value="">Semua Kelas</option></select></div>
-                    <div><label>Jenis Laporan</label><select id="reportType" class="form-control"><option value="all">Semua</option><option value="counseling">Konseling</option><option value="homevisit">Home Visit</option><option value="incident">Kejadian</option><option value="mutation">Mutasi</option><option value="graduation">Lulusan SNBP/SNBT</option><option value="presensi">Presensi</option></select></div>
+                <div class="panel-header">
+                    <h2>📊 Laporan Perkembangan Siswa</h2>
+                    <div class="actions">
+                        <button class="btn btn-success" onclick="generateReport()">📄 Generate Laporan</button>
+                        <button class="btn btn-outline" onclick="printReport()">🖨️ Cetak</button>
+                    </div>
                 </div>
-                <div id="reportContent" style="margin-top:16px;"><div class="alert alert-info">Pilih periode dan klik "Generate Laporan"</div></div>
+                <div class="form-row">
+                    <div>
+                        <label>Periode Laporan</label>
+                        <select id="reportPeriod" class="form-control">
+                            <option value="weekly">Mingguan</option>
+                            <option value="monthly" selected>Bulanan</option>
+                            <option value="semester">Semester</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Kelas</label>
+                        <select id="reportClass" class="form-control">
+                            <option value="">Semua Kelas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Jenis Laporan</label>
+                        <select id="reportType" class="form-control">
+                            <option value="all">Semua</option>
+                            <option value="counseling">Konseling</option>
+                            <option value="homevisit">Home Visit</option>
+                            <option value="incident">Kejadian</option>
+                            <option value="mutation">Mutasi</option>
+                            <option value="graduation">Lulusan SNBP/SNBT</option>
+                            <option value="presensi">Presensi</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="reportContent" style="margin-top:16px;">
+                    <div class="alert alert-info">Pilih periode dan klik "Generate Laporan"</div>
+                </div>
             </div>
         </div>
 
@@ -489,9 +618,18 @@
                 <div class="settings-grid">
                     <div class="settings-card">
                         <h3>🏫 Data Sekolah</h3>
-                        <div class="form-group"><label>Nama Sekolah</label><input type="text" id="settingsSchool" class="form-control"></div>
-                        <div class="form-group"><label>Tahun Ajaran</label><input type="text" id="settingsYear" class="form-control" placeholder="2025/2026"></div>
-                        <div class="form-group"><label>Alamat Sekolah</label><input type="text" id="settingsAddress" class="form-control"></div>
+                        <div class="form-group">
+                            <label>Nama Sekolah</label>
+                            <input type="text" id="settingsSchool" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Tahun Ajaran</label>
+                            <input type="text" id="settingsYear" class="form-control" placeholder="2025/2026">
+                        </div>
+                        <div class="form-group">
+                            <label>Alamat Sekolah</label>
+                            <input type="text" id="settingsAddress" class="form-control">
+                        </div>
                         <button class="btn btn-primary" onclick="saveSettings()">💾 Simpan Pengaturan</button>
                     </div>
                     <div class="settings-card">
@@ -512,10 +650,35 @@
     </div>
 
     <!-- ===== MODALS ===== -->
-    <!-- (Modal-modal tetap sama seperti sebelumnya, disingkat) -->
+    <!-- (Modal-modal tetap sama seperti sebelumnya) -->
     <div class="modal-overlay" id="studentModal"><div class="modal-box"><div class="modal-header"><h2>➕ Tambah Siswa</h2><button class="close-btn" onclick="closeModal('studentModal')">&times;</button></div><div id="studentModalAlert"></div><div class="form-group"><label>Nama Lengkap <span class="required">*</span></label><input type="text" id="studentName" class="form-control" placeholder="Nama siswa"></div><div class="form-group"><label>Kelas <span class="required">*</span></label><input type="text" id="studentClass" class="form-control" placeholder="Contoh: 10 IPA 1"></div><div class="form-group"><label>Tahun Ajaran</label><input type="text" id="studentYear" class="form-control" placeholder="2025/2026"></div><div class="form-group"><label>NISN</label><input type="text" id="studentNISN" class="form-control" placeholder="Nomor Induk Siswa Nasional"></div><div class="form-group"><label>Jenis Kelamin</label><select id="studentGender" class="form-control"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div><button class="btn btn-success" onclick="saveStudent()">💾 Simpan</button></div></div>
 
-    <div class="modal-overlay" id="bulkStudentModal"><div class="modal-box"><div class="modal-header"><h2>📋 Tambah Siswa Per Kelas</h2><button class="close-btn" onclick="closeModal('bulkStudentModal')">&times;</button></div><div id="bulkStudentModalAlert"></div><div class="form-group"><label>Kelas <span class="required">*</span></label><input type="text" id="bulkClass" class="form-control" placeholder="Contoh: 10 IPA 1"></div><div class="form-group"><label>Tahun Ajaran <span class="required">*</span></label><input type="text" id="bulkYear" class="form-control" placeholder="2025/2026"></div><div class="form-group"><label>Daftar Nama Siswa <span class="required">*</span></label><textarea id="bulkStudents" class="form-control" rows="10" placeholder="Tulis satu nama per baris"></textarea><small style="color:var(--gray);font-size:11px;">Masukkan satu nama per baris</small></div><button class="btn btn-success" onclick="saveBulkStudents()">💾 Simpan Semua</button></div></div>
+    <div class="modal-overlay" id="bulkStudentModal">
+        <div class="modal-box">
+            <div class="modal-header"><h2>📋 Tambah Siswa Per Kelas</h2><button class="close-btn" onclick="closeModal('bulkStudentModal')">&times;</button></div>
+            <div id="bulkStudentModalAlert"></div>
+            <div class="form-group">
+                <label>Kelas <span class="required">*</span></label>
+                <input type="text" id="bulkClass" class="form-control" placeholder="Contoh: 10 IPA 1">
+            </div>
+            <div class="form-group">
+                <label>Tahun Ajaran <span class="required">*</span></label>
+                <input type="text" id="bulkYear" class="form-control" placeholder="2025/2026">
+            </div>
+            <div class="form-group">
+                <label>Daftar Nama Siswa <span class="required">*</span></label>
+                <textarea id="bulkStudents" class="form-control" rows="10" placeholder="Tulis satu nama per baris"></textarea>
+                <small style="color:var(--gray);font-size:11px;">Masukkan satu nama per baris</small>
+            </div>
+            <div id="bulkProgress" style="display:none;">
+                <div class="progress-container">
+                    <div class="progress-bar" id="bulkProgressBar" style="width:0%;">0%</div>
+                </div>
+                <div id="bulkStatusText" style="font-size:13px;color:var(--gray);text-align:center;"></div>
+            </div>
+            <button class="btn btn-success" onclick="saveBulkStudentsOptimized()">💾 Simpan Semua</button>
+        </div>
+    </div>
 
     <div class="modal-overlay" id="teacherModal"><div class="modal-box"><div class="modal-header"><h2>➕ Tambah Guru BK</h2><button class="close-btn" onclick="closeModal('teacherModal')">&times;</button></div><div id="teacherModalAlert"></div><div class="form-group"><label>Nama Guru <span class="required">*</span></label><input type="text" id="teacherName" class="form-control" placeholder="Nama lengkap"></div><div class="form-group"><label>Kelas yang Dipegang <span class="required">*</span></label><input type="text" id="teacherClasses" class="form-control" placeholder="Pisahkan dengan koma: 10 IPA 1, 10 IPA 2"></div><button class="btn btn-success" onclick="saveTeacher()">💾 Simpan</button></div></div>
 
@@ -531,9 +694,8 @@
 
     <div class="modal-overlay" id="graduationModal"><div class="modal-box"><div class="modal-header"><h2>🎓 Lulusan SNBP/SNBT</h2><button class="close-btn" onclick="closeModal('graduationModal')">&times;</button></div><div id="graduationModalAlert"></div><div class="form-group"><label>Siswa <span class="required">*</span></label><select id="graduationStudent" class="form-control"></select></div><div class="form-group"><label>Kelas</label><select id="graduationClassSelect" class="form-control" onchange="updateGraduationStudent()"></select></div><div class="form-group"><label>Jalur <span class="required">*</span></label><select id="graduationPath" class="form-control"><option value="SNBP">🎯 SNBP</option><option value="SNBT">📝 SNBT</option></select></div><div class="form-group"><label>Kampus <span class="required">*</span></label><input type="text" id="graduationUniversity" class="form-control" placeholder="Nama Universitas/Institut"></div><div class="form-group"><label>Jurusan/Program Studi <span class="required">*</span></label><input type="text" id="graduationMajor" class="form-control" placeholder="Nama Jurusan/Prodi"></div><div class="form-group"><label>Tahun Lulus <span class="required">*</span></label><select id="graduationYear" class="form-control"><option value="2026/2027">2026/2027</option><option value="2027/2028">2027/2028</option><option value="2028/2029">2028/2029</option><option value="2029/2030">2029/2030</option><option value="2030/2031">2030/2031</option><option value="2031/2032">2031/2032</option></select></div><button class="btn btn-success" onclick="saveGraduation()">💾 Simpan</button></div></div>
 
-    <!-- ===== PRESENSI MODE - HANYA UNTUK SISWA ===== -->
+    <!-- PRESENSI MODE - KETUA KELAS -->
     <div id="presensiMode" style="display:none;">
-        <!-- Header Presensi (tanpa menu guru) -->
         <div class="header" style="border-radius:10px 10px 0 0;">
             <div class="header-brand">
                 <div>
@@ -546,8 +708,6 @@
                 <button class="btn-logout" onclick="keluarPresensi()">🚪 Keluar</button>
             </div>
         </div>
-
-        <!-- Hanya form presensi, TIDAK ADA menu guru -->
         <div class="panel">
             <div id="presensiForm">
                 <div class="form-group">
@@ -560,8 +720,6 @@
                 <div id="presensiFormContent" style="margin-top:16px;"></div>
             </div>
         </div>
-
-        <!-- Footer presensi -->
         <div class="footer presensi-footer">
             <span>© 2026 <span class="brand-name">@NaFaS<span>BK</span></span></span>
             <span class="version">v1.0</span>
@@ -572,13 +730,13 @@
         </div>
     </div>
 
-    <!-- ===== LIGHTBOX ===== -->
+    <!-- LIGHTBOX -->
     <div class="lightbox" id="lightbox" onclick="closeLightbox()">
         <button class="close-lightbox" onclick="closeLightbox()">&times;</button>
         <img id="lightboxImg" src="" alt="Foto">
     </div>
 
-    <!-- ===== FOOTER GURU ===== -->
+    <!-- FOOTER GURU -->
     <div class="footer">
         <span>© 2026 <span class="brand-name">@NaFaS<span>BK</span></span></span>
         <span class="version">v1.0</span>
@@ -766,10 +924,10 @@ function checkSession() {
 }
 
 // ============================================================
-// LOAD ALL DATA
+// LOAD ALL DATA (OPTIMASI)
 // ============================================================
 function loadAllData() {
-    loadStudents();
+    loadStudentsOptimized();
     loadTeachers();
     loadCounseling();
     loadParentCalls();
@@ -821,7 +979,7 @@ function populatePresensiKelas() {
 }
 
 // ============================================================
-// POPULATE CLASS DROPDOWNS
+// POPULATE CLASS DROPDOWNS (OPTIMASI)
 // ============================================================
 function populateClassDropdowns() {
     var classes = new Set();
@@ -851,13 +1009,6 @@ function populateClassDropdowns() {
             select.value = currentVal;
         }
     }
-    
-    populateFilteredStudents('counselingStudent', document.getElementById('counselingClassSelect').value);
-    populateFilteredStudents('parentCallStudent', document.getElementById('parentCallClassSelect').value);
-    populateFilteredStudents('homeVisitStudent', document.getElementById('homeVisitClassSelect').value);
-    populateFilteredStudents('incidentStudent', document.getElementById('incidentClassSelect').value);
-    populateFilteredStudents('mutationStudent', document.getElementById('mutationClassSelect').value);
-    populateFilteredStudents('graduationStudent', document.getElementById('graduationClassSelect').value);
 }
 
 function populateFilteredStudents(selectId, classFilter) {
@@ -923,7 +1074,7 @@ function showTab(tabId) {
     var activeBtn = document.querySelector('#mainNav button[onclick="showTab(\'' + tabId + '\')"]');
     if (activeBtn) activeBtn.classList.add('active');
 
-    if (tabId === 'students') loadStudents();
+    if (tabId === 'students') loadStudentsOptimized();
     if (tabId === 'teachers') loadTeachers();
     if (tabId === 'counseling') loadCounseling();
     if (tabId === 'parent-call') loadParentCalls();
@@ -979,6 +1130,7 @@ function openModal(id) {
         document.getElementById('bulkClass').value = '';
         document.getElementById('bulkYear').value = schoolData.year || '';
         document.getElementById('bulkStudents').value = '';
+        document.getElementById('bulkProgress').style.display = 'none';
     } else if (id === 'teacherModal') {
         document.getElementById('teacherName').value = '';
         document.getElementById('teacherClasses').value = '';
@@ -1069,18 +1221,30 @@ function closeLightbox() {
 }
 
 // ============================================================
-// STUDENT FUNCTIONS
+// STUDENT FUNCTIONS - OPTIMASI
 // ============================================================
-function loadStudents() {
+function loadStudentsOptimized() {
     var classFilter = document.getElementById('filterClass').value;
     var yearFilter = document.getElementById('filterYear').value;
     var search = document.getElementById('searchStudent').value.toLowerCase();
     var container = document.getElementById('studentList');
 
-    db.collection('students')
+    container.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat data siswa...</div>';
+
+    // Hanya ambil 200 siswa pertama (pagination)
+    var query = db.collection('students')
         .orderBy('class')
         .orderBy('name')
-        .get()
+        .limit(200);
+
+    if (classFilter) {
+        query = db.collection('students')
+            .where('class', '==', classFilter)
+            .orderBy('name')
+            .limit(200);
+    }
+
+    query.get()
         .then(function(snapshot) {
             allStudents = [];
             var classes = new Set();
@@ -1091,8 +1255,35 @@ function loadStudents() {
                 if (data.class) classes.add(data.class);
             });
 
-            populateClassDropdowns();
-            populatePresensiKelas();
+            // Juga ambil data untuk dropdown kelas (tanpa limit)
+            db.collection('students').get().then(function(fullSnapshot) {
+                fullSnapshot.forEach(function(doc) {
+                    var data = doc.data();
+                    if (data.class) classes.add(data.class);
+                });
+                // Update class dropdowns
+                var classArray = Array.from(classes).sort();
+                var dropdownIds = ['filterClass', 'filterCounselingClass', 'filterIncidentClass', 
+                    'filterMutationClass', 'reportClass', 'filterPresensiClass',
+                    'counselingClassSelect', 'parentCallClassSelect', 'homeVisitClassSelect',
+                    'incidentClassSelect', 'mutationClassSelect', 'graduationClassSelect',
+                    'presensiKelas'];
+                
+                for (var d = 0; d < dropdownIds.length; d++) {
+                    var select = document.getElementById(dropdownIds[d]);
+                    if (!select) continue;
+                    var currentVal = select.value;
+                    select.innerHTML = '<option value="">Semua Kelas</option>';
+                    for (var j = 0; j < classArray.length; j++) {
+                        var selected = (classArray[j] === currentVal) ? 'selected' : '';
+                        select.innerHTML += '<option value="' + classArray[j] + '" ' + selected + '>' + classArray[j] + '</option>';
+                    }
+                    if (currentVal && !classArray.includes(currentVal)) {
+                        select.value = currentVal;
+                    }
+                }
+                populatePresensiKelas();
+            });
 
             var filtered = allStudents;
             if (classFilter) filtered = filtered.filter(function(s) { return s.class === classFilter; });
@@ -1100,7 +1291,7 @@ function loadStudents() {
             if (search) filtered = filtered.filter(function(s) { return s.name.toLowerCase().includes(search); });
 
             if (filtered.length === 0) {
-                container.innerHTML = '<div class="alert alert-info">📭 Belum ada data siswa.</div>';
+                container.innerHTML = '<div class="alert alert-info">📭 Belum ada data siswa. Coba ubah filter.</div>';
                 return;
             }
 
@@ -1110,6 +1301,9 @@ function loadStudents() {
                 html += '<tr><td>' + (j + 1) + '</td><td><strong>' + s.name + '</strong></td><td><span class="badge-status info">' + (s.class || '-') + '</span></td><td>' + (s.year || '-') + '</td><td>' + (s.nisn || '-') + '</td><td>' + (s.gender || '-') + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteStudent(\'' + s.id + '\')">🗑️</button></td></tr>';
             }
             html += '</tbody></table></div>';
+            if (allStudents.length >= 200) {
+                html += '<div class="alert alert-info" style="margin-top:8px;font-size:12px;">📌 Menampilkan 200 siswa dari total. Gunakan filter untuk melihat lebih spesifik.</div>';
+            }
             container.innerHTML = html;
             updateDashboard();
         })
@@ -1131,6 +1325,8 @@ function saveStudent() {
         return;
     }
 
+    alertEl.innerHTML = '<div class="alert alert-info">⏳ Menyimpan data...</div>';
+
     db.collection('students').add({
         name: name,
         class: classVal,
@@ -1143,7 +1339,7 @@ function saveStudent() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Siswa berhasil ditambahkan!</div>';
         setTimeout(function() {
             closeModal('studentModal');
-            loadStudents();
+            loadStudentsOptimized();
             updateDashboard();
         }, 1000);
     }).catch(function(err) {
@@ -1151,11 +1347,14 @@ function saveStudent() {
     });
 }
 
-function saveBulkStudents() {
+function saveBulkStudentsOptimized() {
     var classVal = document.getElementById('bulkClass').value.trim();
     var year = document.getElementById('bulkYear').value.trim();
     var namesText = document.getElementById('bulkStudents').value;
     var alertEl = document.getElementById('bulkStudentModalAlert');
+    var progressEl = document.getElementById('bulkProgress');
+    var progressBar = document.getElementById('bulkProgressBar');
+    var statusText = document.getElementById('bulkStatusText');
 
     if (!classVal) {
         alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Kelas harus diisi!</div>';
@@ -1172,11 +1371,22 @@ function saveBulkStudents() {
         return;
     }
 
-    alertEl.innerHTML = '<div class="alert alert-info">⏳ Menyimpan ' + names.length + ' siswa...</div>';
+    if (names.length > 1000) {
+        if (!confirm('⚠️ Anda akan menambahkan ' + names.length + ' siswa dalam satu kelas. Proses akan berjalan bertahap. Lanjutkan?')) {
+            return;
+        }
+    }
+
+    alertEl.innerHTML = '';
+    progressEl.style.display = 'block';
+    progressBar.style.width = '0%';
+    progressBar.textContent = '0%';
+    statusText.textContent = '⏳ Memulai proses...';
 
     var batchSize = 20;
     var totalBatches = Math.ceil(names.length / batchSize);
     var completedBatches = 0;
+    var totalAdded = 0;
 
     function saveBatch(startIndex) {
         var endIndex = Math.min(startIndex + batchSize, names.length);
@@ -1198,7 +1408,12 @@ function saveBulkStudents() {
 
         return Promise.all(batchPromises).then(function() {
             completedBatches++;
-            alertEl.innerHTML = '<div class="alert alert-info">⏳ Proses ' + completedBatches + '/' + totalBatches + ' batch (' + Math.min(endIndex, names.length) + '/' + names.length + ' siswa)...</div>';
+            totalAdded += (endIndex - startIndex);
+            var progress = Math.round((completedBatches / totalBatches) * 100);
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = progress + '%';
+            statusText.textContent = '⏳ Proses ' + completedBatches + '/' + totalBatches + ' batch (' + totalAdded + '/' + names.length + ' siswa)...';
+            
             if (endIndex < names.length) {
                 return saveBatch(endIndex);
             }
@@ -1206,13 +1421,18 @@ function saveBulkStudents() {
     }
 
     saveBatch(0).then(function() {
+        progressBar.style.width = '100%';
+        progressBar.textContent = '100%';
+        statusText.textContent = '✅ Selesai! ' + names.length + ' siswa berhasil ditambahkan!';
         alertEl.innerHTML = '<div class="alert alert-success">✅ ' + names.length + ' siswa berhasil ditambahkan ke kelas ' + classVal + '!</div>';
         setTimeout(function() {
+            progressEl.style.display = 'none';
             closeModal('bulkStudentModal');
-            loadStudents();
+            loadStudentsOptimized();
             updateDashboard();
-        }, 1500);
+        }, 2000);
     }).catch(function(err) {
+        statusText.textContent = '❌ Gagal: ' + err.message;
         alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
     });
 }
@@ -1221,92 +1441,52 @@ function deleteStudent(id) {
     if (!confirm('Yakin ingin menghapus siswa ini?')) return;
     db.collection('students').doc(id).delete()
         .then(function() {
-            loadStudents();
+            loadStudentsOptimized();
             updateDashboard();
         })
         .catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
 // ============================================================
-// TEACHER FUNCTIONS
+// FUNGSI LAINNYA (Sama seperti sebelumnya, disingkat)
 // ============================================================
 function loadTeachers() {
     var container = document.getElementById('teacherList');
-
-    db.collection('teachers')
-        .orderBy('name')
-        .get()
+    db.collection('teachers').orderBy('name').get()
         .then(function(snapshot) {
             allTeachers = [];
-            snapshot.forEach(function(doc) {
-                var data = doc.data();
-                data.id = doc.id;
-                allTeachers.push(data);
-            });
-
-            if (allTeachers.length === 0) {
-                container.innerHTML = '<div class="alert alert-info">📭 Belum ada guru BK terdaftar.</div>';
-                return;
-            }
-
+            snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; allTeachers.push(data); });
+            if (allTeachers.length === 0) { container.innerHTML = '<div class="alert alert-info">📭 Belum ada guru BK terdaftar.</div>'; return; }
             var html = '<div class="table-wrap"><table><thead><tr><th>No</th><th>Nama Guru</th><th>Kelas Dipegang</th><th>Aksi</th></tr></thead><tbody>';
             for (var i = 0; i < allTeachers.length; i++) {
                 var t = allTeachers[i];
                 var classList = t.classes ? t.classes.split(',').map(function(c) { return c.trim(); }).filter(function(c) { return c; }) : [];
                 html += '<tr><td>' + (i + 1) + '</td><td><strong>' + t.name + '</strong></td><td>';
-                for (var j = 0; j < classList.length; j++) {
-                    html += '<span class="teacher-tag">' + classList[j] + '</span>';
-                }
+                for (var j = 0; j < classList.length; j++) { html += '<span class="teacher-tag">' + classList[j] + '</span>'; }
                 html += '</td><td><button class="btn btn-danger btn-sm" onclick="deleteTeacher(\'' + t.id + '\')">🗑️</button></td></tr>';
             }
             html += '</tbody></table></div>';
             container.innerHTML = html;
-        })
-        .catch(function(err) {
-            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>';
-        });
+        }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>'; });
 }
 
 function saveTeacher() {
     var name = document.getElementById('teacherName').value.trim();
     var classes = document.getElementById('teacherClasses').value.trim();
     var alertEl = document.getElementById('teacherModalAlert');
-
-    if (!name || !classes) {
-        alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Nama dan kelas harus diisi!</div>';
-        return;
-    }
-
-    db.collection('teachers').add({
-        name: name,
-        classes: classes,
-        createdAt: new Date().toISOString(),
-        school: schoolData.name || ''
-    }).then(function() {
-        alertEl.innerHTML = '<div class="alert alert-success">✅ Guru BK berhasil ditambahkan!</div>';
-        setTimeout(function() {
-            closeModal('teacherModal');
-            loadTeachers();
-            updateDashboard();
-        }, 1000);
-    }).catch(function(err) {
-        alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
-    });
+    if (!name || !classes) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Nama dan kelas harus diisi!</div>'; return; }
+    db.collection('teachers').add({ name: name, classes: classes, createdAt: new Date().toISOString(), school: schoolData.name || '' })
+        .then(function() { alertEl.innerHTML = '<div class="alert alert-success">✅ Guru BK berhasil ditambahkan!</div>'; setTimeout(function() { closeModal('teacherModal'); loadTeachers(); updateDashboard(); }, 1000); })
+        .catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
 }
 
 function deleteTeacher(id) {
     if (!confirm('Yakin ingin menghapus guru ini?')) return;
-    db.collection('teachers').doc(id).delete()
-        .then(function() {
-            loadTeachers();
-            updateDashboard();
-        })
-        .catch(function(err) { alert('Gagal menghapus: ' + err.message); });
+    db.collection('teachers').doc(id).delete().then(function() { loadTeachers(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
 // ============================================================
-// COUNSELING, PARENT CALL, HOME VISIT, INCIDENT, MUTATION, GRADUATION
-// (Fungsi-fungsi ini disingkat, tetap berfungsi sama)
+// COUNSELING (sama seperti sebelumnya)
 // ============================================================
 function loadCounseling() {
     var classFilter = document.getElementById('filterCounselingClass').value;
@@ -1388,28 +1568,374 @@ function deleteCounseling(id) {
     }).then(function() { loadCounseling(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
-// Parent Call, Home Visit, Incident, Mutation, Graduation - fungsi serupa
-// (Disingkat untuk menghemat tempat, tetap berfungsi)
-function loadParentCalls() { /* sama seperti sebelumnya */ }
-function saveParentCall() { /* sama seperti sebelumnya */ }
-function deleteParentCall(id) { /* sama seperti sebelumnya */ }
-function loadHomeVisits() { /* sama seperti sebelumnya */ }
-function saveHomeVisit() { /* sama seperti sebelumnya */ }
-function deleteHomeVisit(id) { /* sama seperti sebelumnya */ }
-function loadIncidents() { /* sama seperti sebelumnya */ }
-function saveIncident() { /* sama seperti sebelumnya */ }
-function deleteIncident(id) { /* sama seperti sebelumnya */ }
-function loadMutations() { /* sama seperti sebelumnya */ }
-function saveMutation() { /* sama seperti sebelumnya */ }
-function deleteMutation(id) { /* sama seperti sebelumnya */ }
-function loadGraduations() { /* sama seperti sebelumnya */ }
-function saveGraduation() { /* sama seperti sebelumnya */ }
-function deleteGraduation(id) { /* sama seperti sebelumnya */ }
+// ============================================================
+// PARENT CALL, HOME VISIT, INCIDENT, MUTATION, GRADUATION (sama seperti sebelumnya)
+// ============================================================
+function loadParentCalls() {
+    var container = document.getElementById('parentCallList');
+    db.collection('parentCalls').orderBy('date', 'desc').get().then(function(snapshot) {
+        var items = []; snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
+        if (items.length === 0) { container.innerHTML = '<div class="alert alert-info">📭 Belum ada data panggilan orang tua.</div>'; return; }
+        var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Masalah</th><th>Hasil</th><th>Foto</th><th>Aksi</th></tr></thead><tbody>';
+        for (var i = 0; i < items.length; i++) {
+            var c = items[i];
+            var hasPhotos = c.photoUrls && c.photoUrls.length > 0;
+            var photoHtml = '-';
+            if (hasPhotos) {
+                photoHtml = '<div class="image-gallery">';
+                for (var j = 0; j < Math.min(c.photoUrls.length, 3); j++) {
+                    photoHtml += '<div class="thumb" onclick="event.stopPropagation();openLightbox(\'' + c.photoUrls[j] + '\')"><img src="' + c.photoUrls[j] + '" alt="Foto"></div>';
+                }
+                if (c.photoUrls.length > 3) { photoHtml += '<span style="font-size:10px;color:var(--gray);">+' + (c.photoUrls.length - 3) + '</span>'; }
+                photoHtml += '</div>';
+            }
+            html += '<tr><td>' + (c.date ? new Date(c.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + c.studentName + '</strong></td><td><span class="badge-status info">' + c.studentClass + '</span></td><td style="max-width:150px;">' + (c.problem || '-') + '</td><td style="max-width:150px;">' + (c.result || '-') + '</td><td>' + photoHtml + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteParentCall(\'' + c.id + '\')">🗑️</button></td></tr>';
+        }
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>'; });
+}
+
+function saveParentCall() {
+    var studentId = document.getElementById('parentCallStudent').value;
+    var date = document.getElementById('parentCallDate').value;
+    var problem = document.getElementById('parentCallProblem').value.trim();
+    var result = document.getElementById('parentCallResult').value.trim();
+    var alertEl = document.getElementById('parentCallModalAlert');
+    if (!studentId || !date || !problem || !result) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>'; return; }
+    var student = allStudents.find(function(s) { return s.id === studentId; });
+    alertEl.innerHTML = '<div class="alert alert-info">⏳ Mengupload foto dan menyimpan data...</div>';
+    var uploadPromises = [];
+    var prefix = 'parentCall';
+    if (photoFiles[prefix]) {
+        for (var i = 0; i < photoFiles[prefix].length; i++) {
+            var file = photoFiles[prefix][i];
+            var fileName = 'parentCalls/' + Date.now() + '_' + file.name;
+            var uploadTask = storage.ref(fileName).put(file);
+            uploadPromises.push(uploadTask.then(function(snapshot) { return snapshot.ref.getDownloadURL(); }));
+        }
+    }
+    Promise.all(uploadPromises).then(function(photoUrls) {
+        return db.collection('parentCalls').add({
+            studentId: studentId, studentName: student ? student.name : 'Tidak diketahui',
+            studentClass: student ? student.class : 'Tidak diketahui', date: date, problem: problem,
+            result: result, photoUrls: photoUrls || [],
+            counselor: currentUser ? currentUser.school : 'Guru BK',
+            createdAt: new Date().toISOString(), school: schoolData.name || ''
+        });
+    }).then(function() {
+        alertEl.innerHTML = '<div class="alert alert-success">✅ Data panggilan orang tua berhasil disimpan!</div>';
+        photoFiles['parentCall'] = [];
+        document.getElementById('parentCallPreview').innerHTML = '';
+        document.getElementById('parentCallPhotos').value = '';
+        setTimeout(function() { closeModal('parentCallModal'); loadParentCalls(); updateDashboard(); }, 1000);
+    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+}
+
+function deleteParentCall(id) {
+    if (!confirm('Yakin ingin menghapus data ini?')) return;
+    db.collection('parentCalls').doc(id).get().then(function(doc) {
+        var data = doc.data();
+        if (data.photoUrls && data.photoUrls.length > 0) {
+            for (var i = 0; i < data.photoUrls.length; i++) {
+                var ref = storage.refFromURL(data.photoUrls[i]);
+                ref.delete().catch(function() {});
+            }
+        }
+        return db.collection('parentCalls').doc(id).delete();
+    }).then(function() { loadParentCalls(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
+}
+
+function loadHomeVisits() {
+    var container = document.getElementById('homeVisitList');
+    db.collection('homeVisits').orderBy('date', 'desc').get().then(function(snapshot) {
+        var items = []; snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
+        if (items.length === 0) { container.innerHTML = '<div class="alert alert-info">📭 Belum ada data home visit.</div>'; return; }
+        var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Masalah</th><th>Hasil</th><th>Foto</th><th>Aksi</th></tr></thead><tbody>';
+        for (var i = 0; i < items.length; i++) {
+            var c = items[i];
+            var hasPhotos = c.photoUrls && c.photoUrls.length > 0;
+            var photoHtml = '-';
+            if (hasPhotos) {
+                photoHtml = '<div class="image-gallery">';
+                for (var j = 0; j < Math.min(c.photoUrls.length, 3); j++) {
+                    photoHtml += '<div class="thumb" onclick="event.stopPropagation();openLightbox(\'' + c.photoUrls[j] + '\')"><img src="' + c.photoUrls[j] + '" alt="Foto"></div>';
+                }
+                if (c.photoUrls.length > 3) { photoHtml += '<span style="font-size:10px;color:var(--gray);">+' + (c.photoUrls.length - 3) + '</span>'; }
+                photoHtml += '</div>';
+            }
+            html += '<tr><td>' + (c.date ? new Date(c.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + c.studentName + '</strong></td><td><span class="badge-status info">' + c.studentClass + '</span></td><td style="max-width:150px;">' + (c.problem || '-') + '</td><td style="max-width:150px;">' + (c.result || '-') + '</td><td>' + photoHtml + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteHomeVisit(\'' + c.id + '\')">🗑️</button></td></tr>';
+        }
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>'; });
+}
+
+function saveHomeVisit() {
+    var studentId = document.getElementById('homeVisitStudent').value;
+    var date = document.getElementById('homeVisitDate').value;
+    var problem = document.getElementById('homeVisitProblem').value.trim();
+    var result = document.getElementById('homeVisitResult').value.trim();
+    var alertEl = document.getElementById('homeVisitModalAlert');
+    if (!studentId || !date || !problem || !result) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>'; return; }
+    var student = allStudents.find(function(s) { return s.id === studentId; });
+    alertEl.innerHTML = '<div class="alert alert-info">⏳ Mengupload foto dan menyimpan data...</div>';
+    var uploadPromises = [];
+    var prefix = 'homeVisit';
+    if (photoFiles[prefix]) {
+        for (var i = 0; i < photoFiles[prefix].length; i++) {
+            var file = photoFiles[prefix][i];
+            var fileName = 'homeVisits/' + Date.now() + '_' + file.name;
+            var uploadTask = storage.ref(fileName).put(file);
+            uploadPromises.push(uploadTask.then(function(snapshot) { return snapshot.ref.getDownloadURL(); }));
+        }
+    }
+    Promise.all(uploadPromises).then(function(photoUrls) {
+        return db.collection('homeVisits').add({
+            studentId: studentId, studentName: student ? student.name : 'Tidak diketahui',
+            studentClass: student ? student.class : 'Tidak diketahui', date: date, problem: problem,
+            result: result, photoUrls: photoUrls || [],
+            counselor: currentUser ? currentUser.school : 'Guru BK',
+            createdAt: new Date().toISOString(), school: schoolData.name || ''
+        });
+    }).then(function() {
+        alertEl.innerHTML = '<div class="alert alert-success">✅ Data home visit berhasil disimpan!</div>';
+        photoFiles['homeVisit'] = [];
+        document.getElementById('homeVisitPreview').innerHTML = '';
+        document.getElementById('homeVisitPhotos').value = '';
+        setTimeout(function() { closeModal('homeVisitModal'); loadHomeVisits(); updateDashboard(); }, 1000);
+    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+}
+
+function deleteHomeVisit(id) {
+    if (!confirm('Yakin ingin menghapus data ini?')) return;
+    db.collection('homeVisits').doc(id).get().then(function(doc) {
+        var data = doc.data();
+        if (data.photoUrls && data.photoUrls.length > 0) {
+            for (var i = 0; i < data.photoUrls.length; i++) {
+                var ref = storage.refFromURL(data.photoUrls[i]);
+                ref.delete().catch(function() {});
+            }
+        }
+        return db.collection('homeVisits').doc(id).delete();
+    }).then(function() { loadHomeVisits(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
+}
+
+function loadIncidents() {
+    var classFilter = document.getElementById('filterIncidentClass').value;
+    var typeFilter = document.getElementById('filterIncidentType').value;
+    var monthFilter = document.getElementById('filterIncidentMonth').value;
+    var container = document.getElementById('incidentList');
+    db.collection('incidents').orderBy('date', 'desc').get().then(function(snapshot) {
+        var items = []; snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
+        if (classFilter) items = items.filter(function(c) { return c.studentClass === classFilter; });
+        if (typeFilter) items = items.filter(function(c) { return c.type === typeFilter; });
+        if (monthFilter) items = items.filter(function(c) { return c.date && c.date.startsWith(monthFilter); });
+        if (items.length === 0) { container.innerHTML = '<div class="alert alert-info">📭 Belum ada laporan kejadian.</div>'; return; }
+        var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Deskripsi</th><th>Foto</th><th>Aksi</th></tr></thead><tbody>';
+        for (var i = 0; i < items.length; i++) {
+            var c = items[i];
+            var hasPhotos = c.photoUrls && c.photoUrls.length > 0;
+            var photoHtml = '-';
+            if (hasPhotos) {
+                photoHtml = '<div class="image-gallery">';
+                for (var j = 0; j < Math.min(c.photoUrls.length, 3); j++) {
+                    photoHtml += '<div class="thumb" onclick="event.stopPropagation();openLightbox(\'' + c.photoUrls[j] + '\')"><img src="' + c.photoUrls[j] + '" alt="Foto"></div>';
+                }
+                if (c.photoUrls.length > 3) { photoHtml += '<span style="font-size:10px;color:var(--gray);">+' + (c.photoUrls.length - 3) + '</span>'; }
+                photoHtml += '</div>';
+            }
+            html += '<tr><td>' + (c.date ? new Date(c.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + c.studentName + '</strong></td><td><span class="badge-status info">' + c.studentClass + '</span></td><td><span class="badge-status danger">' + (c.type || '-') + '</span></td><td style="max-width:200px;">' + (c.description || '-') + '</td><td>' + photoHtml + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteIncident(\'' + c.id + '\')">🗑️</button></td></tr>';
+        }
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>'; });
+}
+
+function saveIncident() {
+    var studentId = document.getElementById('incidentStudent').value;
+    var date = document.getElementById('incidentDate').value;
+    var type = document.getElementById('incidentType').value;
+    var description = document.getElementById('incidentDescription').value.trim();
+    var action = document.getElementById('incidentAction').value.trim();
+    var alertEl = document.getElementById('incidentModalAlert');
+    if (!studentId || !date || !type || !description || !action) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>'; return; }
+    var student = allStudents.find(function(s) { return s.id === studentId; });
+    alertEl.innerHTML = '<div class="alert alert-info">⏳ Mengupload foto dan menyimpan data...</div>';
+    var uploadPromises = [];
+    var prefix = 'incident';
+    if (photoFiles[prefix]) {
+        for (var i = 0; i < photoFiles[prefix].length; i++) {
+            var file = photoFiles[prefix][i];
+            var fileName = 'incidents/' + Date.now() + '_' + file.name;
+            var uploadTask = storage.ref(fileName).put(file);
+            uploadPromises.push(uploadTask.then(function(snapshot) { return snapshot.ref.getDownloadURL(); }));
+        }
+    }
+    Promise.all(uploadPromises).then(function(photoUrls) {
+        return db.collection('incidents').add({
+            studentId: studentId, studentName: student ? student.name : 'Tidak diketahui',
+            studentClass: student ? student.class : 'Tidak diketahui', date: date, type: type,
+            description: description, action: action, photoUrls: photoUrls || [],
+            counselor: currentUser ? currentUser.school : 'Guru BK',
+            createdAt: new Date().toISOString(), school: schoolData.name || ''
+        });
+    }).then(function() {
+        alertEl.innerHTML = '<div class="alert alert-success">✅ Laporan kejadian berhasil disimpan!</div>';
+        photoFiles['incident'] = [];
+        document.getElementById('incidentPreview').innerHTML = '';
+        document.getElementById('incidentPhotos').value = '';
+        setTimeout(function() { closeModal('incidentModal'); loadIncidents(); updateDashboard(); }, 1000);
+    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+}
+
+function deleteIncident(id) {
+    if (!confirm('Yakin ingin menghapus laporan ini?')) return;
+    db.collection('incidents').doc(id).get().then(function(doc) {
+        var data = doc.data();
+        if (data.photoUrls && data.photoUrls.length > 0) {
+            for (var i = 0; i < data.photoUrls.length; i++) {
+                var ref = storage.refFromURL(data.photoUrls[i]);
+                ref.delete().catch(function() {});
+            }
+        }
+        return db.collection('incidents').doc(id).delete();
+    }).then(function() { loadIncidents(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
+}
+
+function loadMutations() {
+    var classFilter = document.getElementById('filterMutationClass').value;
+    var monthFilter = document.getElementById('filterMutationMonth').value;
+    var container = document.getElementById('mutationList');
+    db.collection('mutations').orderBy('date', 'desc').get().then(function(snapshot) {
+        var items = []; snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
+        if (classFilter) items = items.filter(function(m) { return m.studentClass === classFilter; });
+        if (monthFilter) items = items.filter(function(m) { return m.date && m.date.startsWith(monthFilter); });
+        if (items.length === 0) { container.innerHTML = '<div class="alert alert-info">📭 Belum ada data mutasi siswa.</div>'; return; }
+        var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Alasan</th><th>Foto</th><th>Aksi</th></tr></thead><tbody>';
+        for (var i = 0; i < items.length; i++) {
+            var m = items[i];
+            var hasPhotos = m.photoUrls && m.photoUrls.length > 0;
+            var photoHtml = '-';
+            if (hasPhotos) {
+                photoHtml = '<div class="image-gallery">';
+                for (var j = 0; j < Math.min(m.photoUrls.length, 3); j++) {
+                    photoHtml += '<div class="thumb" onclick="event.stopPropagation();openLightbox(\'' + m.photoUrls[j] + '\')"><img src="' + m.photoUrls[j] + '" alt="Foto Surat Mutasi"></div>';
+                }
+                if (m.photoUrls.length > 3) { photoHtml += '<span style="font-size:10px;color:var(--gray);">+' + (m.photoUrls.length - 3) + '</span>'; }
+                photoHtml += '</div>';
+            }
+            var typeClass = m.type === 'Masuk' ? 'success' : m.type === 'Keluar' ? 'danger' : m.type === 'Pindah Kelas' ? 'warning' : 'danger';
+            html += '<tr><td>' + (m.date ? new Date(m.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + m.studentName + '</strong></td><td><span class="badge-status info">' + m.studentClass + '</span></td><td><span class="badge-status ' + typeClass + '">' + (m.type || '-') + '</span></td><td style="max-width:150px;">' + (m.reason || '-') + '</td><td>' + photoHtml + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteMutation(\'' + m.id + '\')">🗑️</button></td></tr>';
+        }
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>'; });
+}
+
+function saveMutation() {
+    var studentId = document.getElementById('mutationStudent').value;
+    var date = document.getElementById('mutationDate').value;
+    var type = document.getElementById('mutationType').value;
+    var reason = document.getElementById('mutationReason').value.trim();
+    var alertEl = document.getElementById('mutationModalAlert');
+    if (!studentId || !date || !type || !reason) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>'; return; }
+    var student = allStudents.find(function(s) { return s.id === studentId; });
+    alertEl.innerHTML = '<div class="alert alert-info">⏳ Mengupload foto dan menyimpan data...</div>';
+    var uploadPromises = [];
+    var prefix = 'mutation';
+    if (photoFiles[prefix]) {
+        for (var i = 0; i < photoFiles[prefix].length; i++) {
+            var file = photoFiles[prefix][i];
+            var fileName = 'mutations/' + Date.now() + '_' + file.name;
+            var uploadTask = storage.ref(fileName).put(file);
+            uploadPromises.push(uploadTask.then(function(snapshot) { return snapshot.ref.getDownloadURL(); }));
+        }
+    }
+    Promise.all(uploadPromises).then(function(photoUrls) {
+        return db.collection('mutations').add({
+            studentId: studentId, studentName: student ? student.name : 'Tidak diketahui',
+            studentClass: student ? student.class : 'Tidak diketahui', date: date, type: type,
+            reason: reason, photoUrls: photoUrls || [],
+            counselor: currentUser ? currentUser.school : 'Guru BK',
+            createdAt: new Date().toISOString(), school: schoolData.name || ''
+        });
+    }).then(function() {
+        alertEl.innerHTML = '<div class="alert alert-success">✅ Data mutasi siswa berhasil disimpan!</div>';
+        photoFiles['mutation'] = [];
+        document.getElementById('mutationPreview').innerHTML = '';
+        document.getElementById('mutationPhotos').value = '';
+        setTimeout(function() { closeModal('mutationModal'); loadMutations(); updateDashboard(); }, 1000);
+    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+}
+
+function deleteMutation(id) {
+    if (!confirm('Yakin ingin menghapus data mutasi ini?')) return;
+    db.collection('mutations').doc(id).get().then(function(doc) {
+        var data = doc.data();
+        if (data.photoUrls && data.photoUrls.length > 0) {
+            for (var i = 0; i < data.photoUrls.length; i++) {
+                var ref = storage.refFromURL(data.photoUrls[i]);
+                ref.delete().catch(function() {});
+            }
+        }
+        return db.collection('mutations').doc(id).delete();
+    }).then(function() { loadMutations(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
+}
+
+function loadGraduations() {
+    var yearFilter = document.getElementById('filterGraduationYear').value;
+    var pathFilter = document.getElementById('filterGraduationPath').value;
+    var container = document.getElementById('graduationList');
+    db.collection('graduations').orderBy('year', 'desc').get().then(function(snapshot) {
+        var items = []; snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
+        if (yearFilter) items = items.filter(function(g) { return g.year === yearFilter; });
+        if (pathFilter) items = items.filter(function(g) { return g.path === pathFilter; });
+        if (items.length === 0) { container.innerHTML = '<div class="alert alert-info">📭 Belum ada data lulusan SNBP/SNBT.</div>'; return; }
+        var html = '<div class="table-wrap"><table><thead><tr><th>Tahun</th><th>Siswa</th><th>Kelas</th><th>Jalur</th><th>Kampus</th><th>Jurusan</th><th>Aksi</th></tr></thead><tbody>';
+        for (var i = 0; i < items.length; i++) {
+            var g = items[i];
+            var pathClass = g.path === 'SNBP' ? 'success' : 'warning';
+            html += '<tr><td><span class="badge-status info">' + (g.year || '-') + '</span></td><td><strong>' + g.studentName + '</strong></td><td><span class="badge-status info">' + g.studentClass + '</span></td><td><span class="badge-status ' + pathClass + '">🎯 ' + g.path + '</span></td><td>' + (g.university || '-') + '</td><td>' + (g.major || '-') + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteGraduation(\'' + g.id + '\')">🗑️</button></td></tr>';
+        }
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>'; });
+}
+
+function saveGraduation() {
+    var studentId = document.getElementById('graduationStudent').value;
+    var path = document.getElementById('graduationPath').value;
+    var university = document.getElementById('graduationUniversity').value.trim();
+    var major = document.getElementById('graduationMajor').value.trim();
+    var year = document.getElementById('graduationYear').value;
+    var alertEl = document.getElementById('graduationModalAlert');
+    if (!studentId) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Pilih siswa terlebih dahulu!</div>'; return; }
+    if (!university) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Nama kampus harus diisi!</div>'; return; }
+    if (!major) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Jurusan harus diisi!</div>'; return; }
+    var student = allStudents.find(function(s) { return s.id === studentId; });
+    db.collection('graduations').add({
+        studentId: studentId, studentName: student ? student.name : 'Tidak diketahui',
+        studentClass: student ? student.class : 'Tidak diketahui', path: path,
+        university: university, major: major, year: year,
+        counselor: currentUser ? currentUser.school : 'Guru BK',
+        createdAt: new Date().toISOString(), school: schoolData.name || ''
+    }).then(function() {
+        alertEl.innerHTML = '<div class="alert alert-success">✅ Data lulusan ' + path + ' berhasil disimpan!</div>';
+        setTimeout(function() { closeModal('graduationModal'); loadGraduations(); updateDashboard(); }, 1000);
+    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+}
+
+function deleteGraduation(id) {
+    if (!confirm('Yakin ingin menghapus data ini?')) return;
+    db.collection('graduations').doc(id).delete()
+        .then(function() { loadGraduations(); updateDashboard(); })
+        .catch(function(err) { alert('Gagal menghapus: ' + err.message); });
+}
 
 // ============================================================
-// PRESENSI FUNCTIONS - TANPA TOKEN + EDIT + MODE KHUSUS SISWA
+// PRESENSI FUNCTIONS (Sama seperti sebelumnya)
 // ============================================================
-
 function loadPresensiSiswa() {
     var kelas = document.getElementById('presensiKelas').value;
     var content = document.getElementById('presensiFormContent');
@@ -1648,9 +2174,6 @@ function kirimPresensi() {
     }
 }
 
-// ============================================================
-// PRESENSI REKAP & CETAK
-// ============================================================
 function loadPresensiRekap() {
     var classFilter = document.getElementById('filterPresensiClass').value;
     var dateFilter = document.getElementById('filterPresensiDate').value;
@@ -2060,19 +2583,13 @@ function resetAllData() {
     var params = new URLSearchParams(window.location.search);
     var mode = params.get('mode');
     if (mode === 'presensi') {
-        // Sembunyikan login & main app
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('registerPage').style.display = 'none';
         document.getElementById('mainApp').style.display = 'none';
-        
-        // Tampilkan mode presensi
         document.getElementById('presensiMode').style.display = 'block';
         document.querySelector('.app-container').style.padding = '0';
-        
-        // Tambahkan class khusus untuk menyembunyikan elemen guru
         document.getElementById('app').classList.add('presensi-mode-only');
 
-        // Load data siswa untuk dropdown
         db.collection('students')
             .orderBy('class')
             .orderBy('name')
@@ -2110,16 +2627,17 @@ if (!checkSession()) {
 }
 
 db.collection('students').onSnapshot(function() {
-    loadStudents();
+    loadStudentsOptimized();
     populateClassDropdowns();
     populatePresensiKelas();
 });
 
-console.log('✅ SIM BK siap digunakan!');
+console.log('✅ SIM BK siap digunakan (Optimasi untuk 1000+ siswa)!');
 console.log('📌 Fitur Presensi tanpa token aktif!');
 console.log('🔗 Link Presensi: https://nailisyifa79-cloud.github.io/sim-bk-sekolah/?mode=presensi');
 console.log('✏️ Ketua kelas bisa EDIT presensi jika salah!');
 console.log('🔒 HANYA form presensi yang muncul untuk siswa!');
+console.log('📊 Load siswa dibatasi 200 per tampilan untuk performa!');
 </script>
 </body>
 </html>
