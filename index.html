@@ -16,7 +16,6 @@
         .app-container{max-width:1400px;margin:0 auto;padding:12px;flex:1}
         .hidden{display:none!important}
         
-        /* HEADER */
         .header{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;padding:16px 24px;border-radius:var(--radius);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px}
         .header-brand h1{font-size:20px;font-weight:800}
         .header-brand h1 span{color:var(--secondary)}
@@ -26,19 +25,16 @@
         .btn-logout{background:var(--danger);color:#fff;border:0;padding:6px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px}
         .btn-logout:hover{background:#c45566}
         
-        /* NAV */
         .nav{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;background:#fff;padding:6px 12px;border-radius:var(--radius);box-shadow:var(--shadow);overflow-x:auto}
         .nav button{padding:8px 16px;border:0;background:transparent;border-radius:8px;font-weight:600;font-size:12px;cursor:pointer;color:var(--gray);transition:.2s;white-space:nowrap}
         .nav button:hover{background:var(--primary-light);color:var(--primary)}
         .nav button.active{background:var(--primary);color:#fff}
         
-        /* PANEL */
         .panel{background:#fff;border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
         .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
         .panel-header h2{font-size:18px;color:var(--primary-dark)}
         .panel-header .actions{display:flex;gap:8px;flex-wrap:wrap}
         
-        /* FORM */
         .form-group{margin-bottom:14px}
         .form-group label{display:block;font-weight:600;font-size:13px;color:var(--primary-dark);margin-bottom:4px}
         .form-group label .required{color:var(--danger)}
@@ -47,7 +43,6 @@
         .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
         textarea.form-control{min-height:80px;resize:vertical}
         
-        /* BUTTONS */
         .btn{padding:10px 24px;border:0;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:6px;justify-content:center}
         .btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
         .btn-primary{background:var(--primary);color:#fff}
@@ -63,7 +58,6 @@
         .btn-sm{padding:4px 12px;font-size:11px}
         .btn-block{width:100%}
         
-        /* TABLE */
         .table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--gray-light);max-height:600px;overflow-y:auto}
         table{width:100%;border-collapse:collapse;font-size:13px}
         table th{background:var(--primary-dark);color:#fff;padding:10px 12px;text-align:left;font-weight:600;font-size:12px;position:sticky;top:0;z-index:10}
@@ -75,7 +69,6 @@
         .badge-status.info{background:#d1ecf1;color:#0c5460}
         .badge-status.warning{background:#fff3cd;color:#856404}
         
-        /* STATS CARDS */
         .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
         .stat-card{background:#fff;padding:14px 18px;border-radius:var(--radius);box-shadow:var(--shadow);border-left:4px solid var(--primary)}
         .stat-card .number{font-size:26px;font-weight:800;color:var(--primary-dark)}
@@ -87,7 +80,6 @@
         .stat-card .number.success{color:var(--success)}
         .stat-card .number.warning{color:#b8860b}
         
-        /* MODAL */
         .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;justify-content:center;align-items:center}
         .modal-overlay.active{display:flex}
         .modal-box{background:#fff;border-radius:var(--radius);padding:30px;max-width:650px;width:95%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:modalIn .3s ease}
@@ -97,14 +89,12 @@
         .modal-box .close-btn{background:none;border:0;font-size:28px;cursor:pointer;color:var(--gray);padding:0 8px}
         .modal-box .close-btn:hover{color:var(--danger)}
         
-        /* ALERT */
         .alert{padding:12px 16px;border-radius:8px;margin-bottom:12px;font-size:14px}
         .alert-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
         .alert-danger{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
         .alert-info{background:#d1ecf1;color:#0c5460;border:1px solid #bee5eb}
         .alert-warning{background:#fff3cd;color:#856404;border:1px solid #ffeeba}
         
-        /* AUTH */
         .auth-container{max-width:420px;margin:60px auto 40px;background:#fff;border-radius:var(--radius);padding:40px 32px;box-shadow:var(--shadow)}
         .auth-container .auth-logo{text-align:center;margin-bottom:24px}
         .auth-container .auth-logo h1{font-size:28px;color:var(--primary-dark)}
@@ -119,7 +109,6 @@
         .auth-container .demo-info{margin-top:12px;padding:10px;background:#f0f4f8;border-radius:6px;font-size:11px;color:var(--gray);text-align:center}
         .auth-container .demo-info b{color:var(--primary-dark)}
         
-        /* UPLOAD PREVIEW */
         .upload-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
         .upload-preview .preview-item{position:relative;width:100px;height:100px;border-radius:8px;overflow:hidden;border:2px solid var(--gray-light)}
         .upload-preview .preview-item img{width:100%;height:100%;object-fit:cover}
@@ -128,26 +117,22 @@
         .file-input-wrapper{position:relative;overflow:hidden;display:inline-block}
         .file-input-wrapper input[type="file"]{position:absolute;left:0;top:0;opacity:0;width:100%;height:100%;cursor:pointer}
         
-        /* IMAGE GALLERY */
         .image-gallery{display:flex;gap:6px;flex-wrap:wrap}
         .image-gallery .thumb{width:50px;height:50px;border-radius:6px;overflow:hidden;border:1px solid var(--gray-light);cursor:pointer}
         .image-gallery .thumb:hover{transform:scale(1.05);border-color:var(--primary)}
         .image-gallery .thumb img{width:100%;height:100%;object-fit:cover}
         
-        /* LIGHTBOX */
         .lightbox{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:1000;justify-content:center;align-items:center;cursor:pointer}
         .lightbox.active{display:flex}
         .lightbox img{max-width:90%;max-height:90%;object-fit:contain;border-radius:8px}
         .lightbox .close-lightbox{position:absolute;top:20px;right:30px;color:#fff;font-size:40px;cursor:pointer;background:none;border:0}
         .lightbox .close-lightbox:hover{color:var(--danger)}
         
-        /* FOOTER */
         .footer{text-align:center;padding:16px 20px;color:var(--gray);font-size:11px;border-top:1px solid var(--gray-light);margin-top:16px;background:#fff;border-radius:var(--radius)}
         .footer .brand-name{font-weight:600;color:var(--primary);letter-spacing:.5px}
         .footer .brand-name span{color:var(--secondary)}
         .footer .version{font-size:9px;color:#b0c0d0;margin-left:4px}
         
-        /* LOADING */
         .loading{text-align:center;padding:40px;color:var(--gray)}
         .loading .spinner{display:inline-block;width:30px;height:30px;border:3px solid var(--gray-light);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
         @keyframes spin{to{transform:rotate(360deg)}}
@@ -159,7 +144,6 @@
         .settings-card{background:#f8fafc;border-radius:var(--radius);padding:16px;border:1px solid var(--gray-light)}
         .settings-card h3{font-size:14px;color:var(--primary-dark);margin-bottom:12px}
         
-        /* PRESENSI */
         .presensi-student-list{max-height:500px;overflow-y:auto;border:1px solid var(--gray-light);border-radius:8px;padding:8px;margin:8px 0}
         .presensi-student-list .student-item{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #f0f0f0}
         .presensi-student-list .student-item .s-name{flex:1;font-size:13px;font-weight:500}
@@ -172,7 +156,6 @@
         .presensi-rekap-grid .rekap-item.izin .num{color:var(--primary)}
         .presensi-rekap-grid .rekap-item.alfa .num{color:var(--danger)}
         
-        /* PRESENSI MODE - SEMBUNYIKAN SEMUA ELEMEN GURU */
         .presensi-mode-only #mainApp,
         .presensi-mode-only #loginPage,
         .presensi-mode-only #registerPage,
@@ -206,11 +189,19 @@
         .edit-btn{background:var(--warning);color:#fff;border:0;padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer;margin-left:4px}
         .edit-btn:hover{background:#d49c00}
         
-        /* LOADING PROGRESS BAR */
         .progress-container{width:100%;background:#f0f0f0;border-radius:8px;margin:8px 0;overflow:hidden}
         .progress-bar{height:20px;background:linear-gradient(90deg,var(--primary),var(--success));border-radius:8px;transition:width .3s;color:#fff;text-align:center;font-size:12px;line-height:20px;font-weight:600}
         
-        @media(max-width:768px){.header{flex-direction:column;align-items:stretch;text-align:center}.header-info{justify-content:center}.nav{justify-content:center}.nav button{font-size:10px;padding:5px 10px}.panel{padding:14px}.stats-grid{grid-template-columns:repeat(2,1fr)}.form-row{grid-template-columns:1fr}.settings-grid{grid-template-columns:1fr}.modal-box{padding:20px}.presensi-student-list .student-item{flex-wrap:wrap}}
+        /* PAGINATION */
+        .pagination-container{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:10px;padding:8px;background:#f8fafc;border-radius:8px;gap:8px}
+        .pagination-container .info{font-size:12px;color:var(--gray)}
+        .pagination-container .pages{display:flex;gap:4px;flex-wrap:wrap}
+        .pagination-container .pages .page-btn{padding:4px 10px;border:1px solid var(--gray-light);border-radius:4px;background:#fff;cursor:pointer;font-size:12px;font-weight:600;transition:.2s}
+        .pagination-container .pages .page-btn:hover{background:var(--primary-light);border-color:var(--primary)}
+        .pagination-container .pages .page-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+        .pagination-container .pages .page-btn:disabled{opacity:0.5;cursor:not-allowed}
+        
+        @media(max-width:768px){.header{flex-direction:column;align-items:stretch;text-align:center}.header-info{justify-content:center}.nav{justify-content:center}.nav button{font-size:10px;padding:5px 10px}.panel{padding:14px}.stats-grid{grid-template-columns:repeat(2,1fr)}.form-row{grid-template-columns:1fr}.settings-grid{grid-template-columns:1fr}.modal-box{padding:20px}.presensi-student-list .student-item{flex-wrap:wrap}.pagination-container{flex-direction:column;text-align:center}}
         @media print{.no-print{display:none!important}.footer{display:none!important}}
     </style>
 </head>
@@ -336,19 +327,19 @@
                 <div class="form-row" style="margin-bottom:12px;">
                     <div>
                         <label>Filter Kelas</label>
-                        <select id="filterClass" class="form-control" onchange="loadStudents()">
+                        <select id="filterClass" class="form-control" onchange="loadStudentsOptimized()">
                             <option value="">Semua Kelas</option>
                         </select>
                     </div>
                     <div>
                         <label>Tahun Ajaran</label>
-                        <select id="filterYear" class="form-control" onchange="loadStudents()">
+                        <select id="filterYear" class="form-control" onchange="loadStudentsOptimized()">
                             <option value="">Semua</option>
                         </select>
                     </div>
                     <div>
                         <label>Cari</label>
-                        <input type="text" id="searchStudent" class="form-control" placeholder="Cari nama..." oninput="loadStudents()">
+                        <input type="text" id="searchStudent" class="form-control" placeholder="Cari nama..." oninput="loadStudentsOptimized()">
                     </div>
                 </div>
                 <div id="studentList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
@@ -650,7 +641,6 @@
     </div>
 
     <!-- ===== MODALS ===== -->
-    <!-- (Modal-modal tetap sama seperti sebelumnya) -->
     <div class="modal-overlay" id="studentModal"><div class="modal-box"><div class="modal-header"><h2>➕ Tambah Siswa</h2><button class="close-btn" onclick="closeModal('studentModal')">&times;</button></div><div id="studentModalAlert"></div><div class="form-group"><label>Nama Lengkap <span class="required">*</span></label><input type="text" id="studentName" class="form-control" placeholder="Nama siswa"></div><div class="form-group"><label>Kelas <span class="required">*</span></label><input type="text" id="studentClass" class="form-control" placeholder="Contoh: 10 IPA 1"></div><div class="form-group"><label>Tahun Ajaran</label><input type="text" id="studentYear" class="form-control" placeholder="2025/2026"></div><div class="form-group"><label>NISN</label><input type="text" id="studentNISN" class="form-control" placeholder="Nomor Induk Siswa Nasional"></div><div class="form-group"><label>Jenis Kelamin</label><select id="studentGender" class="form-control"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div><button class="btn btn-success" onclick="saveStudent()">💾 Simpan</button></div></div>
 
     <div class="modal-overlay" id="bulkStudentModal">
@@ -924,7 +914,7 @@ function checkSession() {
 }
 
 // ============================================================
-// LOAD ALL DATA (OPTIMASI)
+// LOAD ALL DATA
 // ============================================================
 function loadAllData() {
     loadStudentsOptimized();
@@ -979,7 +969,7 @@ function populatePresensiKelas() {
 }
 
 // ============================================================
-// POPULATE CLASS DROPDOWNS (OPTIMASI)
+// POPULATE CLASS DROPDOWNS
 // ============================================================
 function populateClassDropdowns() {
     var classes = new Set();
@@ -1221,8 +1211,13 @@ function closeLightbox() {
 }
 
 // ============================================================
-// STUDENT FUNCTIONS - OPTIMASI
+// STUDENT FUNCTIONS - DENGAN PAGINATION & SEARCH
 // ============================================================
+var currentPage = 1;
+var pageSize = 50;
+var totalStudents = 0;
+var filteredStudents = [];
+
 function loadStudentsOptimized() {
     var classFilter = document.getElementById('filterClass').value;
     var yearFilter = document.getElementById('filterYear').value;
@@ -1231,18 +1226,10 @@ function loadStudentsOptimized() {
 
     container.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat data siswa...</div>';
 
-    // Hanya ambil 200 siswa pertama (pagination)
+    // Ambil SEMUA data untuk filter & search
     var query = db.collection('students')
         .orderBy('class')
-        .orderBy('name')
-        .limit(200);
-
-    if (classFilter) {
-        query = db.collection('students')
-            .where('class', '==', classFilter)
-            .orderBy('name')
-            .limit(200);
-    }
+        .orderBy('name');
 
     query.get()
         .then(function(snapshot) {
@@ -1255,61 +1242,94 @@ function loadStudentsOptimized() {
                 if (data.class) classes.add(data.class);
             });
 
-            // Juga ambil data untuk dropdown kelas (tanpa limit)
-            db.collection('students').get().then(function(fullSnapshot) {
-                fullSnapshot.forEach(function(doc) {
-                    var data = doc.data();
-                    if (data.class) classes.add(data.class);
-                });
-                // Update class dropdowns
-                var classArray = Array.from(classes).sort();
-                var dropdownIds = ['filterClass', 'filterCounselingClass', 'filterIncidentClass', 
-                    'filterMutationClass', 'reportClass', 'filterPresensiClass',
-                    'counselingClassSelect', 'parentCallClassSelect', 'homeVisitClassSelect',
-                    'incidentClassSelect', 'mutationClassSelect', 'graduationClassSelect',
-                    'presensiKelas'];
-                
-                for (var d = 0; d < dropdownIds.length; d++) {
-                    var select = document.getElementById(dropdownIds[d]);
-                    if (!select) continue;
-                    var currentVal = select.value;
-                    select.innerHTML = '<option value="">Semua Kelas</option>';
-                    for (var j = 0; j < classArray.length; j++) {
-                        var selected = (classArray[j] === currentVal) ? 'selected' : '';
-                        select.innerHTML += '<option value="' + classArray[j] + '" ' + selected + '>' + classArray[j] + '</option>';
-                    }
-                    if (currentVal && !classArray.includes(currentVal)) {
-                        select.value = currentVal;
-                    }
+            // Update dropdown kelas
+            var classArray = Array.from(classes).sort();
+            var dropdownIds = ['filterClass', 'filterCounselingClass', 'filterIncidentClass', 
+                'filterMutationClass', 'reportClass', 'filterPresensiClass',
+                'counselingClassSelect', 'parentCallClassSelect', 'homeVisitClassSelect',
+                'incidentClassSelect', 'mutationClassSelect', 'graduationClassSelect',
+                'presensiKelas'];
+            
+            for (var d = 0; d < dropdownIds.length; d++) {
+                var select = document.getElementById(dropdownIds[d]);
+                if (!select) continue;
+                var currentVal = select.value;
+                select.innerHTML = '<option value="">Semua Kelas</option>';
+                for (var j = 0; j < classArray.length; j++) {
+                    var selected = (classArray[j] === currentVal) ? 'selected' : '';
+                    select.innerHTML += '<option value="' + classArray[j] + '" ' + selected + '>' + classArray[j] + '</option>';
                 }
-                populatePresensiKelas();
-            });
-
-            var filtered = allStudents;
-            if (classFilter) filtered = filtered.filter(function(s) { return s.class === classFilter; });
-            if (yearFilter) filtered = filtered.filter(function(s) { return s.year === yearFilter; });
-            if (search) filtered = filtered.filter(function(s) { return s.name.toLowerCase().includes(search); });
-
-            if (filtered.length === 0) {
-                container.innerHTML = '<div class="alert alert-info">📭 Belum ada data siswa. Coba ubah filter.</div>';
-                return;
+                if (currentVal && !classArray.includes(currentVal)) {
+                    select.value = currentVal;
+                }
             }
+            populatePresensiKelas();
 
-            var html = '<div class="table-wrap"><table><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Tahun</th><th>NISN</th><th>JK</th><th>Aksi</th></tr></thead><tbody>';
-            for (var j = 0; j < filtered.length; j++) {
-                var s = filtered[j];
-                html += '<tr><td>' + (j + 1) + '</td><td><strong>' + s.name + '</strong></td><td><span class="badge-status info">' + (s.class || '-') + '</span></td><td>' + (s.year || '-') + '</td><td>' + (s.nisn || '-') + '</td><td>' + (s.gender || '-') + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteStudent(\'' + s.id + '\')">🗑️</button></td></tr>';
-            }
-            html += '</tbody></table></div>';
-            if (allStudents.length >= 200) {
-                html += '<div class="alert alert-info" style="margin-top:8px;font-size:12px;">📌 Menampilkan 200 siswa dari total. Gunakan filter untuk melihat lebih spesifik.</div>';
-            }
-            container.innerHTML = html;
+            // Filter data
+            filteredStudents = allStudents;
+            if (classFilter) filteredStudents = filteredStudents.filter(function(s) { return s.class === classFilter; });
+            if (yearFilter) filteredStudents = filteredStudents.filter(function(s) { return s.year === yearFilter; });
+            if (search) filteredStudents = filteredStudents.filter(function(s) { return s.name.toLowerCase().includes(search); });
+
+            totalStudents = filteredStudents.length;
+            currentPage = 1;
+
+            renderStudentPage();
             updateDashboard();
         })
         .catch(function(err) {
             container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>';
         });
+}
+
+function renderStudentPage() {
+    var container = document.getElementById('studentList');
+    var start = (currentPage - 1) * pageSize;
+    var end = Math.min(start + pageSize, totalStudents);
+    var pageData = filteredStudents.slice(start, end);
+
+    if (totalStudents === 0) {
+        container.innerHTML = '<div class="alert alert-info">📭 Tidak ada data siswa yang sesuai.</div>';
+        return;
+    }
+
+    var html = '<div class="table-wrap"><table><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Tahun</th><th>NISN</th><th>JK</th><th>Aksi</th></tr></thead><tbody>';
+    for (var j = 0; j < pageData.length; j++) {
+        var s = pageData[j];
+        var no = start + j + 1;
+        html += '<tr><td>' + no + '</td><td><strong>' + s.name + '</strong></td><td><span class="badge-status info">' + (s.class || '-') + '</span></td><td>' + (s.year || '-') + '</td><td>' + (s.nisn || '-') + '</td><td>' + (s.gender || '-') + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteStudent(\'' + s.id + '\')">🗑️</button></td></tr>';
+    }
+    html += '</tbody></table></div>';
+
+    // Pagination
+    var totalPages = Math.ceil(totalStudents / pageSize);
+    html += '<div class="pagination-container">';
+    html += '<span class="info">Menampilkan ' + (start + 1) + ' - ' + end + ' dari ' + totalStudents + ' siswa</span>';
+    html += '<div class="pages">';
+    html += '<button class="page-btn" onclick="goToPage(1)" ' + (currentPage === 1 ? 'disabled' : '') + '>⏮</button>';
+    html += '<button class="page-btn" onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + '>◀</button>';
+    
+    var startPage = Math.max(1, currentPage - 3);
+    var endPage = Math.min(totalPages, currentPage + 3);
+    if (startPage > 1) html += '<span style="padding:4px 8px;font-size:12px;color:var(--gray);">...</span>';
+    for (var p = startPage; p <= endPage; p++) {
+        var active = (p === currentPage) ? 'active' : '';
+        html += '<button class="page-btn ' + active + '" onclick="goToPage(' + p + ')">' + p + '</button>';
+    }
+    if (endPage < totalPages) html += '<span style="padding:4px 8px;font-size:12px;color:var(--gray);">...</span>';
+    
+    html += '<button class="page-btn" onclick="goToPage(' + (currentPage + 1) + ')" ' + (currentPage === totalPages ? 'disabled' : '') + '>▶</button>';
+    html += '<button class="page-btn" onclick="goToPage(' + totalPages + ')" ' + (currentPage === totalPages ? 'disabled' : '') + '>⏭</button>';
+    html += '</div></div>';
+
+    container.innerHTML = html;
+}
+
+function goToPage(page) {
+    var totalPages = Math.ceil(totalStudents / pageSize);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderStudentPage();
 }
 
 function saveStudent() {
@@ -1448,7 +1468,7 @@ function deleteStudent(id) {
 }
 
 // ============================================================
-// FUNGSI LAINNYA (Sama seperti sebelumnya, disingkat)
+// TEACHER FUNCTIONS
 // ============================================================
 function loadTeachers() {
     var container = document.getElementById('teacherList');
@@ -1486,7 +1506,7 @@ function deleteTeacher(id) {
 }
 
 // ============================================================
-// COUNSELING (sama seperti sebelumnya)
+// COUNSELING FUNCTIONS
 // ============================================================
 function loadCounseling() {
     var classFilter = document.getElementById('filterCounselingClass').value;
@@ -1569,7 +1589,7 @@ function deleteCounseling(id) {
 }
 
 // ============================================================
-// PARENT CALL, HOME VISIT, INCIDENT, MUTATION, GRADUATION (sama seperti sebelumnya)
+// PARENT CALL, HOME VISIT, INCIDENT, MUTATION, GRADUATION (Sama seperti sebelumnya)
 // ============================================================
 function loadParentCalls() {
     var container = document.getElementById('parentCallList');
@@ -2632,12 +2652,12 @@ db.collection('students').onSnapshot(function() {
     populatePresensiKelas();
 });
 
-console.log('✅ SIM BK siap digunakan (Optimasi untuk 1000+ siswa)!');
+console.log('✅ SIM BK siap digunakan (Optimasi + Pagination)!');
 console.log('📌 Fitur Presensi tanpa token aktif!');
 console.log('🔗 Link Presensi: https://nailisyifa79-cloud.github.io/sim-bk-sekolah/?mode=presensi');
 console.log('✏️ Ketua kelas bisa EDIT presensi jika salah!');
 console.log('🔒 HANYA form presensi yang muncul untuk siswa!');
-console.log('📊 Load siswa dibatasi 200 per tampilan untuk performa!');
+console.log('📊 Pagination 50 siswa per halaman, search & filter berfungsi!');
 </script>
 </body>
 </html>
