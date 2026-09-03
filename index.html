@@ -1430,8 +1430,9 @@ function loadParentCalls() {
         }
         html += '</tbody></table></div>';
         container.innerHTML = html;
-    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>'); });
-}
+  }).catch(function(err) { 
+    container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>'; 
+});
 
 function saveParentCall() {
     var studentId = document.getElementById('parentCallStudent').value;
