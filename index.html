@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIM BK - Sistem Informasi Manajemen BK</title>
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Library untuk baca Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f0f4f8; color: #1a2a3a; display: flex; flex-direction: column; min-height: 100vh; }
@@ -565,7 +568,7 @@
                         <button class="btn btn-primary" onclick="openModal('studentModal')">➕ Tambah Siswa</button>
                         <button class="btn btn-success" onclick="openModal('bulkStudentModal')">📋 Tambah Per Kelas</button>
                         <button class="btn btn-warning" onclick="document.getElementById('importAllInput').click()">📥 Impor Semua Siswa</button>
-                        <input type="file" id="importAllInput" accept=".csv" style="display:none" onchange="importAllStudents(event)">
+                        <input type="file" id="importAllInput" accept=".csv,.xlsx,.xls,.txt" style="display:none" onchange="importAllStudents(event)">
                     </div>
                 </div>
                 <div class="form-row" style="margin-bottom:12px;">
@@ -1528,50 +1531,109 @@ function loadStudents() {
 }
 
 // ============================================================
-// IMPOR SEMUA SISWA SEKALIGUS (DARI CSV)
+// IMPOR SEMUA SISWA - DUKUNG CSV, EXCEL, TXT
 // ============================================================
 function importAllStudents(event) {
     var file = event.target.files[0];
     if (!file) return;
 
+    var container = document.getElementById('studentList');
+    container.innerHTML = '<div class="loading"><span class="spinner"></span> Membaca file...</div>';
+
     var reader = new FileReader();
-    reader.onload = function(e) {
-        var text = e.target.result;
-        var lines = text.split('\n');
-        
-        // Cek header
-        var header = lines[0].trim().toLowerCase();
-        var hasClass = header.includes('class');
-        var hasName = header.includes('name');
-        
+    
+    // ============================================
+    // FUNGSI PROSES DATA
+    // ============================================
+    function processData(dataArray) {
         var students = [];
-        var startRow = (hasClass && hasName) ? 1 : 0;
+        var errors = [];
         
-        for (var i = startRow; i < lines.length; i++) {
-            var line = lines[i].trim();
-            if (!line) continue;
+        for (var i = 0; i < dataArray.length; i++) {
+            var row = dataArray[i];
             
-            var parts = line.split(',');
-            var className = parts[0] ? parts[0].trim() : '';
-            var name = parts[1] ? parts[1].trim() : '';
+            // Coba berbagai kemungkinan format
+            var className = '';
+            var name = '';
             
-            // Jika header tidak ada, coba tebak format: class,name
-            if (!hasClass && !hasName) {
-                className = parts[0] ? parts[0].trim() : '';
-                name = parts[1] ? parts[1].trim() : '';
+            // Jika row adalah array
+            if (Array.isArray(row)) {
+                // Cari kolom yang berisi kelas dan nama
+                for (var j = 0; j < row.length; j++) {
+                    var val = String(row[j] || '').trim();
+                    if (!val) continue;
+                    
+                    // Deteksi apakah ini kelas (ada angka + huruf)
+                    if (/[0-9]/.test(val) && /[A-Za-z]/.test(val) && !className) {
+                        className = val;
+                    } else if (!name) {
+                        name = val;
+                    }
+                }
+            } 
+            // Jika row adalah object
+            else if (typeof row === 'object') {
+                var keys = Object.keys(row);
+                for (var k = 0; k < keys.length; k++) {
+                    var key = keys[k];
+                    var val = String(row[key] || '').trim();
+                    if (!val) continue;
+                    
+                    var keyLower = key.toLowerCase();
+                    if (keyLower.includes('kelas') || keyLower.includes('class') || keyLower.includes('rombel')) {
+                        className = val;
+                    } else if (keyLower.includes('nama') || keyLower.includes('name') || keyLower.includes('siswa')) {
+                        name = val;
+                    }
+                }
             }
             
-            if (className && name) {
+            // Jika masih kosong, coba tebak
+            if (!className && !name && typeof row === 'string') {
+                var parts = row.split(',').map(function(s) { return s.trim(); });
+                if (parts.length >= 2) {
+                    // Coba deteksi mana kelas dan nama
+                    if (/[0-9]/.test(parts[0]) && /[A-Za-z]/.test(parts[0])) {
+                        className = parts[0];
+                        name = parts.slice(1).join(' ');
+                    } else if (/[0-9]/.test(parts[1]) && /[A-Za-z]/.test(parts[1])) {
+                        className = parts[1];
+                        name = parts[0];
+                    } else {
+                        className = parts[0];
+                        name = parts[1] || parts[0];
+                    }
+                } else {
+                    name = row;
+                }
+            }
+            
+            // Validasi
+            if (name) {
+                // Jika kelas kosong, gunakan default atau coba deteksi dari nama
+                if (!className) {
+                    // Coba deteksi kelas dari nama (jika ada format "X IPA 1 - Nama")
+                    var match = name.match(/^([0-9]+\s*[A-Za-z]+\s*[0-9]*)\s*[-–]\s*(.+)/);
+                    if (match) {
+                        className = match[1].trim();
+                        name = match[2].trim();
+                    } else {
+                        className = 'Belum Diketahui';
+                    }
+                }
                 students.push({ class: className, name: name });
             }
         }
         
+        // Filter data kosong
+        students = students.filter(function(s) { return s.name && s.name !== 'Kelas' && s.name !== 'Nama' && s.name !== 'class' && s.name !== 'name'; });
+        
         if (students.length === 0) {
-            alert('⚠️ Tidak ada data yang ditemukan. Pastikan format: class,name');
+            container.innerHTML = '<div class="alert alert-danger">⚠️ Tidak ada data yang ditemukan. Pastikan file berisi data siswa.</div>';
             return;
         }
         
-        // Konfirmasi sebelum menyimpan
+        // Konfirmasi
         var confirmMsg = '📋 ' + students.length + ' siswa akan ditambahkan.\n\n';
         var classCount = {};
         for (var j = 0; j < students.length; j++) {
@@ -1587,7 +1649,6 @@ function importAllStudents(event) {
         if (!confirm(confirmMsg)) return;
         
         // Simpan ke Firestore
-        var container = document.getElementById('studentList');
         container.innerHTML = '<div class="loading"><span class="spinner"></span> Menyimpan ' + students.length + ' siswa...</div>';
         
         var promises = [];
@@ -1616,9 +1677,72 @@ function importAllStudents(event) {
         }).catch(function(err) {
             container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
         });
-    };
-    reader.readAsText(file);
-    event.target.value = '';
+    }
+
+    // ============================================
+    // BACA FILE BERDASARKAN EKSTENSI
+    // ============================================
+    var extension = file.name.split('.').pop().toLowerCase();
+    
+    if (extension === 'csv' || extension === 'txt') {
+        // Baca sebagai teks
+        reader.onload = function(e) {
+            var text = e.target.result;
+            var lines = text.split('\n').filter(function(line) { return line.trim(); });
+            
+            var dataArray = [];
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                // Coba split dengan koma atau tab atau titik koma
+                var parts = null;
+                if (line.includes('\t')) {
+                    parts = line.split('\t');
+                } else if (line.includes(';')) {
+                    parts = line.split(';');
+                } else {
+                    parts = line.split(',');
+                }
+                dataArray.push(parts.map(function(p) { return p.trim(); }));
+            }
+            
+            processData(dataArray);
+        };
+        reader.readAsText(file);
+        
+    } else if (extension === 'xlsx' || extension === 'xls') {
+        // Baca Excel dengan library XLSX
+        reader.onload = function(e) {
+            try {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
+                var firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                var jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                
+                // Ambil header (baris pertama)
+                var headers = jsonData[0] || [];
+                var dataArray = [];
+                
+                for (var i = 1; i < jsonData.length; i++) {
+                    var row = jsonData[i];
+                    if (!row || row.length === 0) continue;
+                    
+                    var rowData = {};
+                    for (var j = 0; j < row.length; j++) {
+                        var header = headers[j] || 'kolom_' + j;
+                        rowData[header] = row[j];
+                    }
+                    dataArray.push(rowData);
+                }
+                
+                processData(dataArray);
+            } catch(err) {
+                container.innerHTML = '<div class="alert alert-danger">❌ Gagal membaca file Excel: ' + err.message + '</div>';
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    } else {
+        container.innerHTML = '<div class="alert alert-danger">⚠️ Format file tidak didukung. Gunakan: CSV, Excel (.xlsx, .xls), atau TXT</div>';
+    }
 }
 
 function saveStudent() {
