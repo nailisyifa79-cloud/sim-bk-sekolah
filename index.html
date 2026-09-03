@@ -534,6 +534,7 @@
             <button onclick="showTab('attendance')">✅ Kehadiran</button>
             <button onclick="showTab('home-visit')">🏠 Home Visit</button>
             <button onclick="showTab('incident')">⚠️ Kejadian</button>
+            <button onclick="showTab('mutation')">📝 Mutasi Siswa</button>
             <button onclick="showTab('reports')">📊 Laporan</button>
             <button onclick="showTab('settings')">⚙️ Pengaturan</button>
         </div>
@@ -546,6 +547,7 @@
                 <div class="stat-card warning"><div class="number warning" id="statCounseling">0</div><div class="label">Konseling Bulan Ini</div></div>
                 <div class="stat-card danger"><div class="number danger" id="statNeedsAttention">0</div><div class="label">Butuh Penanganan</div></div>
                 <div class="stat-card"><div class="number" id="statIncidents">0</div><div class="label">Kejadian Bulan Ini</div></div>
+                <div class="stat-card"><div class="number" id="statMutations">0</div><div class="label">Mutasi Bulan Ini</div></div>
             </div>
             <div class="panel">
                 <div class="panel-header"><h2>📊 Aktivitas Terbaru</h2></div>
@@ -710,6 +712,31 @@
             </div>
         </div>
 
+        <!-- MUTATION -->
+        <div id="tab-mutation" class="tab-content">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>📝 Laporan Mutasi Siswa</h2>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="openModal('mutationModal')">➕ Tambah Mutasi</button>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-bottom:12px;">
+                    <div>
+                        <label>Filter Kelas</label>
+                        <select id="filterMutationClass" class="form-control" onchange="loadMutations()">
+                            <option value="">Semua Kelas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Periode</label>
+                        <input type="month" id="filterMutationMonth" class="form-control" onchange="loadMutations()">
+                    </div>
+                </div>
+                <div id="mutationList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+            </div>
+        </div>
+
         <!-- REPORTS -->
         <div id="tab-reports" class="tab-content">
             <div class="panel">
@@ -743,6 +770,7 @@
                             <option value="attendance">Kehadiran</option>
                             <option value="homevisit">Home Visit</option>
                             <option value="incident">Kejadian</option>
+                            <option value="mutation">Mutasi</option>
                         </select>
                     </div>
                 </div>
@@ -844,7 +872,7 @@
             <div class="modal-header"><h2>📋 Konseling Individu</h2><button class="close-btn" onclick="closeModal('counselingModal')">&times;</button></div>
             <div id="counselingModalAlert"></div>
             <div class="form-group"><label>Siswa <span class="required">*</span></label><select id="counselingStudent" class="form-control"></select></div>
-            <div class="form-group"><label>Kelas</label><input type="text" id="counselingClassDisplay" class="form-control" readonly style="background:#f5f7fa;"></div>
+            <div class="form-group"><label>Kelas</label><select id="counselingClassSelect" class="form-control" onchange="updateCounselingStudent()"></select></div>
             <div class="form-group"><label>Tanggal Konseling <span class="required">*</span></label><input type="date" id="counselingDate" class="form-control"></div>
             <div class="form-group"><label>Masalah <span class="required">*</span></label><textarea id="counselingProblem" class="form-control" placeholder="Deskripsikan masalah siswa"></textarea></div>
             <div class="form-group"><label>Hasil Konseling <span class="required">*</span></label><textarea id="counselingResult" class="form-control" placeholder="Hasil dari sesi konseling"></textarea></div>
@@ -868,7 +896,7 @@
             <div class="modal-header"><h2>📞 Panggilan Orang Tua</h2><button class="close-btn" onclick="closeModal('parentCallModal')">&times;</button></div>
             <div id="parentCallModalAlert"></div>
             <div class="form-group"><label>Siswa <span class="required">*</span></label><select id="parentCallStudent" class="form-control"></select></div>
-            <div class="form-group"><label>Kelas</label><input type="text" id="parentCallClassDisplay" class="form-control" readonly style="background:#f5f7fa;"></div>
+            <div class="form-group"><label>Kelas</label><select id="parentCallClassSelect" class="form-control" onchange="updateParentCallStudent()"></select></div>
             <div class="form-group"><label>Tanggal Panggilan <span class="required">*</span></label><input type="date" id="parentCallDate" class="form-control"></div>
             <div class="form-group"><label>Masalah <span class="required">*</span></label><textarea id="parentCallProblem" class="form-control" placeholder="Deskripsikan masalah"></textarea></div>
             <div class="form-group"><label>Hasil Panggilan <span class="required">*</span></label><textarea id="parentCallResult" class="form-control" placeholder="Hasil dari panggilan orang tua"></textarea></div>
@@ -921,7 +949,7 @@
             <div class="modal-header"><h2>🏠 Home Visit</h2><button class="close-btn" onclick="closeModal('homeVisitModal')">&times;</button></div>
             <div id="homeVisitModalAlert"></div>
             <div class="form-group"><label>Siswa <span class="required">*</span></label><select id="homeVisitStudent" class="form-control"></select></div>
-            <div class="form-group"><label>Kelas</label><input type="text" id="homeVisitClassDisplay" class="form-control" readonly style="background:#f5f7fa;"></div>
+            <div class="form-group"><label>Kelas</label><select id="homeVisitClassSelect" class="form-control" onchange="updateHomeVisitStudent()"></select></div>
             <div class="form-group"><label>Tanggal Home Visit <span class="required">*</span></label><input type="date" id="homeVisitDate" class="form-control"></div>
             <div class="form-group"><label>Masalah <span class="required">*</span></label><textarea id="homeVisitProblem" class="form-control" placeholder="Deskripsikan masalah"></textarea></div>
             <div class="form-group"><label>Hasil Home Visit <span class="required">*</span></label><textarea id="homeVisitResult" class="form-control" placeholder="Hasil dari home visit"></textarea></div>
@@ -944,7 +972,7 @@
             <div class="modal-header"><h2>⚠️ Laporan Kejadian</h2><button class="close-btn" onclick="closeModal('incidentModal')">&times;</button></div>
             <div id="incidentModalAlert"></div>
             <div class="form-group"><label>Siswa <span class="required">*</span></label><select id="incidentStudent" class="form-control"></select></div>
-            <div class="form-group"><label>Kelas</label><input type="text" id="incidentClassDisplay" class="form-control" readonly style="background:#f5f7fa;"></div>
+            <div class="form-group"><label>Kelas</label><select id="incidentClassSelect" class="form-control" onchange="updateIncidentStudent()"></select></div>
             <div class="form-group"><label>Tanggal Kejadian <span class="required">*</span></label><input type="date" id="incidentDate" class="form-control"></div>
             <div class="form-group"><label>Jenis Kejadian <span class="required">*</span></label><select id="incidentType" class="form-control"><option value="Terlambat">⏰ Terlambat</option><option value="Perkelahian">👊 Perkelahian</option><option value="Pelanggaran Aturan">📜 Pelanggaran Aturan</option><option value="Kecelakaan">🚑 Kecelakaan</option><option value="Lainnya">📌 Lainnya</option></select></div>
             <div class="form-group"><label>Deskripsi Kejadian <span class="required">*</span></label><textarea id="incidentDescription" class="form-control" placeholder="Deskripsikan kejadian secara detail"></textarea></div>
@@ -959,6 +987,38 @@
                 <small style="color:var(--gray);font-size:11px;">Format: JPG, PNG, GIF. Maks 5 foto.</small>
             </div>
             <button class="btn btn-success" onclick="saveIncident()">💾 Simpan Laporan</button>
+        </div>
+    </div>
+
+    <!-- Mutation Modal -->
+    <div class="modal-overlay" id="mutationModal">
+        <div class="modal-box">
+            <div class="modal-header"><h2>📝 Laporan Mutasi Siswa</h2><button class="close-btn" onclick="closeModal('mutationModal')">&times;</button></div>
+            <div id="mutationModalAlert"></div>
+            <div class="form-group"><label>Siswa <span class="required">*</span></label><select id="mutationStudent" class="form-control"></select></div>
+            <div class="form-group"><label>Kelas</label><select id="mutationClassSelect" class="form-control" onchange="updateMutationStudent()"></select></div>
+            <div class="form-group"><label>Tanggal Mutasi <span class="required">*</span></label><input type="date" id="mutationDate" class="form-control"></div>
+            <div class="form-group"><label>Jenis Mutasi <span class="required">*</span></label>
+                <select id="mutationType" class="form-control">
+                    <option value="Masuk">📥 Masuk (Pindahan)</option>
+                    <option value="Keluar">📤 Keluar (Pindah Sekolah)</option>
+                    <option value="Pindah Kelas">🔄 Pindah Kelas</option>
+                    <option value="Drop Out">⛔ Drop Out</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Alasan Mutasi <span class="required">*</span></label>
+                <textarea id="mutationReason" class="form-control" placeholder="Deskripsikan alasan mutasi"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Upload Foto Surat Mutasi</label>
+                <div class="file-input-wrapper">
+                    <button class="btn btn-outline">📷 Pilih Foto</button>
+                    <input type="file" id="mutationPhotos" accept="image/*" multiple onchange="previewPhotos('mutation')">
+                </div>
+                <div class="upload-preview" id="mutationPreview"></div>
+                <small style="color:var(--gray);font-size:11px;">Format: JPG, PNG, GIF. Maks 5 foto.</small>
+            </div>
+            <button class="btn btn-success" onclick="saveMutation()">💾 Simpan</button>
         </div>
     </div>
 
@@ -1162,6 +1222,7 @@ function loadAllData() {
     loadAttendance();
     loadHomeVisits();
     loadIncidents();
+    loadMutations();
     updateDashboard();
     loadUsersList();
     populateYearFilter();
@@ -1178,7 +1239,7 @@ function populateYearFilter() {
 }
 
 // ============================================================
-// POPULATE CLASS DROPDOWNS - OTOMATIS DARI DATA SISWA
+// POPULATE CLASS DROPDOWNS
 // ============================================================
 function populateClassDropdowns() {
     var classes = new Set();
@@ -1187,10 +1248,11 @@ function populateClassDropdowns() {
     }
     var classArray = Array.from(classes).sort();
     
-    // Daftar dropdown yang perlu diisi
     var dropdownIds = [
         'filterClass', 'filterCounselingClass', 'filterAttendanceClass', 
-        'filterIncidentClass', 'reportClass', 'attendanceClass'
+        'filterIncidentClass', 'filterMutationClass', 'reportClass',
+        'counselingClassSelect', 'parentCallClassSelect', 'homeVisitClassSelect',
+        'incidentClassSelect', 'mutationClassSelect', 'attendanceClass'
     ];
     
     for (var d = 0; d < dropdownIds.length; d++) {
@@ -1202,11 +1264,62 @@ function populateClassDropdowns() {
             var selected = (classArray[j] === currentVal) ? 'selected' : '';
             select.innerHTML += '<option value="' + classArray[j] + '" ' + selected + '>' + classArray[j] + '</option>';
         }
-        // Jika currentVal tidak ada di list, tetap pertahankan
         if (currentVal && !classArray.includes(currentVal)) {
             select.value = currentVal;
         }
     }
+    
+    // Populate student dropdowns based on class filter
+    populateFilteredStudents('counselingStudent', document.getElementById('counselingClassSelect').value);
+    populateFilteredStudents('parentCallStudent', document.getElementById('parentCallClassSelect').value);
+    populateFilteredStudents('homeVisitStudent', document.getElementById('homeVisitClassSelect').value);
+    populateFilteredStudents('incidentStudent', document.getElementById('incidentClassSelect').value);
+    populateFilteredStudents('mutationStudent', document.getElementById('mutationClassSelect').value);
+}
+
+function populateFilteredStudents(selectId, classFilter) {
+    var select = document.getElementById(selectId);
+    if (!select) return;
+    
+    var currentVal = select.value;
+    select.innerHTML = '<option value="">Pilih siswa</option>';
+    
+    var filtered = allStudents;
+    if (classFilter) {
+        filtered = allStudents.filter(function(s) { return s.class === classFilter; });
+    }
+    
+    var sorted = filtered.slice().sort(function(a, b) { return a.name.localeCompare(b.name); });
+    for (var i = 0; i < sorted.length; i++) {
+        var s = sorted[i];
+        select.innerHTML += '<option value="' + s.id + '">' + s.name + ' (' + (s.class || '-') + ')</option>';
+    }
+    select.value = currentVal;
+}
+
+function updateCounselingStudent() {
+    var classVal = document.getElementById('counselingClassSelect').value;
+    populateFilteredStudents('counselingStudent', classVal);
+}
+
+function updateParentCallStudent() {
+    var classVal = document.getElementById('parentCallClassSelect').value;
+    populateFilteredStudents('parentCallStudent', classVal);
+}
+
+function updateHomeVisitStudent() {
+    var classVal = document.getElementById('homeVisitClassSelect').value;
+    populateFilteredStudents('homeVisitStudent', classVal);
+}
+
+function updateIncidentStudent() {
+    var classVal = document.getElementById('incidentClassSelect').value;
+    populateFilteredStudents('incidentStudent', classVal);
+}
+
+function updateMutationStudent() {
+    var classVal = document.getElementById('mutationClassSelect').value;
+    populateFilteredStudents('mutationStudent', classVal);
 }
 
 // ============================================================
@@ -1234,6 +1347,7 @@ function showTab(tabId) {
     if (tabId === 'attendance') loadAttendance();
     if (tabId === 'home-visit') loadHomeVisits();
     if (tabId === 'incident') loadIncidents();
+    if (tabId === 'mutation') loadMutations();
     if (tabId === 'reports') populateReportFilters();
 }
 
@@ -1252,32 +1366,23 @@ function openModal(id) {
     var today = new Date().toISOString().split('T')[0];
     
     if (id === 'counselingModal') {
-        populateStudentDropdown('counselingStudent');
+        populateClassDropdowns();
         document.getElementById('counselingDate').value = today;
-        document.getElementById('counselingStudent').onchange = function() {
-            updateClassDisplay('counselingStudent', 'counselingClassDisplay');
-        };
     } else if (id === 'parentCallModal') {
-        populateStudentDropdown('parentCallStudent');
+        populateClassDropdowns();
         document.getElementById('parentCallDate').value = today;
-        document.getElementById('parentCallStudent').onchange = function() {
-            updateClassDisplay('parentCallStudent', 'parentCallClassDisplay');
-        };
     } else if (id === 'homeVisitModal') {
-        populateStudentDropdown('homeVisitStudent');
+        populateClassDropdowns();
         document.getElementById('homeVisitDate').value = today;
-        document.getElementById('homeVisitStudent').onchange = function() {
-            updateClassDisplay('homeVisitStudent', 'homeVisitClassDisplay');
-        };
     } else if (id === 'incidentModal') {
-        populateStudentDropdown('incidentStudent');
+        populateClassDropdowns();
         document.getElementById('incidentDate').value = today;
-        document.getElementById('incidentStudent').onchange = function() {
-            updateClassDisplay('incidentStudent', 'incidentClassDisplay');
-        };
+    } else if (id === 'mutationModal') {
+        populateClassDropdowns();
+        document.getElementById('mutationDate').value = today;
     } else if (id === 'attendanceModal') {
         document.getElementById('attendanceDate').value = today;
-        populateClassDropdown('attendanceClass');
+        populateClassDropdowns();
         loadAttendanceStudents();
     } else if (id === 'studentModal') {
         document.getElementById('studentName').value = '';
@@ -1296,16 +1401,6 @@ function openModal(id) {
 
 function closeModal(id) {
     document.getElementById(id).classList.remove('active');
-}
-
-function updateClassDisplay(studentSelectId, classDisplayId) {
-    var select = document.getElementById(studentSelectId);
-    var display = document.getElementById(classDisplayId);
-    if (select && display) {
-        var studentId = select.value;
-        var student = allStudents.find(function(s) { return s.id === studentId; });
-        display.value = student ? student.class : '';
-    }
 }
 
 document.addEventListener('click', function(e) {
@@ -1410,7 +1505,6 @@ function loadStudents() {
                 if (data.class) classes.add(data.class);
             });
 
-            // Update semua dropdown kelas
             populateClassDropdowns();
 
             var filtered = allStudents;
@@ -1531,7 +1625,7 @@ function deleteStudent(id) {
 }
 
 // ============================================================
-// TEACHER FUNCTIONS
+// TEACHER FUNCTIONS (sama seperti sebelumnya)
 // ============================================================
 function loadTeachers() {
     var container = document.getElementById('teacherList');
@@ -1857,7 +1951,7 @@ function deleteParentCall(id) {
 }
 
 // ============================================================
-// ATTENDANCE FUNCTIONS - DENGAN FITUR ABSEN BARU
+// ATTENDANCE FUNCTIONS
 // ============================================================
 function loadAttendance() {
     var date = document.getElementById('filterAttendanceDate').value;
@@ -1912,7 +2006,6 @@ function loadAttendanceStudents() {
         return;
     }
 
-    // Cek apakah sudah ada data kehadiran untuk tanggal ini
     var date = document.getElementById('attendanceDate').value;
     if (date) {
         db.collection('attendance')
@@ -1925,17 +2018,17 @@ function loadAttendanceStudents() {
                     var data = doc.data();
                     existingData[data.studentId] = { status: data.status, note: data.note };
                 });
-                renderAttendanceList(students, existingData, classVal);
+                renderAttendanceList(students, existingData);
             })
             .catch(function() {
-                renderAttendanceList(students, {}, classVal);
+                renderAttendanceList(students, {});
             });
     } else {
-        renderAttendanceList(students, {}, classVal);
+        renderAttendanceList(students, {});
     }
 }
 
-function renderAttendanceList(students, existingData, classVal) {
+function renderAttendanceList(students, existingData) {
     var container = document.getElementById('attendanceStudentList');
     var html = '<div style="margin-top:8px;">';
     html += '<div style="display:flex;gap:10px;font-weight:600;padding:4px 0;border-bottom:2px solid var(--gray-light);font-size:12px;">';
@@ -1955,7 +2048,6 @@ function renderAttendanceList(students, existingData, classVal) {
         html += '<span style="font-weight:600;width:30px;font-size:12px;">' + (i + 1) + '.</span>';
         html += '<span style="flex:1;font-size:13px;">' + s.name + '</span>';
         
-        // Status dropdown
         html += '<select class="form-control" style="width:100px;padding:4px 8px;font-size:12px;" id="att_status_' + s.id + '">';
         html += '<option value="Hadir" ' + (status === 'Hadir' ? 'selected' : '') + '>✅ Hadir</option>';
         html += '<option value="Sakit" ' + (status === 'Sakit' ? 'selected' : '') + '>🤒 Sakit</option>';
@@ -1963,14 +2055,12 @@ function renderAttendanceList(students, existingData, classVal) {
         html += '<option value="Alfa" ' + (status === 'Alfa' ? 'selected' : '') + '>❌ Alfa</option>';
         html += '</select>';
         
-        // Keterangan
         html += '<input type="text" class="form-control" style="width:120px;padding:4px 8px;font-size:12px;" id="att_note_' + s.id + '" placeholder="Keterangan" value="' + note + '">';
         html += '</div>';
     }
     html += '</div>';
     container.innerHTML = html;
     
-    // Sembunyikan info absent mode
     document.getElementById('absentModeInfo').style.display = 'none';
     absentMode = false;
 }
@@ -2005,13 +2095,11 @@ function toggleAbsentMode() {
     
     if (absentMode) {
         info.style.display = 'block';
-        // Set semua ke Hadir dulu, lalu user bisa pilih yang tidak hadir
         for (var i = 0; i < students.length; i++) {
             var select = document.getElementById('att_status_' + students[i].id);
             if (select) select.value = 'Hadir';
         }
-        alert('⚠️ Mode Pilih Tidak Hadir Aktif!\nCentang nama siswa yang TIDAK HADIR di bawah ini.');
-        // Tambahkan checkbox untuk setiap siswa
+        alert('⚠️ Mode Pilih Tidak Hadir Aktif!\nCentang nama siswa yang TIDAK HADIR.');
         addAbsentCheckboxes(students);
     } else {
         info.style.display = 'none';
@@ -2021,18 +2109,12 @@ function toggleAbsentMode() {
 
 function addAbsentCheckboxes(students) {
     var container = document.getElementById('attendanceStudentList');
-    // Cari elemen checkbox yang sudah ada
     var existingCheckboxes = container.querySelectorAll('.absent-checkbox');
-    if (existingCheckboxes.length > 0) {
-        // Sudah ada, tidak perlu tambah lagi
-        return;
-    }
+    if (existingCheckboxes.length > 0) return;
     
-    // Tambahkan checkbox sebelum status dropdown
     var items = container.querySelectorAll('div[style*="display:flex"]');
     for (var i = 0; i < items.length; i++) {
         var item = items[i];
-        // Skip header
         if (item.querySelector('span[style*="font-weight:600"]')) continue;
         
         var checkbox = document.createElement('input');
@@ -2050,7 +2132,6 @@ function addAbsentCheckboxes(students) {
                     select.value = 'Alfa';
                     select.style.borderColor = 'var(--danger)';
                     select.style.borderWidth = '2px';
-                    // Fokus ke keterangan
                     var note = document.getElementById('att_note_' + studentId);
                     if (note) note.focus();
                 } else {
@@ -2061,13 +2142,11 @@ function addAbsentCheckboxes(students) {
             }
         };
         
-        // Sisipkan checkbox setelah nomor
         var firstChild = item.firstChild;
         var noSpan = item.querySelector('span[style*="font-weight:600"]');
         if (noSpan) {
             item.insertBefore(checkbox, noSpan.nextSibling);
         } else {
-            // Jika tidak ada nomor, tambahkan di awal
             item.insertBefore(checkbox, item.firstChild);
         }
     }
@@ -2112,7 +2191,6 @@ function saveAttendance() {
         var status = document.getElementById('att_status_' + s.id) ? document.getElementById('att_status_' + s.id).value : 'Hadir';
         var note = document.getElementById('att_note_' + s.id) ? document.getElementById('att_note_' + s.id).value : '';
         
-        // Validasi: jika status tidak hadir tapi tidak ada keterangan
         if (status !== 'Hadir' && !note) {
             alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Siswa ' + s.name + ' tidak hadir tetapi keterangan kosong!</div>';
             return;
@@ -2412,6 +2490,133 @@ function deleteIncident(id) {
 }
 
 // ============================================================
+// MUTATION FUNCTIONS
+// ============================================================
+function loadMutations() {
+    var classFilter = document.getElementById('filterMutationClass').value;
+    var monthFilter = document.getElementById('filterMutationMonth').value;
+    var container = document.getElementById('mutationList');
+
+    db.collection('mutations')
+        .orderBy('date', 'desc')
+        .get()
+        .then(function(snapshot) {
+            var items = [];
+            snapshot.forEach(function(doc) {
+                var data = doc.data();
+                data.id = doc.id;
+                items.push(data);
+            });
+
+            if (classFilter) items = items.filter(function(m) { return m.studentClass === classFilter; });
+            if (monthFilter) items = items.filter(function(m) { return m.date && m.date.startsWith(monthFilter); });
+
+            if (items.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">📭 Belum ada data mutasi siswa.</div>';
+                return;
+            }
+
+            var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Alasan</th><th>Foto</th><th>Aksi</th></tr></thead><tbody>';
+            for (var i = 0; i < items.length; i++) {
+                var m = items[i];
+                var hasPhotos = m.photoUrls && m.photoUrls.length > 0;
+                var photoHtml = '-';
+                if (hasPhotos) {
+                    photoHtml = '<div class="image-gallery">';
+                    for (var j = 0; j < Math.min(m.photoUrls.length, 3); j++) {
+                        photoHtml += '<div class="thumb" onclick="event.stopPropagation();openLightbox(\'' + m.photoUrls[j] + '\')"><img src="' + m.photoUrls[j] + '" alt="Foto Surat Mutasi"></div>';
+                    }
+                    if (m.photoUrls.length > 3) {
+                        photoHtml += '<span style="font-size:10px;color:var(--gray);">+' + (m.photoUrls.length - 3) + '</span>';
+                    }
+                    photoHtml += '</div>';
+                }
+                var typeClass = m.type === 'Masuk' ? 'success' : m.type === 'Keluar' ? 'danger' : m.type === 'Pindah Kelas' ? 'warning' : 'danger';
+                html += '<tr><td>' + (m.date ? new Date(m.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + m.studentName + '</strong></td><td><span class="badge-status info">' + m.studentClass + '</span></td><td><span class="badge-status ' + typeClass + '">' + (m.type || '-') + '</span></td><td style="max-width:150px;">' + (m.reason || '-') + '</td><td>' + photoHtml + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteMutation(\'' + m.id + '\')">🗑️</button></td></tr>';
+            }
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        })
+        .catch(function(err) {
+            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>';
+        });
+}
+
+function saveMutation() {
+    var studentId = document.getElementById('mutationStudent').value;
+    var date = document.getElementById('mutationDate').value;
+    var type = document.getElementById('mutationType').value;
+    var reason = document.getElementById('mutationReason').value.trim();
+    var alertEl = document.getElementById('mutationModalAlert');
+
+    if (!studentId || !date || !type || !reason) {
+        alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';
+        return;
+    }
+
+    var student = allStudents.find(function(s) { return s.id === studentId; });
+    alertEl.innerHTML = '<div class="alert alert-info">⏳ Mengupload foto dan menyimpan data...</div>';
+
+    var uploadPromises = [];
+    var prefix = 'mutation';
+    if (photoFiles[prefix]) {
+        for (var i = 0; i < photoFiles[prefix].length; i++) {
+            var file = photoFiles[prefix][i];
+            var fileName = 'mutations/' + Date.now() + '_' + file.name;
+            var uploadTask = storage.ref(fileName).put(file);
+            uploadPromises.push(uploadTask.then(function(snapshot) { return snapshot.ref.getDownloadURL(); }));
+        }
+    }
+
+    Promise.all(uploadPromises)
+        .then(function(photoUrls) {
+            return db.collection('mutations').add({
+                studentId: studentId,
+                studentName: student ? student.name : 'Tidak diketahui',
+                studentClass: student ? student.class : 'Tidak diketahui',
+                date: date,
+                type: type,
+                reason: reason,
+                photoUrls: photoUrls || [],
+                counselor: currentUser ? currentUser.school : 'Guru BK',
+                createdAt: new Date().toISOString(),
+                school: schoolData.name || ''
+            });
+        })
+        .then(function() {
+            alertEl.innerHTML = '<div class="alert alert-success">✅ Data mutasi siswa berhasil disimpan!</div>';
+            photoFiles['mutation'] = [];
+            document.getElementById('mutationPreview').innerHTML = '';
+            document.getElementById('mutationPhotos').value = '';
+            setTimeout(function() {
+                closeModal('mutationModal');
+                loadMutations();
+                updateDashboard();
+            }, 1000);
+        })
+        .catch(function(err) {
+            alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
+        });
+}
+
+function deleteMutation(id) {
+    if (!confirm('Yakin ingin menghapus data mutasi ini?')) return;
+    db.collection('mutations').doc(id).get().then(function(doc) {
+        var data = doc.data();
+        if (data.photoUrls && data.photoUrls.length > 0) {
+            for (var i = 0; i < data.photoUrls.length; i++) {
+                var ref = storage.refFromURL(data.photoUrls[i]);
+                ref.delete().catch(function() {});
+            }
+        }
+        return db.collection('mutations').doc(id).delete();
+    }).then(function() {
+        loadMutations();
+        updateDashboard();
+    }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
+}
+
+// ============================================================
 // DASHBOARD
 // ============================================================
 function updateDashboard() {
@@ -2440,6 +2645,10 @@ function updateDashboard() {
 
     db.collection('incidents').where('date', '>=', monthStart).get().then(function(snapshot) {
         document.getElementById('statIncidents').textContent = snapshot.size;
+    });
+
+    db.collection('mutations').where('date', '>=', monthStart).get().then(function(snapshot) {
+        document.getElementById('statMutations').textContent = snapshot.size;
     });
 
     loadRecentActivities();
@@ -2496,6 +2705,18 @@ function loadRecentActivities() {
                     time: data.createdAt ? new Date(data.createdAt).toLocaleString('id-ID') : '-'
                 });
             });
+            return db.collection('mutations').orderBy('createdAt', 'desc').limit(5).get();
+        })
+        .then(function(snapshot) {
+            snapshot.forEach(function(doc) {
+                var data = doc.data();
+                activities.push({
+                    type: '📝 Mutasi',
+                    text: data.studentName + ' - ' + data.type + ' - ' + (data.reason ? data.reason.substring(0, 40) : '') + '...',
+                    date: data.date ? new Date(data.date).toLocaleDateString('id-ID') : '-',
+                    time: data.createdAt ? new Date(data.createdAt).toLocaleString('id-ID') : '-'
+                });
+            });
 
             activities.sort(function(a, b) { return new Date(b.time) - new Date(a.time); });
             activities = activities.slice(0, 10);
@@ -2522,7 +2743,7 @@ function loadRecentActivities() {
 }
 
 // ============================================================
-// REPORTS
+// REPORTS (updated with mutation)
 // ============================================================
 function populateReportFilters() {
     var classSelect = document.getElementById('reportClass');
@@ -2560,7 +2781,7 @@ function generateReport() {
     var startDateStr = startDate.toISOString().split('T')[0];
 
     var promises = [];
-    var reportData = { counseling: [], parentCalls: [], attendance: [], homeVisits: [], incidents: [] };
+    var reportData = { counseling: [], parentCalls: [], attendance: [], homeVisits: [], incidents: [], mutations: [] };
 
     promises.push(
         db.collection('counseling').where('date', '>=', startDateStr).get()
@@ -2612,6 +2833,16 @@ function generateReport() {
             })
     );
 
+    promises.push(
+        db.collection('mutations').where('date', '>=', startDateStr).get()
+            .then(function(snapshot) {
+                snapshot.forEach(function(doc) {
+                    var data = doc.data();
+                    if (!classVal || data.studentClass === classVal) reportData.mutations.push(data);
+                });
+            })
+    );
+
     Promise.all(promises).then(function() {
         var html = '<div style="padding:16px;background:#f8fafc;border-radius:8px;">';
         html += '<h3 style="color:var(--primary-dark);margin-bottom:12px;">📊 Laporan Perkembangan ' + (period === 'weekly' ? 'Mingguan' : period === 'monthly' ? 'Bulanan' : 'Semester') + '</h3>';
@@ -2623,6 +2854,7 @@ function generateReport() {
         html += '<div class="stat-card success"><div class="number success">' + reportData.attendance.length + '</div><div class="label">Kehadiran</div></div>';
         html += '<div class="stat-card danger"><div class="number danger">' + reportData.homeVisits.length + '</div><div class="label">Home Visit</div></div>';
         html += '<div class="stat-card"><div class="number">' + reportData.incidents.length + '</div><div class="label">Kejadian</div></div>';
+        html += '<div class="stat-card"><div class="number">' + reportData.mutations.length + '</div><div class="label">Mutasi</div></div>';
         html += '</div>';
 
         if (type === 'all' || type === 'counseling') {
@@ -2682,6 +2914,21 @@ function generateReport() {
             }
         }
 
+        if (type === 'all' || type === 'mutation') {
+            html += '<h4 style="margin:12px 0 8px;color:var(--primary);">📝 Mutasi Siswa (' + reportData.mutations.length + ')</h4>';
+            if (reportData.mutations.length > 0) {
+                html += '<div class="table-wrap" style="font-size:12px;"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Alasan</th></tr></thead><tbody>';
+                for (var m = 0; m < reportData.mutations.length; m++) {
+                    var mut = reportData.mutations[m];
+                    var typeClass = mut.type === 'Masuk' ? 'success' : mut.type === 'Keluar' ? 'danger' : mut.type === 'Pindah Kelas' ? 'warning' : 'danger';
+                    html += '<tr><td>' + (mut.date ? new Date(mut.date).toLocaleDateString('id-ID') : '-') + '</td><td><strong>' + mut.studentName + '</strong></td><td>' + mut.studentClass + '</td><td><span class="badge-status ' + typeClass + '">' + (mut.type || '-') + '</span></td><td style="max-width:150px;">' + (mut.reason ? mut.reason.substring(0, 60) : '-') + '</td></tr>';
+                }
+                html += '</tbody></table></div>';
+            } else {
+                html += '<div class="alert alert-info">Tidak ada data mutasi.</div>';
+            }
+        }
+
         html += '<div style="margin-top:16px;font-size:11px;color:var(--gray);text-align:center;">Dicetak: ' + new Date().toLocaleString('id-ID') + ' | Generated by SIM BK @NaFaSBK</div>';
         html += '</div>';
 
@@ -2707,7 +2954,7 @@ function printReport() {
     w.document.write('<!DOCTYPE html><html><head><title>Laporan SIM BK</title><style>');
     w.document.write('body { font-family: Arial, sans-serif; padding: 20px; color: #1a2a3a; }');
     w.document.write('h2 { color: #0d3b6b; border-bottom: 2px solid #0d3b6b; padding-bottom: 8px; }');
-    w.document.write('.stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }');
+    w.document.write('.stats-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin: 16px 0; }');
     w.document.write('.stat-card { background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center; }');
     w.document.write('.stat-card .number { font-size: 24px; font-weight: 800; }');
     w.document.write('.stat-card .label { font-size: 12px; color: #6b7d90; }');
@@ -2817,7 +3064,7 @@ function resetAllData() {
     if (!confirm('⚠️ Yakin ingin menghapus SEMUA data? Ini tidak bisa dibatalkan!')) return;
     if (!confirm('⚠️⚠️ Konfirmasi terakhir: Hapus semua data?')) return;
 
-    var collections = ['students', 'teachers', 'counseling', 'parentCalls', 'attendance', 'homeVisits', 'incidents'];
+    var collections = ['students', 'teachers', 'counseling', 'parentCalls', 'attendance', 'homeVisits', 'incidents', 'mutations'];
     var promises = [];
     for (var i = 0; i < collections.length; i++) {
         var col = collections[i];
@@ -2844,40 +3091,6 @@ function resetAllData() {
 }
 
 // ============================================================
-// UTILITY FUNCTIONS
-// ============================================================
-function populateStudentDropdown(selectId) {
-    var select = document.getElementById(selectId);
-    if (!select) return;
-
-    var currentVal = select.value;
-    select.innerHTML = '<option value="">Pilih siswa</option>';
-    var sortedStudents = allStudents.slice().sort(function(a, b) { return a.name.localeCompare(b.name); });
-    for (var i = 0; i < sortedStudents.length; i++) {
-        var s = sortedStudents[i];
-        select.innerHTML += '<option value="' + s.id + '">' + s.name + ' (' + (s.class || '-') + ')</option>';
-    }
-    select.value = currentVal;
-}
-
-function populateClassDropdown(selectId) {
-    var select = document.getElementById(selectId);
-    if (!select) return;
-
-    var currentVal = select.value;
-    select.innerHTML = '<option value="">Pilih kelas</option>';
-    var classes = new Set();
-    for (var i = 0; i < allStudents.length; i++) {
-        classes.add(allStudents[i].class);
-    }
-    var classArray = Array.from(classes).sort();
-    for (var j = 0; j < classArray.length; j++) {
-        select.innerHTML += '<option value="' + classArray[j] + '">' + classArray[j] + '</option>';
-    }
-    select.value = currentVal;
-}
-
-// ============================================================
 // CHECK SESSION ON LOAD
 // ============================================================
 if (!checkSession()) {
@@ -2887,14 +3100,7 @@ if (!checkSession()) {
 // Listener untuk update data siswa
 db.collection('students').onSnapshot(function() {
     loadStudents();
-    var selectIds = ['counselingStudent', 'parentCallStudent', 'homeVisitStudent', 'incidentStudent'];
-    for (var i = 0; i < selectIds.length; i++) {
-        var el = document.getElementById(selectIds[i]);
-        if (el && document.getElementById(el.closest('.modal-overlay')).classList.contains('active')) {
-            populateStudentDropdown(selectIds[i]);
-        }
-    }
-    populateClassDropdown('attendanceClass');
+    populateClassDropdowns();
 });
 </script>
 </body>
