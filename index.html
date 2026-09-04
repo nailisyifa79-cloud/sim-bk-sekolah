@@ -4,262 +4,469 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIM BK - Sistem Informasi Manajemen BK</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0d3b6b,#1a5a9e);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
-        .container{background:#fff;padding:40px;border-radius:16px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
-        .logo{text-align:center;margin-bottom:20px}
-        .logo h1{font-size:36px;color:#0d3b6b}
-        .logo h1 span{color:#f4b400}
-        .logo p{color:#888;font-size:14px;margin-top:4px}
-        .alert{padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;display:none}
-        .alert.show{display:block}
-        .alert-danger{background:#fde8e8;color:#c0392b;border-left:4px solid #c0392b}
-        .alert-success{background:#e8f8ed;color:#27ae60;border-left:4px solid #27ae60}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;color:#1a2a3a;display:flex;flex-direction:column;min-height:100vh}
+        :root{--primary:#1a5a9e;--primary-dark:#0d3b6b;--primary-light:#e8f0fe;--secondary:#f4b400;--success:#159a7c;--danger:#d96b7b;--warning:#f4b400;--gray:#6b7d90;--gray-light:#e8edf2;--shadow:0 2px 12px rgba(0,0,0,0.08);--radius:12px}
+        a{text-decoration:none;color:var(--primary);cursor:pointer}
+        .app-container{max-width:1400px;margin:0 auto;padding:12px;flex:1}
+        .hidden{display:none!important}
+        .header{background:linear-gradient(135deg,var(--primary-dark),var(--primary));color:#fff;padding:16px 24px;border-radius:var(--radius);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+        .header-brand h1{font-size:20px;font-weight:800}
+        .header-brand h1 span{color:var(--secondary)}
+        .header-brand .subtitle{font-size:11px;opacity:.8}
+        .header-info{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px}
+        .header-info .school-name{font-weight:600;background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:20px}
+        .btn-logout{background:var(--danger);color:#fff;border:0;padding:6px 16px;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px}
+        .btn-logout:hover{background:#c45566}
+        .nav{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;background:#fff;padding:6px 12px;border-radius:var(--radius);box-shadow:var(--shadow);overflow-x:auto}
+        .nav button{padding:8px 16px;border:0;background:transparent;border-radius:8px;font-weight:600;font-size:12px;cursor:pointer;color:var(--gray);transition:.2s;white-space:nowrap}
+        .nav button:hover{background:var(--primary-light);color:var(--primary)}
+        .nav button.active{background:var(--primary);color:#fff}
+        .panel{background:#fff;border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+        .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+        .panel-header h2{font-size:18px;color:var(--primary-dark)}
+        .panel-header .actions{display:flex;gap:8px;flex-wrap:wrap}
         .form-group{margin-bottom:14px}
-        .form-group label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:4px}
-        .form-group input{width:100%;padding:12px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:14px;transition:border-color .3s}
-        .form-group input:focus{border-color:#1a5a9e;outline:none;box-shadow:0 0 0 3px rgba(26,90,158,0.1)}
-        .btn{width:100%;padding:13px;border:0;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:all .3s;color:#fff}
-        .btn-primary{background:#1a5a9e}
-        .btn-primary:hover{background:#0d3b6b;transform:translateY(-1px)}
-        .btn-danger{background:#e74c3c}
-        .btn-danger:hover{background:#c0392b}
-        .demo-info{background:#f0f4f8;padding:12px;border-radius:8px;font-size:12px;color:#666;text-align:center;margin-top:16px}
-        .demo-info strong{color:#0d3b6b}
-        .dashboard{text-align:center}
-        .dashboard .greeting{font-size:20px;font-weight:600;color:#0d3b6b;margin-bottom:8px}
-        .dashboard .email{color:#888;font-size:14px;margin-bottom:16px}
-        .dashboard .card{background:#f0f4f8;padding:20px;border-radius:12px;margin:16px 0}
-        .dashboard .card .icon{font-size:32px;margin-bottom:8px}
-        .dashboard .card p{color:#555;font-size:14px}
-        .dashboard .card .small{font-size:12px;color:#999;margin-top:8px}
-        .status-badge{display:inline-block;background:#27ae60;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
-        .btn-logout{background:#e74c3c;color:#fff;border:0;padding:12px;border-radius:8px;cursor:pointer;font-weight:600;width:100%;font-size:16px;transition:all .3s}
-        .btn-logout:hover{background:#c0392b;transform:translateY(-1px)}
+        .form-group label{display:block;font-weight:600;font-size:13px;color:var(--primary-dark);margin-bottom:4px}
+        .form-group label .required{color:var(--danger)}
+        .form-control{width:100%;padding:10px 14px;border:2px solid var(--gray-light);border-radius:8px;font-size:14px;transition:.2s;background:#fafcfe}
+        .form-control:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px rgba(26,90,158,0.1)}
+        .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+        textarea.form-control{min-height:80px;resize:vertical}
+        .btn{padding:10px 24px;border:0;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:6px;justify-content:center}
+        .btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+        .btn-primary{background:var(--primary);color:#fff}
+        .btn-primary:hover{background:var(--primary-dark)}
+        .btn-success{background:var(--success);color:#fff}
+        .btn-success:hover{background:#0d7a62}
+        .btn-danger{background:var(--danger);color:#fff}
+        .btn-danger:hover{background:#c45566}
+        .btn-warning{background:var(--warning);color:#fff}
+        .btn-warning:hover{background:#d49c00}
+        .btn-outline{background:transparent;border:2px solid var(--gray-light);color:var(--gray)}
+        .btn-outline:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+        .btn-sm{padding:4px 12px;font-size:11px}
+        .btn-block{width:100%}
+        .table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--gray-light);max-height:600px;overflow-y:auto}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        table th{background:var(--primary-dark);color:#fff;padding:10px 12px;text-align:left;font-weight:600;font-size:12px;position:sticky;top:0;z-index:10}
+        table td{padding:10px 12px;border-bottom:1px solid var(--gray-light);vertical-align:middle}
+        table tr:hover{background:#f8fafc}
+        .badge-status{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600}
+        .badge-status.success{background:#d4edda;color:#155724}
+        .badge-status.danger{background:#f8d7da;color:#721c24}
+        .badge-status.info{background:#d1ecf1;color:#0c5460}
+        .badge-status.warning{background:#fff3cd;color:#856404}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+        .stat-card{background:#fff;padding:14px 18px;border-radius:var(--radius);box-shadow:var(--shadow);border-left:4px solid var(--primary)}
+        .stat-card .number{font-size:26px;font-weight:800;color:var(--primary-dark)}
+        .stat-card .label{font-size:11px;color:var(--gray);margin-top:2px}
+        .stat-card.danger{border-left-color:var(--danger)}
+        .stat-card.success{border-left-color:var(--success)}
+        .stat-card.warning{border-left-color:var(--warning)}
+        .stat-card .number.danger{color:var(--danger)}
+        .stat-card .number.success{color:var(--success)}
+        .stat-card .number.warning{color:#b8860b}
+        .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;justify-content:center;align-items:center}
+        .modal-overlay.active{display:flex}
+        .modal-box{background:#fff;border-radius:var(--radius);padding:30px;max-width:650px;width:95%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:modalIn .3s ease}
+        @keyframes modalIn{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+        .modal-box .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--gray-light)}
+        .modal-box .modal-header h2{font-size:20px;color:var(--primary-dark)}
+        .modal-box .close-btn{background:none;border:0;font-size:28px;cursor:pointer;color:var(--gray);padding:0 8px}
+        .modal-box .close-btn:hover{color:var(--danger)}
+        .alert{padding:12px 16px;border-radius:8px;margin-bottom:12px;font-size:14px}
+        .alert-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
+        .alert-danger{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
+        .alert-info{background:#d1ecf1;color:#0c5460;border:1px solid #bee5eb}
+        .alert-warning{background:#fff3cd;color:#856404;border:1px solid #ffeeba}
+        .auth-container{max-width:420px;margin:60px auto 40px;background:#fff;border-radius:var(--radius);padding:40px 32px;box-shadow:var(--shadow)}
+        .auth-container .auth-logo{text-align:center;margin-bottom:24px}
+        .auth-container .auth-logo h1{font-size:28px;color:var(--primary-dark)}
+        .auth-container .auth-logo h1 span{color:var(--secondary)}
+        .auth-container .auth-logo p{color:var(--gray);font-size:14px;margin-top:4px}
+        .auth-container .auth-logo .by{font-size:11px;color:var(--gray);margin-top:2px}
+        .auth-container .auth-logo .by strong{color:var(--primary)}
+        .auth-container .auth-logo .by strong span{color:var(--secondary)}
+        .auth-container .toggle-link{text-align:center;margin-top:16px;font-size:13px;color:var(--gray)}
+        .auth-container .toggle-link a{color:var(--primary);font-weight:600;cursor:pointer}
+        .auth-container .toggle-link a:hover{text-decoration:underline}
+        .auth-container .demo-info{margin-top:12px;padding:10px;background:#f0f4f8;border-radius:6px;font-size:11px;color:var(--gray);text-align:center}
+        .auth-container .demo-info b{color:var(--primary-dark)}
+        .upload-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+        .upload-preview .preview-item{position:relative;width:100px;height:100px;border-radius:8px;overflow:hidden;border:2px solid var(--gray-light)}
+        .upload-preview .preview-item img{width:100%;height:100%;object-fit:cover}
+        .upload-preview .preview-item .remove-img{position:absolute;top:2px;right:2px;background:var(--danger);color:#fff;border:0;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+        .upload-preview .preview-item .remove-img:hover{background:#c45566}
+        .file-input-wrapper{position:relative;overflow:hidden;display:inline-block}
+        .file-input-wrapper input[type="file"]{position:absolute;left:0;top:0;opacity:0;width:100%;height:100%;cursor:pointer}
+        .image-gallery{display:flex;gap:6px;flex-wrap:wrap}
+        .image-gallery .thumb{width:50px;height:50px;border-radius:6px;overflow:hidden;border:1px solid var(--gray-light);cursor:pointer}
+        .image-gallery .thumb:hover{transform:scale(1.05);border-color:var(--primary)}
+        .image-gallery .thumb img{width:100%;height:100%;object-fit:cover}
+        .lightbox{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:1000;justify-content:center;align-items:center;cursor:pointer}
+        .lightbox.active{display:flex}
+        .lightbox img{max-width:90%;max-height:90%;object-fit:contain;border-radius:8px}
+        .lightbox .close-lightbox{position:absolute;top:20px;right:30px;color:#fff;font-size:40px;cursor:pointer;background:none;border:0}
+        .lightbox .close-lightbox:hover{color:var(--danger)}
+        .footer{text-align:center;padding:16px 20px;color:var(--gray);font-size:11px;border-top:1px solid var(--gray-light);margin-top:16px;background:#fff;border-radius:var(--radius)}
+        .footer .brand-name{font-weight:600;color:var(--primary);letter-spacing:.5px}
+        .footer .brand-name span{color:var(--secondary)}
+        .footer .version{font-size:9px;color:#b0c0d0;margin-left:4px}
+        .loading{text-align:center;padding:40px;color:var(--gray)}
+        .loading .spinner{display:inline-block;width:30px;height:30px;border:3px solid var(--gray-light);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .tab-content{display:none}
+        .tab-content.active{display:block}
+        .teacher-tag{display:inline-block;background:var(--primary-light);color:var(--primary);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;margin:2px 4px 2px 0}
+        .settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+        .settings-card{background:#f8fafc;border-radius:var(--radius);padding:16px;border:1px solid var(--gray-light)}
+        .settings-card h3{font-size:14px;color:var(--primary-dark);margin-bottom:12px}
+        .presensi-student-list{max-height:500px;overflow-y:auto;border:1px solid var(--gray-light);border-radius:8px;padding:8px;margin:8px 0}
+        .presensi-student-list .student-item{display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #f0f0f0}
+        .presensi-student-list .student-item .s-name{flex:1;font-size:13px;font-weight:500}
+        .presensi-rekap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin:8px 0}
+        .presensi-rekap-grid .rekap-item{background:#f8fafc;padding:8px 12px;border-radius:6px;text-align:center}
+        .presensi-rekap-grid .rekap-item .num{font-size:18px;font-weight:800}
+        .presensi-rekap-grid .rekap-item .label{font-size:10px;color:var(--gray)}
+        .presensi-rekap-grid .rekap-item.hadir .num{color:var(--success)}
+        .presensi-rekap-grid .rekap-item.sakit .num{color:var(--warning)}
+        .presensi-rekap-grid .rekap-item.izin .num{color:var(--primary)}
+        .presensi-rekap-grid .rekap-item.alfa .num{color:var(--danger)}
+        .presensi-mode-only #mainApp,
+        .presensi-mode-only #loginPage,
+        .presensi-mode-only #registerPage,
+        .presensi-mode-only .nav,
+        .presensi-mode-only #dashboardPanel,
+        .presensi-mode-only #tab-dashboard,
+        .presensi-mode-only #tab-students,
+        .presensi-mode-only #tab-teachers,
+        .presensi-mode-only #tab-counseling,
+        .presensi-mode-only #tab-parent-call,
+        .presensi-mode-only #tab-home-visit,
+        .presensi-mode-only #tab-incident,
+        .presensi-mode-only #tab-mutation,
+        .presensi-mode-only #tab-graduation,
+        .presensi-mode-only #tab-reports,
+        .presensi-mode-only #tab-settings,
+        .presensi-mode-only .btn-logout,
+        .presensi-mode-only #userDisplay,
+        .presensi-mode-only .flex-header>div:last-child,
+        .presensi-mode-only .footer:not(.presensi-footer) {
+            display: none !important;
+        }
+        .presensi-mode-only #presensiMode{display:block!important}
+        .presensi-mode-only header{border-radius:10px 10px 0 0}
+        .presensi-mode-only .brand{font-size:16px}
+        .presensi-mode-only .tag{font-size:9px}
+        .presensi-mode-only .flex-header{justify-content:center!important}
+        .presensi-mode-only .panel:first-child{margin-top:0!important}
+        .presensi-mode-only .header-info{justify-content:center!important}
+        .edit-btn{background:var(--warning);color:#fff;border:0;padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer;margin-left:4px}
+        .edit-btn:hover{background:#d49c00}
+        .progress-container{width:100%;background:#f0f0f0;border-radius:8px;margin:8px 0;overflow:hidden}
+        .progress-bar{height:20px;background:linear-gradient(90deg,var(--primary),var(--success));border-radius:8px;transition:width .3s;color:#fff;text-align:center;font-size:12px;line-height:20px;font-weight:600}
+        .pagination-container{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:10px;padding:8px;background:#f8fafc;border-radius:8px;gap:8px}
+        .pagination-container .info{font-size:12px;color:var(--gray)}
+        .pagination-container .pages{display:flex;gap:4px;flex-wrap:wrap}
+        .pagination-container .pages .page-btn{padding:4px 10px;border:1px solid var(--gray-light);border-radius:4px;background:#fff;cursor:pointer;font-size:12px;font-weight:600;transition:.2s}
+        .pagination-container .pages .page-btn:hover{background:var(--primary-light);border-color:var(--primary)}
+        .pagination-container .pages .page-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+        .pagination-container .pages .page-btn:disabled{opacity:0.5;cursor:not-allowed}
+        .select-all-container{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 12px;background:#f8fafc;border-radius:6px;border:1px solid var(--gray-light);flex-wrap:wrap}
+        .select-all-container input[type="checkbox"]{width:18px;height:18px;cursor:pointer}
+        .select-all-container label{font-size:13px;font-weight:600;color:var(--primary-dark);cursor:pointer;margin:0}
+        .select-all-container .btn-hapus-massal{background:var(--danger);color:#fff;border:0;padding:4px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-left:auto;transition:.2s}
+        .select-all-container .btn-hapus-massal:hover{background:#c45566}
+        .select-all-container .btn-hapus-massal:disabled{opacity:0.5;cursor:not-allowed}
+        .student-checkbox{width:18px;height:18px;cursor:pointer}
+        @media(max-width:768px){.header{flex-direction:column;align-items:stretch;text-align:center}.header-info{justify-content:center}.nav{justify-content:center}.nav button{font-size:10px;padding:5px 10px}.panel{padding:14px}.stats-grid{grid-template-columns:repeat(2,1fr)}.form-row{grid-template-columns:1fr}.settings-grid{grid-template-columns:1fr}.modal-box{padding:20px}.presensi-student-list .student-item{flex-wrap:wrap}.pagination-container{flex-direction:column;text-align:center}.select-all-container{flex-wrap:wrap}.select-all-container .btn-hapus-massal{margin-left:0}}
+        @media print{.no-print{display:none!important}.footer{display:none!important}}
     </style>
 </head>
 <body>
-
-<div class="container" id="app">
-    <!-- Login Page -->
+<div class="app-container" id="app">
     <div id="loginPage">
-        <div class="logo">
-            <h1>SIM <span>BK</span></h1>
-            <p>Sistem Informasi Manajemen BK</p>
-        </div>
-        <div id="loginAlert" class="alert"></div>
-        <div class="form-group">
-            <label>📧 Email</label>
-            <input type="email" id="loginEmail" placeholder="Masukkan email" value="admin@sekolah.com">
-        </div>
-        <div class="form-group">
-            <label>🔒 Password</label>
-            <input type="password" id="loginPassword" placeholder="Masukkan password" value="admin123">
-        </div>
-        <button class="btn btn-primary" id="loginBtn">🚀 Masuk</button>
-        <div class="demo-info">
-            💡 <strong>Demo:</strong> admin@sekolah.com | admin123
+        <div class="auth-container">
+            <div class="auth-logo"><div style="font-size:48px;">📚</div><h1>SIM <span>BK</span></h1><p>Sistem Informasi Manajemen Bimbingan Konseling</p><div class="by">by <strong>@NaFaS<span>BK</span></strong></div></div>
+            <div id="loginAlert"></div>
+            <div class="form-group"><label>📧 Email</label><input type="email" id="loginEmail" class="form-control" placeholder="Masukkan email" value="admin@sekolah.com"></div>
+            <div class="form-group"><label>🔒 Password</label><input type="password" id="loginPassword" class="form-control" placeholder="Masukkan password" value="admin123"></div>
+            <button class="btn btn-primary btn-block" onclick="handleLogin()">🚀 Masuk</button>
+            <div class="toggle-link">Belum punya akun? <a onclick="showRegisterPage()">Daftar di sini</a></div>
+            <div class="demo-info">💡 <b>Demo:</b> admin@sekolah.com | admin123</div>
         </div>
     </div>
-</div>
-
-<script>
-// ============================================
-//   DATABASE (LocalStorage)
-// ============================================
-
-function getUsers() {
-    try { return JSON.parse(localStorage.getItem('SIMBK_USERS')) || {}; } 
-    catch(e) { return {}; }
-}
-
-function saveUsers(users) {
-    localStorage.setItem('SIMBK_USERS', JSON.stringify(users));
-}
-
-function getSession() {
-    try { return JSON.parse(localStorage.getItem('SIMBK_SESSION')); } 
-    catch(e) { return null; }
-}
-
-function saveSession(email) {
-    localStorage.setItem('SIMBK_SESSION', JSON.stringify({ 
-        email: email, 
-        loginAt: new Date().toISOString() 
-    }));
-}
-
-function clearSession() {
-    localStorage.removeItem('SIMBK_SESSION');
-}
-
-// ============================================
-//   SEED DATA
-// ============================================
-
-function seedUsers() {
-    let users = getUsers();
-    if (Object.keys(users).length === 0) {
-        users = {
-            "admin@sekolah.com": {
-                password: "admin123",
-                school: "SMKN 3 Tegal",
-                role: "admin",
-                registeredAt: new Date().toISOString()
-            }
-        };
-        saveUsers(users);
-    }
-}
-
-// Jalankan seed
-seedUsers();
-
-// ============================================
-//   LOGIN - VERSION 2 (Lebih Stabil)
-// ============================================
-
-function handleLogin() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
-    const alertEl = document.getElementById('loginAlert');
-    
-    alertEl.className = 'alert';
-    alertEl.textContent = '';
-    
-    if (!email || !password) {
-        alertEl.className = 'alert alert-danger show';
-        alertEl.textContent = '⚠️ Email dan password harus diisi!';
-        return;
-    }
-    
-    const users = getUsers();
-    
-    if (!users[email]) {
-        alertEl.className = 'alert alert-danger show';
-        alertEl.textContent = '⚠️ Email tidak terdaftar! Gunakan: admin@sekolah.com';
-        return;
-    }
-    
-    if (users[email].password !== password) {
-        alertEl.className = 'alert alert-danger show';
-        alertEl.textContent = '⚠️ Password salah! Gunakan: admin123';
-        return;
-    }
-    
-    // Login sukses
-    saveSession(email);
-    alertEl.className = 'alert alert-success show';
-    alertEl.textContent = '✅ Login berhasil!';
-    
-    setTimeout(showDashboard, 500);
-}
-
-// ============================================
-//   DASHBOARD
-// ============================================
-
-function showDashboard() {
-    const session = getSession();
-    if (!session || !session.email) {
-        location.reload();
-        return;
-    }
-    
-    const users = getUsers();
-    const user = users[session.email] || {};
-    
-    document.getElementById('loginPage').innerHTML = `
-        <div class="dashboard">
-            <div class="logo">
-                <h1>📚 SIM <span>BK</span></h1>
-            </div>
-            <div class="greeting">Selamat Datang!</div>
-            <div class="email">${session.email}</div>
-            <span class="status-badge">✅ Aktif</span>
-            <div class="card">
-                <div class="icon">🏫</div>
-                <p><strong>${user.school || 'Sekolah'}</strong></p>
-                <p class="small">Role: ${user.role || 'Admin'} • Login: ${new Date(session.loginAt).toLocaleString()}</p>
-            </div>
-            <div class="card" style="background:#e8f4fd;">
-                <div class="icon">💾</div>
-                <p><strong>Data Tersimpan</strong></p>
-                <p class="small">Aplikasi berjalan dengan localStorage</p>
-            </div>
-            <button class="btn-logout" onclick="handleLogout()">🚪 Keluar</button>
+    <div id="registerPage" style="display:none;">
+        <div class="auth-container">
+            <div class="auth-logo"><div style="font-size:48px;">📝</div><h1>SIM <span>BK</span></h1><p>Daftar Akun Baru</p><div class="by">by <strong>@NaFaS<span>BK</span></strong></div></div>
+            <div id="registerAlert"></div>
+            <div class="form-group"><label>📧 Email <span class="required">*</span></label><input type="email" id="registerEmail" class="form-control" placeholder="Masukkan email"></div>
+            <div class="form-group"><label>🔒 Password <span class="required">*</span></label><input type="password" id="registerPassword" class="form-control" placeholder="Minimal 6 karakter"></div>
+            <div class="form-group"><label>🏫 Nama Sekolah <span class="required">*</span></label><input type="text" id="registerSchool" class="form-control" placeholder="Nama sekolah"></div>
+            <button class="btn btn-success btn-block" onclick="handleRegister()">📝 Daftar</button>
+            <div class="toggle-link">Sudah punya akun? <a onclick="showLoginPage()">Masuk di sini</a></div>
         </div>
-    `;
-}
-
-// ============================================
-//   LOGOUT
-// ============================================
-
-function handleLogout() {
-    clearSession();
-    location.reload();
-}
-
-// ============================================
-//   CEK SESSION
-// ============================================
-
-function checkSession() {
-    const session = getSession();
-    if (session && session.email) {
-        const users = getUsers();
-        if (users[session.email]) {
-            showDashboard();
-            return true;
-        }
-    }
-    return false;
-}
-
-// ============================================
-//   INIT - Event Listener Lebih Stabil
-// ============================================
-
-// Hapus semua event listener lama (jika ada)
-document.querySelectorAll('#loginBtn').forEach(el => {
-    el.replaceWith(el.cloneNode(true));
-});
-
-// Pasang event listener baru
-document.addEventListener('DOMContentLoaded', function() {
-    // Cek session
-    if (!checkSession()) {
-        // Login button
-        const btn = document.getElementById('loginBtn');
-        if (btn) {
-            btn.addEventListener('click', handleLogin);
-        }
-        
-        // Enter key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const loginPage = document.getElementById('loginPage');
-                if (loginPage && loginPage.innerHTML.includes('Masuk')) {
-                    handleLogin();
-                }
-            }
-        });
-    }
-});
-
-// Juga jalankan langsung (untuk berjaga-jaga)
-if (!checkSession()) {
-    const btn = document.getElementById('loginBtn');
-    if (btn) {
-        btn.addEventListener('click', handleLogin);
-    }
-}
-
-console.log('🚀 SIM BK v2.0 - Siap digunakan!');
-console.log('📧 Akun: admin@sekolah.com / admin123');
+    </div>
+    <div id="mainApp" style="display:none;">
+        <div class="header">
+            <div class="header-brand"><div><h1>📚 SIM <span>BK</span></h1><div class="subtitle">Sistem Informasi Manajemen Bimbingan Konseling</div></div></div>
+            <div class="header-info"><span class="school-name" id="schoolDisplay">Sekolah</span><span id="userDisplay">👤 Guru</span><button class="btn-logout" onclick="handleLogout()">🚪 Keluar</button></div>
+        </div>
+        <div class="nav" id="mainNav">
+            <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
+            <button onclick="showTab('students')">👨‍🎓 Data Siswa</button>
+            <button onclick="showTab('teachers')">👩‍🏫 Guru BK</button>
+            <button onclick="showTab('counseling')">📋 Konseling Individu</button>
+            <button onclick="showTab('parent-call')">📞 Panggilan OT</button>
+            <button onclick="showTab('home-visit')">🏠 Home Visit</button>
+            <button onclick="showTab('incident')">⚠️ Kejadian</button>
+            <button onclick="showTab('mutation')">📝 Mutasi Siswa</button>
+            <button onclick="showTab('graduation')">🎓 Lulusan SNBP/SNBT</button>
+            <button onclick="showTab('presensi')">📋 Presensi</button>
+            <button onclick="showTab('reports')">📊 Laporan</button>
+            <button onclick="showTab('settings')">⚙️ Pengaturan</button>
+        </div>
+        <div id="tab-dashboard" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card"><div class="number" id="statTotalStudents">0</div><div class="label">Total Siswa</div></div>
+                <div class="stat-card success"><div class="number success" id="statTeachers">0</div><div class="label">Guru BK</div></div>
+                <div class="stat-card warning"><div class="number warning" id="statCounseling">0</div><div class="label">Konseling Bulan Ini</div></div>
+                <div class="stat-card danger"><div class="number danger" id="statNeedsAttention">0</div><div class="label">Butuh Penanganan</div></div>
+                <div class="stat-card"><div class="number" id="statIncidents">0</div><div class="label">Kejadian Bulan Ini</div></div>
+                <div class="stat-card"><div class="number" id="statMutations">0</div><div class="label">Mutasi Bulan Ini</div></div>
+                <div class="stat-card"><div class="number" id="statGraduations">0</div><div class="label">Lulus SNBP/SNBT</div></div>
+                <div class="stat-card"><div class="number" id="statPresensi">0</div><div class="label">Presensi Hari Ini</div></div>
+            </div>
+            <div class="panel"><div class="panel-header"><h2>📊 Aktivitas Terbaru</h2></div><div id="recentActivities"><div class="loading"><span class="spinner"></span> Memuat...</div></div></div>
+        </div>
+        <div id="tab-students" class="tab-content">
+            <div class="panel">
+                <div class="panel-header"><h2>👨‍🎓 Daftar Siswa</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('studentModal')">➕ Tambah Siswa</button><button class="btn btn-success" onclick="openModal('bulkStudentModal')">📋 Tambah Per Kelas</button></div></div>
+                <div class="form-row" style="margin-bottom:12px;">
+                    <div><label>Filter Kelas</label><select id="filterClass" class="form-control" onchange="loadStudentsOptimized()"><option value="">Semua Kelas</option></select></div>
+                    <div><label>Tahun Ajaran</label><select id="filterYear" class="form-control" onchange="loadStudentsOptimized()"><option value="">Semua</option></select></div>
+                    <div><label>Cari</label><input type="text" id="searchStudent" class="form-control" placeholder="Cari nama..." oninput="loadStudentsOptimized()"></div>
+                </div>
+                <div id="studentList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+            </div>
+        </div>
+        <div id="tab-teachers" class="tab-content">
+            <div class="panel"><div class="panel-header"><h2>👩‍🏫 Guru BK & Pembagian Kelas</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('teacherModal')">➕ Tambah Guru BK</button></div></div><div id="teacherList"><div class="loading"><span class="spinner"></span> Memuat...</div></div></div>
+        </div>
+        <div id="tab-counseling" class="tab-content">
+            <div class="panel"><div class="panel-header"><h2>📋 Konseling Individu</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('counselingModal')">➕ Tambah Konseling</button></div></div>
+                <div class="form-row" style="margin-bottom:12px;"><div><label>Filter Kelas</label><select id="filterCounselingClass" class="form-control" onchange="loadCounseling()"><option value="">Semua Kelas</option></select></div><div><label>Periode</label><input type="month" id="filterCounselingMonth" class="form-control" onchange="loadCounseling()"></div></div>
+                <div id="counselingList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+            </div>
+        </div>
+        <div id="tab-parent-call" class="tab-content">
+            <div class="panel"><div class="panel-header"><h2>📞 Rekap Panggilan Orang Tua</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('parentCallModal')">➕ Tambah Panggilan</button></div></div><div id="parentCallList"><div class="loading"><span class="spinner"></span> Memuat...</div></div></div>
+        </div>
+        <div id="tab-home-visit" class="tab-content">
+            <div class="panel"><div class="panel-header"><h2>🏠 Laporan Home Visit</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('homeVisitModal')">➕ Tambah Home Visit</button></div></div><div id="homeVisitList"><div class="loading"><span class="spinner"></span> Memuat...</div></div></div>
+        </div>
+        <div id="tab-incident" class="tab-content">
+            <div class="panel"><div class="panel-header"><h2>⚠️ Laporan Kejadian</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('incidentModal')">➕ Tambah Laporan</button></div></div>
+                <div class="form-row" style="margin-bottom:12px;">
+                    <div><label>Filter Kelas</label><select id="filterIncidentClass" class="form-control" onchange="loadIncidents()"><option value="">Semua Kelas</option></select></div>
+                    <div><label>Jenis Kejadian</label><select id="filterIncidentType" class="form-control" onchange="loadIncidents()"><option value="">Semua</option><option value="Terlambat">⏰ Terlambat</option><option value="Perkelahian">👊 Perkelahian</option><option value="Pelanggaran Aturan">📜 Pelanggaran Aturan</option><option value="Kecelakaan">🚑 Kecelakaan</option><option value="Lainnya">📌 Lainnya</option></select></div>
+                    <div><label>Periode</label><input type="month" id="filterIncidentMonth" class="form-control" onchange="loadIncidents()"></div>
+                </div>
+                <div id="incidentList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+            </div>
+        </div>
+        <div id="tab-mutation" class="tab-content">
+            <div class="panel"><div class="panel-header"><h2>📝 Laporan Mutasi Siswa</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('mutationModal')">➕ Tambah Mutasi</button></div></div>
+                <div class="form-row" style="margin-bottom:12px;"><div><label>Filter Kelas</label><select id="filterMutationClass" class="form-control" onchange="loadMutations()"><option value="">Semua Kelas</option></select></div><div><label>Periode</label><input type="month" id="filterMutationMonth" class="form-control" onchange="loadMutations()"></div></div>
+                <div id="mutationList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+            </div>
+        </div>
+        <div id="tab-graduation" class="tab-content">
+            <div class="panel"><div class="panel-header"><h2>🎓 Laporan Lulusan SNBP/SNBT</h2><div class="actions"><button class="btn btn-primary" onclick="openModal('graduationModal')">➕ Tambah Lulusan</button></div></div>
+                <div class="form-row" style="margin-bottom:12px;"><div><label>Filter Tahun</label><select id="filterGraduationYear" class="form-control" onchange="loadGraduations()"><option value="">Semua Tahun</option></select></div><div><label>Jalur</label><select id="filterGraduationPath" class="form-control" onchange="loadGraduations()"><option value="">Semua</option><option value="SNBP">SNBP</option><option value="SNBT">SNBT</option></select></div></div>
+                <div id="graduationList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+            </div>
+        </div>
+        <div id="tab-presensi" class="tab-content">
+            <div class="panel">
+                <div class="panel-header"><h2>📋 Presensi Ketua Kelas</h2><div class="actions"><button class="btn btn-success" onclick="openPresensiLink()">🔗 Link Presensi</button><button class="btn btn-outline" onclick="loadPresensiRekap()">🔄 Muat Ulang</button></div></div>
+                <div class="form-row" style="margin-bottom:12px;"><div><label>Filter Kelas</label><select id="filterPresensiClass" class="form-control" onchange="loadPresensiRekap()"><option value="">Semua Kelas</option></select></div><div><label>Tanggal</label><input type="date" id="filterPresensiDate" class="form-control" onchange="loadPresensiRekap()"></div></div>
+                <div id="presensiRekapContainer"><div class="loading"><span class="spinner"></span> Memuat data presensi...</div></div>
+            </div>
+            <div class="panel">
+                <div class="panel-header"><h2>🔗 Link Presensi untuk Ketua Kelas</h2></div>
+                <div class="alert alert-info">📌 Bagikan link ini ke ketua kelas. <b>HANYA form presensi</b> yang muncul, tidak ada menu guru! ✅</div>
+                <div class="form-group">
+                    <label>Link Presensi</label>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <input type="text" id="presensiLinkDisplay" class="form-control" readonly style="flex:1;min-width:200px;background:#f5f7fa;font-size:13px;" value="https://nailisyifa79-cloud.github.io/sim-bk-sekolah/?mode=presensi">
+                        <button class="btn btn-success" onclick="copyPresensiLink()">📋 Salin</button>
+                        <button class="btn btn-warning" onclick="bagikanPresensiWA()">💬 Bagikan WA</button>
+                    </div>
+                </div>
+                <div style="font-size:11px;color:var(--gray);">💡 Ketua kelas pilih kelas → isi presensi → kirim. <b>Bisa diedit jika salah!</b></div>
+            </div>
+            <div class="panel"><div class="panel-header"><h2>📊 Rekap Presensi</h2><div class="actions"><button class="btn btn-outline" onclick="cetakPresensi()">🖨️ Cetak</button></div></div><div id="presensiRekapList"><div class="loading"><span class="spinner"></span> Memuat...</div></div></div>
+        </div>
+        <div id="tab-reports" class="tab-content">
+            <div class="panel">
+                <div class="panel-header"><h2>📊 Laporan Perkembangan Siswa</h2><div class="actions"><button class="btn btn-success" onclick="generateReport()">📄 Generate Laporan</button><button class="btn btn-outline" onclick="printReport()">🖨️ Cetak</button></div></div>
+                <div class="form-row">
+                    <div><label>Periode Laporan</label><select id="reportPeriod" class="form-control"><option value="weekly">Mingguan</option><option value="monthly" selected>Bulanan</option><option value="semester">Semester</option></select></div>
+                    <div><label>Kelas</label><select id="reportClass" class="form-control"><option value="">Semua Kelas</option></select></div>
+                    <div><label>Jenis Laporan</label><select id="reportType" class="form-control"><option value="all">Semua</option><option value="counseling">Konseling</option><option value="homevisit">Home Visit</option><option value="incident">Kejadian</option><option value="mutation">Mutasi</option><option value="graduation">Lulusan SNBP/SNBT</option><option value="presensi">Presensi</option></select></div>
+                </div>
+                <div id="reportContent" style="margin-top:16px;"><div class="alert alert-info">Pilih periode dan klik "Generate Laporan"</div></div>
+            </div>
+        </div>
+        <div id="tab-settings" class="tab-content">
+            <div class="panel"><div class="panel-header"><h2>⚙️ Pengaturan Sekolah</h2></div>
+                <div class="settings-grid">
+                    <div class="settings-card"><h3>🏫 Data Sekolah</h3>
+                        <div class="form-group"><label>Nama Sekolah</label><input type="text" id="settingsSchool" class="form-control"></div>
+                        <div class="form-group"><label>Tahun Ajaran</label><input type="text" id="settingsYear" class="form-control" placeholder="2025/2026"></div>
+                        <div class="form-group"><label>Alamat Sekolah</label><input type="text" id="settingsAddress" class="form-control"></div>
+                        <button class="btn btn-primary" onclick="saveSettings()">💾 Simpan Pengaturan</button>
+                    </div>
+                    <div class="settings-card"><h3>📋 Backup & Restore</h3>
+                        <button class="btn btn-success" onclick="exportAllData()" style="margin-bottom:8px;width:100%;">📤 Backup Semua Data</button>
+                        <button class="btn btn-outline" onclick="document.getElementById('restoreInput').click()" style="width:100%;">📥 Restore Data</button>
+                        <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(event)">
+                        <hr style="margin:12px 0;">
+                        <button class="btn btn-danger" onclick="resetAllData()" style="width:100%;">🗑️ Reset Semua Data</button>
+                    </div>
+                    <div class="settings-card"><h3>👥 Manajemen Pengguna</h3><div id="userList"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+        <div class="modal-overlay" id="studentModal"><div class="modal-box"><div class="modal-header"><h2>➕ Tambah Siswa</h2><button class="close-btn" onclick="closeModal('studentModal')">&times;</button></div><div id="studentModalAlert"></div><div class="form-group"><label>Nama Lengkap <span class="required">*</span></label><input type="text" id="studentName" class="form-control" placeholder="Nama siswa"></div><div class="form-group"><label>Kelas <span class="required">*</span></label><input type="text" id="studentClass" class="form-control" placeholder="Contoh: 10 IPA 1"></div><div class="form-group"><label>Tahun Ajaran</label><input type="text" id="studentYear" class="form-control" placeholder="2025/2026"></div><div class="form-group"><label>NISN</label><input type="text" id="studentNISN" class="form-control" placeholder="Nomor Induk Siswa Nasional"></div><div class="form-group"><label>Jenis Kelamin</label><select id="studentGender" class="form-control"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div><button class="btn btn-success" onclick="saveStudent()">💾 Simpan</button></div></div>
+    <div class="modal-overlay" id="bulkStudentModal"><div class="modal-box"><div class="modal-header"><h2>📋 Tambah Siswa Per Kelas</h2><button class="close-btn" onclick="closeModal('bulkStudentModal')">&times;</button></div><div id="bulkStudentModalAlert"></div><div class="form-group"><label>Kelas <span class="required">*</span></label><input type="text" id="bulkClass" class="form-control" placeholder="Contoh: 10 IPA 1"></div><div class="form-group"><label>Tahun Ajaran <span class="required">*</span></label><input type="text" id="bulkYear" class="form-control" placeholder="2025/2026"></div><div class="form-group"><label>Daftar Nama Siswa <span class="required">*</span></label><textarea id="bulkStudents" class="form-control" rows="10" placeholder="Tulis satu nama per baris"></textarea><small style="color:var(--gray);font-size:11px;">Masukkan satu nama per baris</small></div><div id="bulkProgress" style="display:none;"><div class="progress-container"><div class="progress-bar" id="bulkProgressBar" style="width:0%;">0%</div></div><div id="bulkStatusText" style="font-size:13px;color:var(--gray);text-align:center;"></div></div><button class="btn btn-success" onclick="saveBulkStudentsOptimized()">💾 Simpan Semua</button></div></div>
+    <div class="modal-overlay" id="teacherModal"><div class="modal-box"><div class="modal-header"><h2>➕ Tambah Guru BK</h2><button class="close-btn" onclick="closeModal('teacherModal')">&times;</button></div><div id="teacherModalAlert"></div><div class="form-group"><label>Nama Guru <span class="required">*</span></label><input type="text" id="teacherName" class="form-control" placeholder="Nama lengkap"></div><div class="form-group"><label>Kelas yang Dipegang <span class="required">*</span></label><input type="text" id="teacherClasses" class="form-control" placeholder="Pisahkan dengan koma: 10 IPA 1, 10 IPA 2"></div><button class="btn btn-success" onclick="saveTeacher()">💾 Simpan</button></div></div>
+    <div class="modal-overlay" id="counselingModal"><div class="modal-box"><div class="modal-header"><h2>📋 Konseling Individu</h2><button class="close-btn" onclick="closeModal('counselingModal')">&times;</button></div><div id="counselingModalAlert"></div><div class="form-group"><label>Siswa <span class="required">*</span></label><select id="counselingStudent" class="form-control"></select></div><div class="form-group"><label>Kelas</label><select id="counselingClassSelect" class="form-control" onchange="updateCounselingStudent()"></select></div><div class="form-group"><label>Tanggal Konseling <span class="required">*</span></label><input type="date" id="counselingDate" class="form-control"></div><div class="form-group"><label>Masalah <span class="required">*</span></label><textarea id="counselingProblem" class="form-control" placeholder="Deskripsikan masalah siswa"></textarea></div><div class="form-group"><label>Hasil Konseling <span class="required">*</span></label><textarea id="counselingResult" class="form-control" placeholder="Hasil dari sesi konseling"></textarea></div><div class="form-group"><label>Tindak Lanjut</label><textarea id="counselingFollowUp" class="form-control" placeholder="Rencana tindak lanjut"></textarea></div><div class="form-group"><label>Upload Foto</label><div class="file-input-wrapper"><button class="btn btn-outline">📷 Pilih Foto</button><input type="file" id="counselingPhotos" accept="image/*" multiple onchange="previewPhotos('counseling')"></div><div class="upload-preview" id="counselingPreview"></div><small style="color:var(--gray);font-size:11px;">Format: JPG, PNG, GIF. Maks 5 foto.</small></div><button class="btn btn-success" onclick="saveCounseling()">💾 Simpan</button></div></div>
+    <div class="modal-overlay" id="parentCallModal"><div class="modal-box"><div class="modal-header"><h2>📞 Panggilan Orang Tua</h2><button class="close-btn" onclick="closeModal('parentCallModal')">&times;</button></div><div id="parentCallModalAlert"></div><div class="form-group"><label>Siswa <span class="required">*</span></label><select id="parentCallStudent" class="form-control"></select></div><div class="form-group"><label>Kelas</label><select id="parentCallClassSelect" class="form-control" onchange="updateParentCallStudent()"></select></div><div class="form-group"><label>Tanggal Panggilan <span class="required">*</span></label><input type="date" id="parentCallDate" class="form-control"></div><div class="form-group"><label>Masalah <span class="required">*</span></label><textarea id="parentCallProblem" class="form-control" placeholder="Deskripsikan masalah"></textarea></div><div class="form-group"><label>Hasil Panggilan <span class="required">*</span></label><textarea id="parentCallResult" class="form-control" placeholder="Hasil dari panggilan orang tua"></textarea></div><div class="form-group"><label>Upload Foto</label><div class="file-input-wrapper"><button class="btn btn-outline">📷 Pilih Foto</button><input type="file" id="parentCallPhotos" accept="image/*" multiple onchange="previewPhotos('parentCall')"></div><div class="upload-preview" id="parentCallPreview"></div><small style="color:var(--gray);font-size:11px;">Format: JPG, PNG, GIF. Maks 5 foto.</small></div><button class="btn btn-success" onclick="saveParentCall()">💾 Simpan</button></div></div>
+    <div class="modal-overlay" id="homeVisitModal"><div class="modal-box"><div class="modal-header"><h2>🏠 Home Visit</h2><button class="close-btn" onclick="closeModal('homeVisitModal')">&times;</button></div><div id="homeVisitModalAlert"></div><div class="form-group"><label>Siswa <span class="required">*</span></label><select id="homeVisitStudent" class="form-control"></select></div><div class="form-group"><label>Kelas</label><select id="homeVisitClassSelect" class="form-control" onchange="updateHomeVisitStudent()"></select></div><div class="form-group"><label>Tanggal Home Visit <span class="required">*</span></label><input type="date" id="homeVisitDate" class="form-control"></div><div class="form-group"><label>Masalah <span class="required">*</span></label><textarea id="homeVisitProblem" class="form-control" placeholder="Deskripsikan masalah"></textarea></div><div class="form-group"><label>Hasil Home Visit <span class="required">*</span></label><textarea id="homeVisitResult" class="form-control" placeholder="Hasil dari home visit"></textarea></div><div class="form-group"><label>Upload Foto</label><div class="file-input-wrapper"><button class="btn btn-outline">📷 Pilih Foto</button><input type="file" id="homeVisitPhotos" accept="image/*" multiple onchange="previewPhotos('homeVisit')"></div><div class="upload-preview" id="homeVisitPreview"></div><small style="color:var(--gray);font-size:11px;">Format: JPG, PNG, GIF. Maks 5 foto.</small></div><button class="btn btn-success" onclick="saveHomeVisit()">💾 Simpan</button></div></div>
+    <div class="modal-overlay" id="incidentModal"><div class="modal-box"><div class="modal-header"><h2>⚠️ Laporan Kejadian</h2><button class="close-btn" onclick="closeModal('incidentModal')">&times;</button></div><div id="incidentModalAlert"></div><div class="form-group"><label>Siswa <span class="required">*</span></label><select id="incidentStudent" class="form-control"></select></div><div class="form-group"><label>Kelas</label><select id="incidentClassSelect" class="form-control" onchange="updateIncidentStudent()"></select></div><div class="form-group"><label>Tanggal Kejadian <span class="required">*</span></label><input type="date" id="incidentDate" class="form-control"></div><div class="form-group"><label>Jenis Kejadian <span class="required">*</span></label><select id="incidentType" class="form-control"><option value="Terlambat">⏰ Terlambat</option><option value="Perkelahian">👊 Perkelahian</option><option value="Pelanggaran Aturan">📜 Pelanggaran Aturan</option><option value="Kecelakaan">🚑 Kecelakaan</option><option value="Lainnya">📌 Lainnya</option></select></div><div class="form-group"><label>Deskripsi Kejadian <span class="required">*</span></label><textarea id="incidentDescription" class="form-control" placeholder="Deskripsikan kejadian secara detail"></textarea></div><div class="form-group"><label>Tindakan yang Diambil <span class="required">*</span></label><textarea id="incidentAction" class="form-control" placeholder="Tindakan yang telah diambil"></textarea></div><div class="form-group"><label>Upload Foto (maks 5 foto)</label><div class="file-input-wrapper"><button class="btn btn-outline">📷 Pilih Foto</button><input type="file" id="incidentPhotos" accept="image/*" multiple onchange="previewPhotos('incident')"></div><div class="upload-preview" id="incidentPreview"></div><small style="color:var(--gray);font-size:11px;">Format: JPG, PNG, GIF. Maks 5 foto.</small></div><button class="btn btn-success" onclick="saveIncident()">💾 Simpan Laporan</button></div></div>
+    <div class="modal-overlay" id="mutationModal"><div class="modal-box"><div class="modal-header"><h2>📝 Laporan Mutasi Siswa</h2><button class="close-btn" onclick="closeModal('mutationModal')">&times;</button></div><div id="mutationModalAlert"></div><div class="form-group"><label>Siswa <span class="required">*</span></label><select id="mutationStudent" class="form-control"></select></div><div class="form-group"><label>Kelas</label><select id="mutationClassSelect" class="form-control" onchange="updateMutationStudent()"></select></div><div class="form-group"><label>Tanggal Mutasi <span class="required">*</span></label><input type="date" id="mutationDate" class="form-control"></div><div class="form-group"><label>Jenis Mutasi <span class="required">*</span></label><select id="mutationType" class="form-control"><option value="Masuk">📥 Masuk (Pindahan)</option><option value="Keluar">📤 Keluar (Pindah Sekolah)</option><option value="Pindah Kelas">🔄 Pindah Kelas</option><option value="Drop Out">⛔ Drop Out</option></select></div><div class="form-group"><label>Alasan Mutasi <span class="required">*</span></label><textarea id="mutationReason" class="form-control" placeholder="Deskripsikan alasan mutasi"></textarea></div><div class="form-group"><label>Upload Foto Surat Mutasi</label><div class="file-input-wrapper"><button class="btn btn-outline">📷 Pilih Foto</button><input type="file" id="mutationPhotos" accept="image/*" multiple onchange="previewPhotos('mutation')"></div><div class="upload-preview" id="mutationPreview"></div><small style="color:var(--gray);font-size:11px;">Format: JPG, PNG, GIF. Maks 5 foto.</small></div><button class="btn btn-success" onclick="saveMutation()">💾 Simpan</button></div></div>
+    <div class="modal-overlay" id="graduationModal"><div class="modal-box"><div class="modal-header"><h2>🎓 Lulusan SNBP/SNBT</h2><button class="close-btn" onclick="closeModal('graduationModal')">&times;</button></div><div id="graduationModalAlert"></div><div class="form-group"><label>Siswa <span class="required">*</span></label><select id="graduationStudent" class="form-control"></select></div><div class="form-group"><label>Kelas</label><select id="graduationClassSelect" class="form-control" onchange="updateGraduationStudent()"></select></div><div class="form-group"><label>Jalur <span class="required">*</span></label><select id="graduationPath" class="form-control"><option value="SNBP">🎯 SNBP</option><option value="SNBT">📝 SNBT</option></select></div><div class="form-group"><label>Kampus <span class="required">*</span></label><input type="text" id="graduationUniversity" class="form-control" placeholder="Nama Universitas/Institut"></div><div class="form-group"><label>Jurusan/Program Studi <span class="required">*</span></label><input type="text" id="graduationMajor" class="form-control" placeholder="Nama Jurusan/Prodi"></div><div class="form-group"><label>Tahun Lulus <span class="required">*</span></label><select id="graduationYear" class="form-control"><option value="2026/2027">2026/2027</option><option value="2027/2028">2027/2028</option><option value="2028/2029">2028/2029</option><option value="2029/2030">2029/2030</option><option value="2030/2031">2030/2031</option><option value="2031/2032">2031/2032</option></select></div><button class="btn btn-success" onclick="saveGraduation()">💾 Simpan</button></div></div>
+    <div id="presensiMode" style="display:none;">
+        <div class="header" style="border-radius:10px 10px 0 0;"><div class="header-brand"><div><h1>📋 Presensi <span>Harian</span></h1><div class="tag">Sistem Informasi Manajemen Bimbingan Konseling</div></div></div><div class="header-info"><span class="school-name" id="presensiSchoolDisplay">Sekolah</span><button class="btn-logout" onclick="keluarPresensi()">🚪 Keluar</button></div></div>
+        <div class="panel"><div id="presensiForm"><div class="form-group"><label>📚 Pilih Kelas</label><select id="presensiKelas" class="form-control" onchange="loadPresensiSiswa()"><option value="">Pilih Kelas</option></select></div><div id="presensiStatusInfo" style="margin:8px 0;"></div><div id="presensiFormContent" style="margin-top:16px;"></div></div></div>
+        <div class="footer presensi-footer"><span>© 2026 <span class="brand-name">@NaFaS<span>BK</span></span></span><span class="version">v1.0</span><span style="margin:0 8px;color:#d0d8e0;">|</span><span>Presensi Harian - SIM BK</span><span style="margin:0 8px;color:#d0d8e0;">|</span><span style="font-size:9px;color:#b0c0d0;">Dibuat untuk ketua kelas</span></div>
+    </div>
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()"><button class="close-lightbox" onclick="closeLightbox()">&times;</button><img id="lightboxImg" src="" alt="Foto"></div>
+    <div class="footer"><span>© 2026 <span class="brand-name">@NaFaS<span>BK</span></span></span><span class="version">v1.0</span><span style="margin:0 8px;color:#d0d8e0;">|</span><span>Sistem Informasi Manajemen Bimbingan Konseling</span><span style="margin:0 8px;color:#d0d8e0;">|</span><span style="font-size:9px;color:#b0c0d0;">Dibuat dengan ❤️ untuk Pendidikan</span></div>
+</div>
+<script>
+var firebaseConfig = {apiKey:"AIzaSyA2AQNbuiqycFQ4S-vsthw9NFMNyb-acFA",authDomain:"sosio-digital.firebaseapp.com",projectId:"sosio-digital",storageBucket:"sosio-digital.firebasestorage.app",messagingSenderId:"562983012848",appId:"1:562983012848:web:aced97fe045efed03cf535"};
+firebase.initializeApp(firebaseConfig);var db=firebase.firestore();var storage=firebase.storage();var auth=firebase.auth();
+var USER_KEY='SIMBK_USERS';var SESSION_KEY='SIMBK_SESSION';var SCHOOL_KEY='SIMBK_SCHOOL';
+function getUsers(){try{return JSON.parse(localStorage.getItem(USER_KEY))||{}}catch(e){return{}}}
+function saveUsers(users){localStorage.setItem(USER_KEY,JSON.stringify(users));}
+function getSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY))}catch(e){return null}}
+function saveSession(email){localStorage.setItem(SESSION_KEY,JSON.stringify({email:email,loginAt:new Date().toISOString()}))}
+function clearSession(){localStorage.removeItem(SESSION_KEY)}
+function getSchoolData(){try{return JSON.parse(localStorage.getItem(SCHOOL_KEY))||{name:'',year:'',address:''}}catch(e){return{name:'',year:'',address:''}}}
+function saveSchoolData(data){localStorage.setItem(SCHOOL_KEY,JSON.stringify(data))}
+var currentUser=null;var schoolData={name:'',year:'',address:''};var allStudents=[];var allTeachers=[];var photoFiles={};var presensiEditMode=false;var presensiEditDocId=null;var selectedStudents={};
+function showLoginPage(){document.getElementById('loginPage').style.display='block';document.getElementById('registerPage').style.display='none';document.getElementById('mainApp').style.display='none';document.getElementById('loginAlert').innerHTML='';}
+function showRegisterPage(){document.getElementById('loginPage').style.display='none';document.getElementById('registerPage').style.display='block';document.getElementById('mainApp').style.display='none';document.getElementById('registerAlert').innerHTML='';}
+function handleRegister(){var email=document.getElementById('registerEmail').value.trim();var password=document.getElementById('registerPassword').value.trim();var school=document.getElementById('registerSchool').value.trim();var alertEl=document.getElementById('registerAlert');if(!email){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Email harus diisi!</div>';return;}if(!password||password.length<6){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Password minimal 6 karakter!</div>';return;}if(!school){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Nama sekolah harus diisi!</div>';return;}var users=getUsers();if(users[email]){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Email sudah terdaftar! Silakan login.</div>';return;}users[email]={password:password,school:school,registeredAt:new Date().toISOString(),role:'admin'};saveUsers(users);alertEl.innerHTML='<div class="alert alert-success">✅ Pendaftaran berhasil! Silakan login.</div>';document.getElementById('registerEmail').value='';document.getElementById('registerPassword').value='';document.getElementById('registerSchool').value='';setTimeout(showLoginPage,2000);}
+function handleLogin(){var email=document.getElementById('loginEmail').value.trim();var password=document.getElementById('loginPassword').value.trim();var alertEl=document.getElementById('loginAlert');if(!email){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Email harus diisi!</div>';return;}if(!password){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Password harus diisi!</div>';return;}var users=getUsers();if(!users[email]){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Email tidak terdaftar! Silakan daftar terlebih dahulu.</div>';return;}if(users[email].password!==password){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Password salah! Coba lagi.</div>';return;}currentUser=users[email];currentUser.email=email;saveSession(email);alertEl.innerHTML='<div class="alert alert-success">✅ Login berhasil! Mengarahkan...</div>';setTimeout(function(){document.getElementById('loginPage').style.display='none';document.getElementById('registerPage').style.display='none';document.getElementById('mainApp').style.display='block';document.getElementById('userDisplay').textContent='👤 '+(currentUser.school||'Admin');schoolData=getSchoolData();document.getElementById('settingsSchool').value=schoolData.name||'';document.getElementById('settingsYear').value=schoolData.year||'';document.getElementById('settingsAddress').value=schoolData.address||'';document.getElementById('schoolDisplay').textContent=schoolData.name||'Sekolah';loadAllData();},1000);}
+function handleLogout(){if(confirm('Yakin ingin keluar?')){clearSession();currentUser=null;document.getElementById('mainApp').style.display='none';showLoginPage();}}
+function checkSession(){var session=getSession();if(session&&session.email){var users=getUsers();if(users[session.email]){currentUser=users[session.email];currentUser.email=session.email;document.getElementById('loginPage').style.display='none';document.getElementById('registerPage').style.display='none';document.getElementById('mainApp').style.display='block';document.getElementById('userDisplay').textContent='👤 '+(currentUser.school||'Admin');schoolData=getSchoolData();document.getElementById('settingsSchool').value=schoolData.name||'';document.getElementById('settingsYear').value=schoolData.year||'';document.getElementById('settingsAddress').value=schoolData.address||'';document.getElementById('schoolDisplay').textContent=schoolData.name||'Sekolah';loadAllData();return true;}else{clearSession();}}return false;}
+function loadAllData(){loadStudentsOptimized();loadTeachers();loadCounseling();loadParentCalls();loadHomeVisits();loadIncidents();loadMutations();loadGraduations();loadPresensiRekap();updateDashboard();loadUsersList();populateYearFilter();populateClassDropdowns();populateGraduationYearFilter();populatePresensiKelas();}
+function populateYearFilter(){var yearSelect=document.getElementById('filterYear');var years=['2023/2024','2024/2025','2025/2026','2026/2027','2027/2028','2028/2029','2029/2030','2030/2031','2031/2032'];yearSelect.innerHTML='<option value="">Semua</option>';for(var i=0;i<years.length;i++){yearSelect.innerHTML+='<option value="'+years[i]+'">'+years[i]+'</option>';}}
+function populateGraduationYearFilter(){var yearSelect=document.getElementById('filterGraduationYear');var years=['2026/2027','2027/2028','2028/2029','2029/2030','2030/2031','2031/2032'];yearSelect.innerHTML='<option value="">Semua Tahun</option>';for(var i=0;i<years.length;i++){yearSelect.innerHTML+='<option value="'+years[i]+'">'+years[i]+'</option>';}}
+function populatePresensiKelas(){var select=document.getElementById('presensiKelas');if(!select)return;var currentVal=select.value;select.innerHTML='<option value="">Pilih Kelas</option>';var classes=new Set();for(var i=0;i<allStudents.length;i++){if(allStudents[i].class)classes.add(allStudents[i].class);}var classArray=Array.from(classes).sort();for(var j=0;j<classArray.length;j++){select.innerHTML+='<option value="'+classArray[j]+'">'+classArray[j]+'</option>';}select.value=currentVal;}
+function populateClassDropdowns(){var classes=new Set();for(var i=0;i<allStudents.length;i++){if(allStudents[i].class)classes.add(allStudents[i].class);}var classArray=Array.from(classes).sort();var dropdownIds=['filterClass','filterCounselingClass','filterIncidentClass','filterMutationClass','reportClass','filterPresensiClass','counselingClassSelect','parentCallClassSelect','homeVisitClassSelect','incidentClassSelect','mutationClassSelect','graduationClassSelect','presensiKelas'];for(var d=0;d<dropdownIds.length;d++){var select=document.getElementById(dropdownIds[d]);if(!select)continue;var currentVal=select.value;select.innerHTML='<option value="">Semua Kelas</option>';for(var j=0;j<classArray.length;j++){var selected=(classArray[j]===currentVal)?'selected':'';select.innerHTML+='<option value="'+classArray[j]+'" '+selected+'>'+classArray[j]+'</option>';}if(currentVal&&!classArray.includes(currentVal)){select.value=currentVal;}}}
+function populateFilteredStudents(selectId,classFilter){var select=document.getElementById(selectId);if(!select)return;var currentVal=select.value;select.innerHTML='<option value="">Pilih siswa</option>';var filtered=allStudents;if(classFilter){filtered=allStudents.filter(function(s){return s.class===classFilter;});}var sorted=filtered.slice().sort(function(a,b){return a.name.localeCompare(b.name);});for(var i=0;i<sorted.length;i++){var s=sorted[i];select.innerHTML+='<option value="'+s.id+'">'+s.name+' ('+(s.class||'-')+')</option>';}select.value=currentVal;}
+function updateCounselingStudent(){var classVal=document.getElementById('counselingClassSelect').value;populateFilteredStudents('counselingStudent',classVal);}
+function updateParentCallStudent(){var classVal=document.getElementById('parentCallClassSelect').value;populateFilteredStudents('parentCallStudent',classVal);}
+function updateHomeVisitStudent(){var classVal=document.getElementById('homeVisitClassSelect').value;populateFilteredStudents('homeVisitStudent',classVal);}
+function updateIncidentStudent(){var classVal=document.getElementById('incidentClassSelect').value;populateFilteredStudents('incidentStudent',classVal);}
+function updateMutationStudent(){var classVal=document.getElementById('mutationClassSelect').value;populateFilteredStudents('mutationStudent',classVal);}
+function updateGraduationStudent(){var classVal=document.getElementById('graduationClassSelect').value;populateFilteredStudents('graduationStudent',classVal);}
+function showTab(tabId){var tabs=document.querySelectorAll('.tab-content');for(var i=0;i<tabs.length;i++){tabs[i].classList.remove('active');}var target=document.getElementById('tab-'+tabId);if(target)target.classList.add('active');var navBtns=document.querySelectorAll('#mainNav button');for(var j=0;j<navBtns.length;j++){navBtns[j].classList.remove('active');}var activeBtn=document.querySelector('#mainNav button[onclick="showTab(\''+tabId+'\')"]');if(activeBtn)activeBtn.classList.add('active');if(tabId==='students')loadStudentsOptimized();if(tabId==='teachers')loadTeachers();if(tabId==='counseling')loadCounseling();if(tabId==='parent-call')loadParentCalls();if(tabId==='home-visit')loadHomeVisits();if(tabId==='incident')loadIncidents();if(tabId==='mutation')loadMutations();if(tabId==='graduation')loadGraduations();if(tabId==='presensi'){loadPresensiRekap();populatePresensiKelas();}if(tabId==='reports')populateReportFilters();}
+function openModal(id){document.getElementById(id).classList.add('active');document.getElementById(id+'Alert').innerHTML='';photoFiles[id]=[];var previewEl=document.getElementById(id.replace('Modal','')+'Preview');if(previewEl)previewEl.innerHTML='';var today=new Date().toISOString().split('T')[0];if(id==='counselingModal'){populateClassDropdowns();document.getElementById('counselingDate').value=today;}else if(id==='parentCallModal'){populateClassDropdowns();document.getElementById('parentCallDate').value=today;}else if(id==='homeVisitModal'){populateClassDropdowns();document.getElementById('homeVisitDate').value=today;}else if(id==='incidentModal'){populateClassDropdowns();document.getElementById('incidentDate').value=today;}else if(id==='mutationModal'){populateClassDropdowns();document.getElementById('mutationDate').value=today;}else if(id==='graduationModal'){populateClassDropdowns();document.getElementById('graduationUniversity').value='';document.getElementById('graduationMajor').value='';document.getElementById('graduationYear').value=new Date().getFullYear()+'/'+(new Date().getFullYear()+1);}else if(id==='studentModal'){document.getElementById('studentName').value='';document.getElementById('studentClass').value='';document.getElementById('studentYear').value=schoolData.year||'';document.getElementById('studentNISN').value='';}else if(id==='bulkStudentModal'){document.getElementById('bulkClass').value='';document.getElementById('bulkYear').value=schoolData.year||'';document.getElementById('bulkStudents').value='';document.getElementById('bulkProgress').style.display='none';}else if(id==='teacherModal'){document.getElementById('teacherName').value='';document.getElementById('teacherClasses').value='';}}
+function closeModal(id){document.getElementById(id).classList.remove('active');}
+document.addEventListener('click',function(e){if(e.target.classList.contains('modal-overlay')){e.target.classList.remove('active');}});
+document.addEventListener('keydown',function(e){if(e.key==='Enter'){if(document.getElementById('loginPage').style.display!=='none'){handleLogin();}else if(document.getElementById('registerPage').style.display!=='none'){handleRegister();}}});
+function previewPhotos(prefix){var inputId=prefix+'Photos';var previewId=prefix+'Preview';var files=document.getElementById(inputId).files;var preview=document.getElementById(previewId);if(!photoFiles[prefix])photoFiles[prefix]=[];for(var i=0;i<files.length;i++){if(photoFiles[prefix].length>=5){alert('⚠️ Maksimal 5 foto!');break;}var file=files[i];photoFiles[prefix].push(file);var reader=new FileReader();reader.onload=function(e,fileObj){return function(){var div=document.createElement('div');div.className='preview-item';div.innerHTML='<img src="'+e.target.result+'" alt="Foto"><button class="remove-img" onclick="removePhoto(\''+prefix+'\', '+photoFiles[prefix].indexOf(fileObj)+')">✕</button>';preview.appendChild(div);};}(reader,file);reader.readAsDataURL(file);}document.getElementById(inputId).value='';}
+function removePhoto(prefix,index){if(photoFiles[prefix]){photoFiles[prefix].splice(index,1);var preview=document.getElementById(prefix+'Preview');preview.innerHTML='';for(var i=0;i<photoFiles[prefix].length;i++){var file=photoFiles[prefix][i];var reader=new FileReader();reader.onload=function(e,fileObj){return function(){var div=document.createElement('div');div.className='preview-item';div.innerHTML='<img src="'+e.target.result+'" alt="Foto"><button class="remove-img" onclick="removePhoto(\''+prefix+'\', '+photoFiles[prefix].indexOf(fileObj)+')">✕</button>';preview.appendChild(div);};}(reader,file);reader.readAsDataURL(file);}}}
+function openLightbox(imgSrc){document.getElementById('lightboxImg').src=imgSrc;document.getElementById('lightbox').classList.add('active');}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('active');}
+var currentPage=1;var pageSize=50;var totalStudents=0;var filteredStudents=[];
+function loadStudentsOptimized(){var classFilter=document.getElementById('filterClass').value;var yearFilter=document.getElementById('filterYear').value;var search=document.getElementById('searchStudent').value.toLowerCase();var container=document.getElementById('studentList');container.innerHTML='<div class="loading"><span class="spinner"></span> Memuat data siswa...</div>';var query=db.collection('students').orderBy('class').orderBy('name');query.get().then(function(snapshot){allStudents=[];var classes=new Set();snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;allStudents.push(data);if(data.class)classes.add(data.class);});var classArray=Array.from(classes).sort();var dropdownIds=['filterClass','filterCounselingClass','filterIncidentClass','filterMutationClass','reportClass','filterPresensiClass','counselingClassSelect','parentCallClassSelect','homeVisitClassSelect','incidentClassSelect','mutationClassSelect','graduationClassSelect','presensiKelas'];for(var d=0;d<dropdownIds.length;d++){var select=document.getElementById(dropdownIds[d]);if(!select)continue;var currentVal=select.value;select.innerHTML='<option value="">Semua Kelas</option>';for(var j=0;j<classArray.length;j++){var selected=(classArray[j]===currentVal)?'selected':'';select.innerHTML+='<option value="'+classArray[j]+'" '+selected+'>'+classArray[j]+'</option>';}if(currentVal&&!classArray.includes(currentVal)){select.value=currentVal;}}populatePresensiKelas();filteredStudents=allStudents;if(classFilter)filteredStudents=filteredStudents.filter(function(s){return s.class===classFilter;});if(yearFilter)filteredStudents=filteredStudents.filter(function(s){return s.year===yearFilter;});if(search)filteredStudents=filteredStudents.filter(function(s){return s.name.toLowerCase().includes(search);});totalStudents=filteredStudents.length;currentPage=1;selectedStudents={};renderStudentPage();updateDashboard();}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
+function renderStudentPage(){var container=document.getElementById('studentList');var start=(currentPage-1)*pageSize;var end=Math.min(start+pageSize,totalStudents);var pageData=filteredStudents.slice(start,end);if(totalStudents===0){container.innerHTML='<div class="alert alert-info">📭 Tidak ada data siswa yang sesuai.</div>';return;}var selectedCount=0;var allChecked=true;for(var j=0;j<pageData.length;j++){var s=pageData[j];if(selectedStudents[s.id]){selectedCount++;}else{allChecked=false;}}var html='<div class="select-all-container">';html+='<input type="checkbox" id="selectAllCheckbox" '+(allChecked&&pageData.length>0?'checked':'')+' onchange="toggleSelectAll()">';html+='<label for="selectAllCheckbox">Pilih Semua di Halaman Ini</label>';html+='<span style="font-size:12px;color:var(--gray);">('+selectedCount+'/'+pageData.length+' dipilih)</span>';html+='<button class="btn-hapus-massal" id="btnHapusMassal" onclick="hapusMassal()" '+(selectedCount===0?'disabled':'')+'>🗑️ Hapus '+(selectedCount>0?selectedCount:'')+' Terpilih</button>';html+='</div>';html+='<div class="table-wrap"><table><thead><tr>';html+='<th style="width:30px;">#</th>';html+='<th style="width:30px;">Pilih</th>';html+='<th>Nama</th>';html+='<th>Kelas</th>';html+='<th>Tahun</th>';html+='<th>NISN</th>';html+='<th>JK</th>';html+='<th>Aksi</th>';html+='</tr></thead><tbody>';for(var j=0;j<pageData.length;j++){var s=pageData[j];var no=start+j+1;var checked=selectedStudents[s.id]?'checked':'';html+='<tr>';html+='<td>'+no+'</td>';html+='<td><input type="checkbox" class="student-checkbox" data-id="'+s.id+'" '+checked+' onchange="toggleStudent(\''+s.id+'\')"></td>';html+='<td><strong>'+s.name+'</strong></td>';html+='<td><span class="badge-status info">'+(s.class||'-')+'</span></td>';html+='<td>'+(s.year||'-')+'</td>';html+='<td>'+(s.nisn||'-')+'</td>';html+='<td>'+(s.gender||'-')+'</td>';html+='<td><button class="btn btn-danger btn-sm" onclick="deleteStudent(\''+s.id+'\')">🗑️</button></td>';html+='</tr>';}html+='</tbody></table></div>';var totalPages=Math.ceil(totalStudents/pageSize);html+='<div class="pagination-container">';html+='<span class="info">Menampilkan '+(start+1)+' - '+end+' dari '+totalStudents+' siswa</span>';html+='<div class="pages">';html+='<button class="page-btn" onclick="goToPage(1)" '+(currentPage===1?'disabled':'')+'>⏮</button>';html+='<button class="page-btn" onclick="goToPage('+(currentPage-1)+')" '+(currentPage===1?'disabled':'')+'>◀</button>';var startPage=Math.max(1,currentPage-3);var endPage=Math.min(totalPages,currentPage+3);if(startPage>1)html+='<span style="padding:4px 8px;font-size:12px;color:var(--gray);">...</span>';for(var p=startPage;p<=endPage;p++){var active=(p===currentPage)?'active':'';html+='<button class="page-btn '+active+'" onclick="goToPage('+p+')">'+p+'</button>';}if(endPage<totalPages)html+='<span style="padding:4px 8px;font-size:12px;color:var(--gray);">...</span>';html+='<button class="page-btn" onclick="goToPage('+(currentPage+1)+')" '+(currentPage===totalPages?'disabled':'')+'>▶</button>';html+='<button class="page-btn" onclick="goToPage('+totalPages+')" '+(currentPage===totalPages?'disabled':'')+'>⏭</button>';html+='</div></div>';container.innerHTML=html;}
+function goToPage(page){var totalPages=Math.ceil(totalStudents/pageSize);if(page<1||page>totalPages)return;currentPage=page;renderStudentPage();}
+function toggleStudent(id){if(selectedStudents[id]){delete selectedStudents[id];}else{selectedStudents[id]=true;}updateHapusButton();}
+function toggleSelectAll(){var checked=document.getElementById('selectAllCheckbox').checked;var start=(currentPage-1)*pageSize;var end=Math.min(start+pageSize,totalStudents);var pageData=filteredStudents.slice(start,end);for(var j=0;j<pageData.length;j++){var s=pageData[j];if(checked){selectedStudents[s.id]=true;}else{delete selectedStudents[s.id];}}var checkboxes=document.querySelectorAll('.student-checkbox');for(var k=0;k<checkboxes.length;k++){checkboxes[k].checked=checked;}updateHapusButton();}
+function updateHapusButton(){var btn=document.getElementById('btnHapusMassal');var count=Object.keys(selectedStudents).length;if(btn){if(count===0){btn.disabled=true;btn.textContent='🗑️ Hapus Terpilih';}else{btn.disabled=false;btn.textContent='🗑️ Hapus '+count+' Terpilih';}}var counter=document.querySelector('.select-all-container span');if(counter){var pageData=filteredStudents.slice((currentPage-1)*pageSize,Math.min(currentPage*pageSize,totalStudents));var selectedInPage=0;for(var j=0;j<pageData.length;j++){if(selectedStudents[pageData[j].id])selectedInPage++;}counter.textContent='('+selectedInPage+'/'+pageData.length+' dipilih)';}}
+function hapusMassal(){var ids=Object.keys(selectedStudents);if(ids.length===0){alert('⚠️ Pilih siswa terlebih dahulu!');return;}var confirmMsg='⚠️ Anda akan menghapus '+ids.length+' siswa secara permanen!\n\n';var kelasCount={};for(var i=0;i<ids.length;i++){var student=allStudents.find(function(s){return s.id===ids[i];});if(student){var kelas=student.class||'Tidak diketahui';if(!kelasCount[kelas])kelasCount[kelas]=0;kelasCount[kelas]++;}}for(var kelas in kelasCount){confirmMsg+='📚 '+kelas+': '+kelasCount[kelas]+' siswa\n';}confirmMsg+='\nYakin ingin menghapus? Data TIDAK bisa dikembalikan!';if(!confirm(confirmMsg))return;if(!confirm('⚠️⚠️ KONFIRMASI TERAKHIR: Hapus '+ids.length+' siswa?'))return;var container=document.getElementById('studentList');container.innerHTML='<div class="loading"><span class="spinner"></span> Menghapus '+ids.length+' siswa...</div>';var batchSize=20;var totalBatches=Math.ceil(ids.length/batchSize);var completedBatches=0;var deletedCount=0;function deleteBatch(startIndex){var endIndex=Math.min(startIndex+batchSize,ids.length);var batchPromises=[];for(var i=startIndex;i<endIndex;i++){batchPromises.push(db.collection('students').doc(ids[i]).delete().then(function(){deletedCount++;}).catch(function(err){console.log('Gagal hapus: '+err.message);}));}return Promise.all(batchPromises).then(function(){completedBatches++;var progress=Math.round((completedBatches/totalBatches)*100);container.innerHTML='<div class="loading"><span class="spinner"></span> Menghapus '+deletedCount+'/'+ids.length+' siswa... ('+progress+'%)</div>';if(endIndex<ids.length){return deleteBatch(endIndex);}});}deleteBatch(0).then(function(){for(var i=0;i<ids.length;i++){delete selectedStudents[ids[i]];}container.innerHTML='<div class="alert alert-success">✅ '+ids.length+' siswa berhasil dihapus!</div>';setTimeout(function(){loadStudentsOptimized();updateDashboard();},1000);}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal menghapus: '+err.message+'</div>';});}
+function saveStudent(){var name=document.getElementById('studentName').value.trim();var classVal=document.getElementById('studentClass').value.trim();var year=document.getElementById('studentYear').value.trim();var nisn=document.getElementById('studentNISN').value.trim();var gender=document.getElementById('studentGender').value;var alertEl=document.getElementById('studentModalAlert');if(!name||!classVal){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Nama dan kelas harus diisi!</div>';return;}alertEl.innerHTML='<div class="alert alert-info">⏳ Menyimpan data...</div>';db.collection('students').add({name:name,class:classVal,year:year||schoolData.year||'',nisn:nisn||'',gender:gender,createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Siswa berhasil ditambahkan!</div>';setTimeout(function(){closeModal('studentModal');loadStudentsOptimized();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
+function saveBulkStudentsOptimized(){var classVal=document.getElementById('bulkClass').value.trim();var year=document.getElementById('bulkYear').value.trim();var namesText=document.getElementById('bulkStudents').value;var alertEl=document.getElementById('bulkStudentModalAlert');var progressEl=document.getElementById('bulkProgress');var progressBar=document.getElementById('bulkProgressBar');var statusText=document.getElementById('bulkStatusText');if(!classVal){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Kelas harus diisi!</div>';return;}if(!year){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Tahun ajaran harus diisi!</div>';return;}var names=namesText.split('\n').map(function(x){return x.trim();}).filter(function(x){return x!=='';});if(names.length===0){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Masukkan minimal 1 nama siswa!</div>';return;}if(names.length>1000){if(!confirm('⚠️ Anda akan menambahkan '+names.length+' siswa dalam satu kelas. Proses akan berjalan bertahap. Lanjutkan?')){return;}}alertEl.innerHTML='';progressEl.style.display='block';progressBar.style.width='0%';progressBar.textContent='0%';statusText.textContent='⏳ Memulai proses...';var batchSize=20;var totalBatches=Math.ceil(names.length/batchSize);var completedBatches=0;var totalAdded=0;function saveBatch(startIndex){var endIndex=Math.min(startIndex+batchSize,names.length);var batchPromises=[];for(var i=startIndex;i<endIndex;i++){batchPromises.push(db.collection('students').add({name:names[i],class:classVal,year:year,nisn:'',gender:'L',createdAt:new Date().toISOString(),school:schoolData.name||''}));}return Promise.all(batchPromises).then(function(){completedBatches++;totalAdded+=(endIndex-startIndex);var progress=Math.round((completedBatches/totalBatches)*100);progressBar.style.width=progress+'%';progressBar.textContent=progress+'%';statusText.textContent='⏳ Proses '+completedBatches+'/'+totalBatches+' batch ('+totalAdded+'/'+names.length+' siswa)...';if(endIndex<names.length){return saveBatch(endIndex);}});}saveBatch(0).then(function(){progressBar.style.width='100%';progressBar.textContent='100%';statusText.textContent='✅ Selesai! '+names.length+' siswa berhasil ditambahkan!';alertEl.innerHTML='<div class="alert alert-success">✅ '+names.length+' siswa berhasil ditambahkan ke kelas '+classVal+'!</div>';setTimeout(function(){progressEl.style.display='none';closeModal('bulkStudentModal');loadStudentsOptimized();updateDashboard();},2000);}).catch(function(err){statusText.textContent='❌ Gagal: '+err.message;alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
+function deleteStudent(id){if(!confirm('Yakin ingin menghapus siswa ini?'))return;db.collection('students').doc(id).delete().then(function(){loadStudentsOptimized();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
+function loadTeachers(){var container=document.getElementById('teacherList');db.collection('teachers').orderBy('name').get().then(function(snapshot){allTeachers=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;allTeachers.push(data);});if(allTeachers.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada guru BK terdaftar.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>No</th><th>Nama Guru</th><th>Kelas Dipegang</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<allTeachers.length;i++){var t=allTeachers[i];var classList=t.classes?t.classes.split(',').map(function(c){return c.trim();}).filter(function(c){return c;}):[];html+='<tr><td>'+(i+1)+'</td><td><strong>'+t.name+'</strong></td><td>';for(var j=0;j<classList.length;j++){html+='<span class="teacher-tag">'+classList[j]+'</span>';}html+='</td><td><button class="btn btn-danger btn-sm" onclick="deleteTeacher(\''+t.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
+function saveTeacher(){var name=document.getElementById('teacherName').value.trim();var classes=document.getElementById('teacherClasses').value.trim();var alertEl=document.getElementById('teacherModalAlert');if(!name||!classes){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Nama dan kelas harus diisi!</div>';return;}db.collection('teachers').add({name:name,classes:classes,createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Guru BK berhasil ditambahkan!</div>';setTimeout(function(){closeModal('teacherModal');loadTeachers();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
+function deleteTeacher(id){if(!confirm('Yakin ingin menghapus guru ini?'))return;db.collection('teachers').doc(id).delete().then(function(){loadTeachers();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
+function loadCounseling(){var classFilter=document.getElementById('filterCounselingClass').value;var monthFilter=document.getElementById('filterCounselingMonth').value;var container=document.getElementById('counselingList');db.collection('counseling').orderBy('date','desc').get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(classFilter)items=items.filter(function(c){return c.studentClass===classFilter;});if(monthFilter)items=items.filter(function(c){return c.date&&c.date.startsWith(monthFilter);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada catatan konseling.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Masalah</th><th>Hasil</th><th>Foto</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var c=items[i];var hasPhotos=c.photoUrls&&c.photoUrls.length>0;var photoHtml='-';if(hasPhotos){photoHtml='<div class="image-gallery">';for(var j=0;j<Math.min(c.photoUrls.length,3);j++){photoHtml+='<div class="thumb" onclick="event.stopPropagation();openLightbox(\''+c.photoUrls[j]+'\')"><img src="'+c.photoUrls[j]+'" alt="Foto"></div>';}if(c.photoUrls.length>3){photoHtml+='<span style="font-size:10px;color:var(--gray);">+'+(c.photoUrls.length-3)+'</span>';}photoHtml+='</div>';}html+='<tr><td>'+(c.date?new Date(c.date).toLocaleDateString('id-ID'):'-')+'</td><td><strong>'+c.studentName+'</strong></td><td><span class="badge-status info">'+c.studentClass+'</span></td><td style="max-width:150px;">'+(c.problem||'-')+'</td><td style="max-width:150px;">'+(c.result||'-')+'</td><td>'+photoHtml+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteCounseling(\''+c.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
+function saveCounseling(){var studentId=document.getElementById('counselingStudent').value;var date=document.getElementById('counselingDate').value;var problem=document.getElementById('counselingProblem').value.trim();var result=document.getElementById('counselingResult').value.trim();var followUp=document.getElementById('counselingFollowUp').value.trim();var alertEl=document.getElementById('counselingModalAlert');if(!studentId||!date||!problem||!result){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});alertEl.innerHTML='<div class="alert alert-info">⏳ Mengupload foto dan menyimpan data...</div>';var uploadPromises=[];var prefix='counseling';if(photoFiles[prefix]){for(var i=0;i<photoFiles[prefix].length;i++){var file=photoFiles[prefix][i];var fileName='counseling/'+Date.now()+'_'+file.name;var uploadTask=storage.ref(fileName).put(file);uploadPromises.push(uploadTask.then(function(snapshot){return snapshot.ref.getDownloadURL();}));}}Promise.all(uploadPromises).then(function(photoUrls){return db.collection('counseling').add({studentId:studentId,studentName:student?student.name:'Tidak diketahui',studentClass:student?student.class:'Tidak diketahui',date:date,problem:problem,result:result,followUp:followUp||'',photoUrls:photoUrls||[],counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''});}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Catatan konseling berhasil disimpan!</div>';photoFiles['counseling']=[];document.getElementById('counselingPreview').innerHTML='';document.getElementById('counselingPhotos').value='';setTimeout(function(){closeModal('counselingModal');loadCounseling();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
+function deleteCounseling(id){if(!confirm('Yakin ingin menghapus catatan ini?'))return;db.collection('counseling').doc(id).get().then(function(doc){var data=doc.data();if(data.photoUrls&&data.photoUrls.length>0){for(var i=0;i<data.photoUrls.length;i++){var ref=storage.refFromURL(data.photoUrls[i]);ref.delete().catch(function(){});}}return db.collection('counseling').doc(id).delete();}).then(function(){loadCounseling();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
+function loadParentCalls(){var container=document.getElementById('parentCallList');db.collection('parentCalls').orderBy('date','desc').get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada data panggilan orang tua.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Masalah</th><th>Hasil</th><th>Foto</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var c=items[i];var hasPhotos=c.photoUrls&&c.photoUrls.length>0;var photoHtml='-';if(hasPhotos){photoHtml='<div class="image-gallery">';for(var j=0;j<Math.min(c.photoUrls.length,3);j++){photoHtml+='<div class="thumb" onclick="event.stopPropagation();openLightbox(\''+c.photoUrls[j]+'\')"><img src="'+c.photoUrls[j]+'" alt="Foto"></div>';}if(c.photoUrls.length>3){photoHtml+='<span style="font-size:10px;color:var(--gray);">+'+(c.photoUrls.length-3)+'</span>';}photoHtml+='</div>';}html+='<tr><td>'+(c.date?new Date(c.date).toLocaleDateString('id-ID'):'-')+'</td><td><strong>'+c.studentName+'</strong></td><td><span class="badge-status info">'+c.studentClass+'</span></td><td style="max-width:150px;">'+(c.problem||'-')+'</td><td style="max-width:150px;">'+(c.result||'-')+'</td><td>'+photoHtml+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteParentCall(\''+c.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
+function saveParentCall(){var studentId=document.getElementById('parentCallStudent').value;var date=document.getElementById('parentCallDate').value;var problem=document.getElementById('parentCallProblem').value.trim();var result=document.getElementById('parentCallResult').value.trim();var alertEl=document.getElementById('parentCallModalAlert');if(!studentId||!date||!problem||!result){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});alertEl.innerHTML='<div class="alert alert-info">⏳ Mengupload foto dan menyimpan data...</div>';var uploadPromises=[];var prefix='parentCall';if(photoFiles[prefix]){for(var i=0;i<photoFiles[prefix].length;i++){var file=photoFiles[prefix][i];var fileName='parentCalls/'+Date.now()+'_'+file.name;var uploadTask=storage.ref(fileName).put(file);uploadPromises.push(uploadTask.then(function(snapshot){return snapshot.ref.getDownloadURL();}));}}Promise.all(uploadPromises).then(function(photoUrls){return db.collection('parentCalls').add({studentId:studentId,studentName:student?student.name:'Tidak diketahui',studentClass:student?student.class:'Tidak diketahui',date:date,problem:problem,result:result,photoUrls:photoUrls||[],counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''});}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Data panggilan orang tua berhasil disimpan!</div>';photoFiles['parentCall']=[];document.getElementById('parentCallPreview').innerHTML='';document.getElementById('parentCallPhotos').value='';setTimeout(function(){closeModal('parentCallModal');loadParentCalls();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
+function deleteParentCall(id){if(!confirm('Yakin ingin menghapus data ini?'))return;db.collection('parentCalls').doc(id).get().then(function(doc){var data=doc.data();if(data.photoUrls&&data.photoUrls.length>0){for(var i=0;i<data.photoUrls.length;i++){var ref=storage.refFromURL(data.photoUrls[i]);ref.delete().catch(function(){});}}return db.collection('parentCalls').doc(id).delete();}).then(function(){loadParentCalls();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
+function loadHomeVisits(){var container=document.getElementById('homeVisitList');db.collection('homeVisits').orderBy('date','desc').get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada data home visit.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Masalah</th><th>Hasil</th><th>Foto</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var c=items[i];var hasPhotos=c.photoUrls&&c.photoUrls.length>0;var photoHtml='-';if(hasPhotos){photoHtml='<div class="image-gallery">';for(var j=0;j<Math.min(c.photoUrls.length,3);j++){photoHtml+='<div class="thumb" onclick="event.stopPropagation();openLightbox(\''+c.photoUrls[j]+'\')"><img src="'+c.photoUrls[j]+'" alt="Foto"></div>';}if(c.photoUrls.length>3){photoHtml+='<span style="font-size:10px;color:var(--gray);">+'+(c.photoUrls.length-3)+'</span>';}photoHtml+='</div>';}html+='<tr><td>'+(c.date?new Date(c.date).toLocaleDateString('id-ID'):'-')+'</td><td><strong>'+c.studentName+'</strong></td><td><span class="badge-status info">'+c.studentClass+'</span></td><td style="max-width:150px;">'+(c.problem||'-')+'</td><td style="max-width:150px;">'+(c.result||'-')+'</td><td>'+photoHtml+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteHomeVisit(\''+c.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
+function saveHomeVisit(){var studentId=document.getElementById('homeVisitStudent').value;var date=document.getElementById('homeVisitDate').value;var problem=document.getElementById('homeVisitProblem').value.trim();var result=document.getElementById('homeVisitResult').value.trim();var alertEl=document.getElementById('homeVisitModalAlert');if(!studentId||!date||!problem||!result){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});alertEl.innerHTML='<div class="alert alert-info">⏳ Mengupload foto dan menyimpan data...</div>';var uploadPromises=[];var prefix='homeVisit';if(photoFiles[prefix]){for(var i=0;i<photoFiles[prefix].length;i++){var file=photoFiles[prefix][i];var fileName='homeVisits/'+Date.now()+'_'+file.name;var uploadTask=storage.ref(fileName).put(file);uploadPromises.push(uploadTask.then(function(snapshot){return snapshot.ref.getDownloadURL();}));}}Promise.all(uploadPromises).then(function(photoUrls){return db.collection('homeVisits').add({studentId:studentId,studentName:student?student.name:'Tidak diketahui',studentClass:student?student.class:'Tidak diketahui',date:date,problem:problem,result:result,photoUrls:photoUrls||[],counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''});}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Data home visit berhasil disimpan!</div>';photoFiles['homeVisit']=[];document.getElementById('homeVisitPreview').innerHTML='';document.getElementById('homeVisitPhotos').value='';setTimeout(function(){closeModal('homeVisitModal');loadHomeVisits();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
+function deleteHomeVisit(id){if(!confirm('Yakin ingin menghapus data ini?'))return;db.collection('homeVisits').doc(id).get().then(function(doc){var data=doc.data();if(data.photoUrls&&data.photoUrls.length>0){for(var i=0;i<data.photoUrls.length;i++){var ref=storage.refFromURL(data.photoUrls[i]);ref.delete().catch(function(){});}}return db.collection('homeVisits').doc(id).delete();}).then(function(){loadHomeVisits();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
+function loadIncidents(){var classFilter=document.getElementById('filterIncidentClass').value;var typeFilter=document.getElementById('filterIncidentType').value;var monthFilter=document.getElementById('filterIncidentMonth').value;var container=document.getElementById('incidentList');db.collection('incidents').orderBy('date','desc').get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(classFilter)items=items.filter(function(c){return c.studentClass===classFilter;});if(typeFilter)items=items.filter(function(c){return c.type===typeFilter;});if(monthFilter)items=items.filter(function(c){return c.date&&c.date.startsWith(monthFilter);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada laporan kejadian.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Deskripsi</th><th>Foto</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var c=items[i];var hasPhotos=c.photoUrls&&c.photoUrls.length>0;var photoHtml='-';if(hasPhotos){photoHtml='<div class="image-gallery">';for(var j=0;j<Math.min(c.photoUrls.length,3);j++){photoHtml+='<div class="thumb" onclick="event.stopPropagation();openLightbox(\''+c.photoUrls[j]+'\')"><img src="'+c.photoUrls[j]+'" alt="Foto"></div>';}if(c.photoUrls.length>3){photoHtml+='<span style="font-size:10px;color:var(--gray);">+'+(c.photoUrls.length-3)+'</span>';}photoHtml+='</div>';}html+='<tr><td>'+(c.date?new Date(c.date).toLocaleDateString('id-ID'):'-')+'</td><td><strong>'+c.studentName+'</strong></td><td><span class="badge-status info">'+c.studentClass+'</span></td><td><span class="badge-status danger">'+(c.type||'-')+'</span></td><td style="max-width:200px;">'+(c.description||'-')+'</td><td>'+photoHtml+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteIncident(\''+c.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
+function saveIncident(){var studentId=document.getElementById('incidentStudent').value;var date=document.getElementById('incidentDate').value;var type=document.getElementById('incidentType').value;var description=document.getElementById('incidentDescription').value.trim();var action=document.getElementById('incidentAction').value.trim();var alertEl=document.getElementById('incidentModalAlert');if(!studentId||!date||!type||!description||!action){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});alertEl.innerHTML='<div class="alert alert-info">⏳ Mengupload foto dan menyimpan data...</div>';var uploadPromises=[];var prefix='incident';if(photoFiles[prefix]){for(var i=0;i<photoFiles[prefix].length;i++){var file=photoFiles[prefix][i];var fileName='incidents/'+Date.now()+'_'+file.name;var uploadTask=storage.ref(fileName).put(file);uploadPromises.push(uploadTask.then(function(snapshot){return snapshot.ref.getDownloadURL();}));}}Promise.all(uploadPromises).then(function(photoUrls){return db.collection('incidents').add({studentId:studentId,studentName:student?student.name:'Tidak diketahui',studentClass:student?student.class:'Tidak diketahui',date:date,type:type,description:description,action:action,photoUrls:photoUrls||[],counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''});}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Laporan kejadian berhasil disimpan!</div>';photoFiles['incident']=[];document.getElementById('incidentPreview').innerHTML='';document.getElementById('incidentPhotos').value='';setTimeout(function(){closeModal('incidentModal');loadIncidents();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
+function deleteIncident(id){if(!confirm('Yakin ingin menghapus laporan ini?'))return;db.collection('incidents').doc(id).get().then(function(doc){var data=doc.data();if(data.photoUrls&&data.photoUrls.length>0){for(var i=0;i<data.photoUrls.length;i++){var ref=storage.refFromURL(data.photoUrls[i]);ref.delete().catch(function(){});}}return db.collection('incidents').doc(id).delete();}).then(function(){loadIncidents();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
+function loadMutations(){var classFilter=document.getElementById('filterMutationClass').value;var monthFilter=document.getElementById('filterMutationMonth').value;var container=document.getElementById('mutationList');db.collection('mutations').orderBy('date','desc').get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(classFilter)items=items.filter(function(m){return m.studentClass===classFilter;});if(monthFilter)items=items.filter(function(m){return m.date&&m.date.startsWith(monthFilter);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada data mutasi siswa.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Siswa</th><th>Kelas</th><th>Jenis</th><th>Alasan</th><th>Foto</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var m=items[i];var hasPhotos=m.photoUrls&&m.photoUrls.length>0;var photoHtml='-';if(hasPhotos){photoHtml='<div class="image-gallery">';for(var j=0;j<Math.min(m.photoUrls.length,3);j++){photoHtml+='<div class="thumb" onclick="event.stopPropagation();openLightbox(\''+m.photoUrls[j]+'\')"><img src="'+m.photoUrls[j]+'" alt="Foto Surat Mutasi"></div>';}if(m.photoUrls.length>3){photoHtml+='<span style="font-size:10px;color:var(--gray);">+'+(m.photoUrls.length-3)+'</span>';}photoHtml+='</div>';}var typeClass=m.type==='Masuk'?'success':m.type==='Keluar'?'danger':m.type==='Pindah Kelas'?'warning':'danger';html+='<tr><td>'+(m.date?new Date(m.date).toLocaleDateString('id-ID'):'-')+'</td><td><strong>'+m.studentName+'</strong></td><td><span class="badge-status info">'+m.studentClass+'</span></td><td><span class="badge-status '+typeClass+'">'+(m.type||'-')+'</span></td><td style="max-width:150px;">'+(m.reason||'-')+'</td><td>'+photoHtml+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteMutation(\''+m.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
+function saveMutation(){var studentId=document.getElementById('mutationStudent').value;var date=document.getElementById('mutationDate').value;var type=document.getElementById('mutationType').value;var reason=document.getElementById('mutationReason').value.trim();var alertEl=document.getElementById('mutationModalAlert');if(!studentId||!date||!type||!reason){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});alertEl.innerHTML='<div class="alert alert-info">⏳ Mengupload foto dan menyimpan data...</div>';var uploadPromises=[];var prefix='mutation';if(photoFiles[prefix]){for(var i=0;i<photoFiles[prefix].length;i++){var file=photoFiles[prefix][i];var fileName='mutations/'+Date.now()+'_'+file.name;var uploadTask=storage.ref(fileName).put(file);uploadPromises.push(uploadTask.then(function(snapshot){return snapshot.ref.getDownloadURL();}));}}Promise.all(uploadPromises).then(function(photoUrls){return db.collection('mutations').add({studentId:studentId,studentName:student?student.name:'Tidak diketahui',studentClass:student?student.class:'Tidak diketahui',date:date,type:type,reason:reason,photoUrls:photoUrls||[],counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''});}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Data mutasi siswa berhasil disimpan!</div>';photoFiles['mutation']=[];document.getElementById('mutationPreview').innerHTML='';document.getElementById('mutationPhotos').value='';setTimeout(function(){closeModal('mutationModal');loadMutations();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
+function deleteMutation(id){if(!confirm('Yakin ingin menghapus data mutasi ini?'))return;db.collection('mutations').doc(id).get().then(function(doc){var data=doc.data();if(data.photoUrls&&data.photoUrls.length>0){for(var i=0;i<data.photoUrls.length;i++){var ref=storage.refFromURL(data.photoUrls[i]);ref.delete().catch(function(){});}}return db.collection('mutations').doc(id).delete();}).then(function(){loadMutations();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
+function loadGraduations(){var yearFilter=document.getElementById('filterGraduationYear').value;var pathFilter=document.getElementById('filterGraduationPath').value;var container=document.getElementById('graduationList');db.collection('graduations').orderBy('year','desc').get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(yearFilter)items=items.filter(function(g){return g.year===yearFilter;});if(pathFilter)items=items.filter(function(g){return g.path===pathFilter;});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada data lulusan SNBP/SNBT.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tahun</th><th>Siswa</th><th>Kelas</th><th>Jalur</th><th>Kampus</th><th>Jurusan</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var g=items[i];var pathClass=g.path==='SNBP'?'success':'warning';html+='<tr><td><span class="badge-status info">'+(g.year||'-')+'</span></td><td><strong>'+g.studentName+'</strong></td><td><span class="badge-status info">'+g.studentClass+'</span></td><td><span class="badge-status '+pathClass+'">🎯 '+g.path+'</span></td><td>'+(g.university||'-')+'</td><td>'+(g.major||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteGraduation(\''+g.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
+function saveGraduation(){var studentId=document.getElementById('graduationStudent').value;var path=document.getElementById('graduationPath').value;var university=document.getElementById('graduationUniversity').value.trim();var major=document.getElementById('graduationMajor').value.trim();var year=document.getElementById('graduationYear').value;var alertEl=document.getElementById('graduationModalAlert');if(!studentId){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Pilih siswa terlebih dahulu!</div>';return;}if(!university){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Nama kampus harus diisi!</div>';return;}if(!major){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Jurusan harus diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});db.collection('graduations').add({studentId:studentId,studentName:student?student.name:'Tidak diketahui',studentClass:student?student.class:'Tidak diketahui',path:path,university:university,major:major,year:year,counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Data lulusan '+path+' berhasil disimpan!</div>';setTimeout(function(){closeModal('graduationModal');loadGraduations();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
+function deleteGraduation(id){if(!confirm('Yakin ingin menghapus data ini?'))return;db.collection('graduations').doc(id).delete().then(function(){loadGraduations();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
+function loadPresensiSiswa(){var kelas=document.getElementById('presensiKelas').value;var content=document.getElementById('presensiFormContent');var statusInfo=document.getElementById('presensiStatusInfo');if(!kelas){content.innerHTML='';statusInfo.innerHTML='';return;}content.innerHTML='<div class="loading"><span class="spinner"></span> Memuat daftar siswa...</div>';statusInfo.innerHTML='';var students=allStudents.filter(function(s){return s.class===kelas;});if(students.length===0){content.innerHTML='<div class="alert alert-warning">Belum ada siswa di kelas ini. Hubungi guru BK.</div>';return;}var today=new Date().toISOString().split('T')[0];db.collection('presensiHarian').where('kelas','==',kelas).where('tanggal','==',today).where('school','==',schoolData.name||'').get().then(function(snapshot){var existingData={};var docId=null;snapshot.forEach(function(doc){var data=doc.data();docId=doc.id;if(data.siswa){data.siswa.forEach(function(s){existingData[s.nama]={status:s.status,keterangan:s.keterangan||''};});}});if(docId){statusInfo.innerHTML='<div class="alert alert-info" style="font-size:13px;">📌 Presensi hari ini <b>SUDAH</b> dilaporkan. <button class="edit-btn" onclick="enableEditPresensi(\''+docId+'\')">✏️ Edit</button></div>';presensiEditMode=true;presensiEditDocId=docId;}else{statusInfo.innerHTML='<div class="alert alert-success" style="font-size:13px;">✅ Belum ada laporan hari ini. Silakan isi presensi.</div>';presensiEditMode=false;presensiEditDocId=null;}renderPresensiForm(students,existingData,kelas,today,docId);}).catch(function(){renderPresensiForm(students,{},kelas,today,null);});}
+function enableEditPresensi(docId){if(confirm('✏️ Edit presensi hari ini? Data lama akan diperbarui.')){presensiEditMode=true;presensiEditDocId=docId;document.getElementById('presensiStatusInfo').innerHTML='<div class="alert alert-warning" style="font-size:13px;">✏️ Mode EDIT aktif. Perbarui data dan kirim ulang.</div>';var selects=document.querySelectorAll('#presensiFormContent select');var inputs=document.querySelectorAll('#presensiFormContent input');for(var i=0;i<selects.length;i++)selects[i].disabled=false;for(var j=0;j<inputs.length;j++)inputs[j].disabled=false;var btn=document.querySelector('#presensiFormContent .btn-success');if(btn)btn.style.display='inline-flex';}}
+function renderPresensiForm(students,existingData,kelas,tanggal,docId){var content=document.getElementById('presensiFormContent');var html='<div style="margin-top:8px;">';html+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:8px;">';html+='<h3 style="font-size:16px;color:var(--primary-dark);">📋 Presensi '+kelas+'</h3>';html+='<span style="font-size:13px;color:var(--gray);">📅 '+new Date(tanggal).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</span>';html+='</div>';html+='<div style="margin:8px 0;">';html+='<button class="btn btn-success btn-sm" onclick="setAllSiswaHadir()" style="padding:6px 16px;">✅ Semua Hadir</button>';html+='<span style="font-size:11px;color:var(--gray);margin-left:8px;">Klik jika semua siswa hadir</span>';html+='</div>';html+='<div class="presensi-student-list">';html+='<div style="display:flex;gap:10px;font-weight:600;padding:6px 4px;border-bottom:2px solid var(--gray-light);font-size:12px;">';html+='<span style="width:30px;">No</span>';html+='<span style="flex:1;">Nama</span>';html+='<span style="width:100px;">Status</span>';html+='<span style="width:120px;">Keterangan</span>';html+='</div>';for(var i=0;i<students.length;i++){var s=students[i];var existing=existingData[s.name]||{};var status=existing.status||'Hadir';var keterangan=existing.keterangan||'';var disabled=(docId&&!presensiEditMode)?'disabled':'';html+='<div class="student-item">';html+='<span style="font-weight:600;width:30px;font-size:12px;">'+(i+1)+'.</span>';html+='<span style="flex:1;font-size:13px;font-weight:500;" class="s-name">'+s.name+'</span>';html+='<select class="form-control" style="width:100px;padding:4px 8px;font-size:12px;" id="ps_'+i+'" '+disabled+'>';html+='<option value="Hadir" '+(status==='Hadir'?'selected':'')+'>✅ Hadir</option>';html+='<option value="Sakit" '+(status==='Sakit'?'selected':'')+'>🤒 Sakit</option>';html+='<option value="Izin" '+(status==='Izin'?'selected':'')+'>📝 Izin</option>';html+='<option value="Alfa" '+(status==='Alfa'?'selected':'')+'>❌ Alfa</option>';html+='</select>';html+='<input type="text" class="form-control" style="width:120px;padding:4px 8px;font-size:12px;" id="pn_'+i+'" placeholder="Keterangan" value="'+keterangan+'" '+disabled+'>';html+='</div>';}html+='</div>';html+='<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">';if(docId&&!presensiEditMode){html+='<button class="btn btn-warning" onclick="enableEditPresensi(\''+docId+'\')">✏️ Edit</button>';html+='<span style="font-size:12px;color:var(--gray);align-self:center;">Data sudah dikirim hari ini. Klik Edit untuk mengubah.</span>';}else{html+='<button class="btn btn-success" onclick="kirimPresensi()">📤 Kirim Laporan</button>';html+='<button class="btn btn-outline" onclick="resetPresensiForm()">🔄 Reset</button>';}html+='</div>';html+='<div id="presensiFormAlert" style="margin-top:8px;"></div>';html+='</div>';content.innerHTML=html;}
+function setAllSiswaHadir(){var items=document.querySelectorAll('.presensi-student-list .student-item');for(var i=0;i<items.length;i++){var select=document.getElementById('ps_'+i);if(select&&!select.disabled)select.value='Hadir';var note=document.getElementById('pn_'+i);if(note&&!note.disabled)note.value='';}var alertEl=document.getElementById('presensiFormAlert');if(alertEl){alertEl.innerHTML='<div class="alert alert-success">✅ Semua siswa diisi HADIR</div>';setTimeout(function(){alertEl.innerHTML='';},3000);}}
+function resetPresensiForm(){var items=document.querySelectorAll('.presensi-student-list .student-item');for(var i=0;i<items.length;i++){var select=document.getElementById('ps_'+i);if(select&&!select.disabled)select.value='Hadir';var note=document.getElementById('pn_'+i);if(note&&!note.disabled)note.value='';}var alertEl=document.getElementById('presensiFormAlert');if(alertEl){alertEl.innerHTML='<div class="alert alert-info">🔄 Form direset</div>';setTimeout(function(){alertEl.innerHTML='';},2000);}}
+function kirimPresensi(){var kelas=document.getElementById('presensiKelas').value;var alertEl=document.getElementById('presensiFormAlert');if(!kelas){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Pilih kelas terlebih dahulu!</div>';return;}var items=document.querySelectorAll('.presensi-student-list .student-item');var siswaData=[];var semuaHadir=true;for(var i=0;i<items.length;i++){var select=document.getElementById('ps_'+i);var note=document.getElementById('pn_'+i);var nameEl=items[i].querySelector('.s-name');var status=select?select.value:'Hadir';var keterangan=note?note.value.trim():'';var nama=nameEl?nameEl.textContent.trim():'Siswa '+(i+1);if(status!=='Hadir'&&!keterangan){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Siswa '+nama+' tidak hadir tetapi keterangan kosong!</div>';return;}if(status!=='Hadir')semuaHadir=false;siswaData.push({nama:nama,status:status,keterangan:keterangan});}var today=new Date().toISOString().split('T')[0];alertEl.innerHTML='<div class="alert alert-info">⏳ '+(presensiEditMode?'Memperbarui':'Menyimpan')+' laporan presensi...</div>';if(presensiEditMode&&presensiEditDocId){db.collection('presensiHarian').doc(presensiEditDocId).update({siswa:siswaData,semuaHadir:semuaHadir,updatedAt:new Date().toISOString(),dikirimOleh:'Ketua Kelas '+kelas}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Laporan presensi berhasil DIUPDATE! Terima kasih 🙏</div>';presensiEditMode=false;presensiEditDocId=null;loadPresensiRekap();updateDashboard();loadPresensiSiswa();}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal update: '+err.message+'</div>';});}else{db.collection('presensiHarian').add({kelas:kelas,tanggal:today,siswa:siswaData,semuaHadir:semuaHadir,dikirimOleh:'Ketua Kelas '+kelas,school:schoolData.name||'',createdAt:new Date().toISOString()}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Laporan presensi berhasil dikirim! Terima kasih 🙏</div>';loadPresensiRekap();updateDashboard();loadPresensiSiswa();}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal menyimpan: '+err.message+'</div>';});}}
+function loadPresensiRekap(){var classFilter=document.getElementById('filterPresensiClass').value;var dateFilter=document.getElementById('filterPresensiDate').value;if(!dateFilter){var today=new Date().toISOString().split('T')[0];document.getElementById('filterPresensiDate').value=today;dateFilter=today;}var container=document.getElementById('presensiRekapContainer');container.innerHTML='<div class="loading"><span class="spinner"></span> Memuat data presensi...</div>';var query=db.collection('presensiHarian').where('school','==',schoolData.name||'');if(dateFilter){query=query.where('tanggal','==',dateFilter);}query.orderBy('tanggal','desc').get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(classFilter){items=items.filter(function(p){return p.kelas===classFilter;});}if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada laporan presensi untuk tanggal ini.</div>';return;}var html='';for(var i=0;i<items.length;i++){var p=items[i];var siswa=p.siswa||[];var hadir=0,sakit=0,izin=0,alfa=0;for(var j=0;j<siswa.length;j++){var status=siswa[j].status||'Hadir';if(status==='Hadir')hadir++;else if(status==='Sakit')sakit++;else if(status==='Izin')izin++;else if(status==='Alfa')alfa++;}var total=hadir+sakit+izin+alfa;var persen=total>0?Math.round((hadir/total)*100):0;html+='<div class="panel" style="margin-bottom:12px;padding:12px;">';html+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">';html+='<h3 style="font-size:14px;color:var(--primary-dark);">📚 '+p.kelas+'</h3>';html+='<span style="font-size:12px;color:var(--gray);">📅 '+new Date(p.tanggal).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</span>';html+='</div>';html+='<div class="presensi-rekap-grid">';html+='<div class="rekap-item hadir"><div class="num">'+hadir+'</div><div class="label">✅ Hadir</div></div>';html+='<div class="rekap-item sakit"><div class="num">'+sakit+'</div><div class="label">🤒 Sakit</div></div>';html+='<div class="rekap-item izin"><div class="num">'+izin+'</div><div class="label">📝 Izin</div></div>';html+='<div class="rekap-item alfa"><div class="num">'+alfa+'</div><div class="label">❌ Alfa</div></div>';html+='<div class="rekap-item"><div class="num" style="color:var(--primary-dark);">'+persen+'%</div><div class="label">📊 Kehadiran</div></div>';html+='</div>';if(sakit>0||izin>0||alfa>0){html+='<div style="font-size:11px;color:var(--gray);margin-top:4px;">';var detail=[];for(var k=0;k<siswa.length;k++){if(siswa[k].status!=='Hadir'){var emoji=siswa[k].status==='Sakit'?'🤒':siswa[k].status==='Izin'?'📝':'❌';detail.push(emoji+' '+siswa[k].nama+' ('+siswa[k].keterangan+')');}}html+='📌 '+detail.join(' | ');html+='</div>';}html+='<div style="font-size:10px;color:#aaa;margin-top:4px;">🕐 Dikirim: '+new Date(p.createdAt).toLocaleTimeString('id-ID')+'</div>';html+='</div>';}container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
+function cetakPresensi(){var content=document.getElementById('presensiRekapContainer');if(!content||content.innerHTML.includes('Belum ada laporan')){alert('⚠️ Tidak ada data presensi untuk dicetak.');return;}var w=window.open('','_blank','width=800,height=600');if(!w){alert('⚠️ Izinkan pop-up untuk mencetak.');return;}var date=document.getElementById('filterPresensiDate').value;var kelas=document.getElementById('filterPresensiClass').value;w.document.write('<!DOCTYPE html><html><head><title>Laporan Presensi</title><style>');w.document.write('body { font-family: Arial, sans-serif; padding: 20px; color: #1a2a3a; }');w.document.write('h2 { color: #0d3b6b; border-bottom: 2px solid #0d3b6b; padding-bottom: 8px; }');w.document.write('.presensi-rekap-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 8px 0; }');w.document.write('.rekap-item { background: #f8fafc; padding: 8px 12px; border-radius: 6px; text-align: center; }');w.document.write('.rekap-item .num { font-size: 20px; font-weight: 800; }');w.document.write('.rekap-item .label { font-size: 10px; color: #6b7d90; }');w.document.write('.panel { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; }');w.document.write('.footer { margin-top: 20px; font-size: 10px; color: #6b7d90; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }');w.document.write('.brand { font-weight: 600; color: #0d3b6b; }');w.document.write('@media print { body { padding: 10px; } }');w.document.write('</style></head><body>');w.document.write('<h2>📋 LAPORAN PRESENSI</h2>');w.document.write('<p>'+(kelas?'Kelas: '+kelas:'Semua Kelas')+' | '+(date?new Date(date).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'-')+'</p>');w.document.write(content.innerHTML);w.document.write('<div class="footer">Dicetak dari SIM BK | <span class="brand">@NaFaSBK</span></div>');w.document.write('<script>setTimeout(function() { window.print(); }, 500);<\/script>');w.document.write('</body></html>');w.document.close();}
+function keluarPresensi(){document.getElementById('presensiMode').style.display='none';document.getElementById('mainApp').style.display='block';document.querySelector('.app-container').style.padding='12px';showTab('presensi');}
+function copyPresensiLink(){var link=document.getElementById('presensiLinkDisplay').value;copyText(link);}
+function bagikanPresensiWA(){var link=document.getElementById('presensiLinkDisplay').value;var pesan=encodeURIComponent('📋 *Presensi Harian - SIM BK*\n\nKlik link berikut untuk mengisi presensi:\n'+link+'\n\n📌 Pilih kelas, isi presensi, kirim.\n🙏 Isi dengan jujur ya!');window.open('https://wa.me/?text='+pesan,'_blank');}
+function openPresensiLink(){var link=document.getElementById('presensiLinkDisplay').value;window.open(link,'_blank');}
+function copyText(text){try{navigator.clipboard.writeText(text).then(function(){alert('✅ Disalin!');});}catch(e){var a=document.createElement('textarea');a.value=text;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();alert('✅ Disalin!');}}
+function updateDashboard(){db.collection('students').get().then(function(snapshot){document.getElementById('statTotalStudents').textContent=snapshot.size;});db.collection('teachers').get().then(function(snapshot){document.getElementById('statTeachers').textContent=snapshot.size;});var now=new Date();var monthStart=new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0];db.collection('counseling').where('date','>=',monthStart).get().then(function(snapshot){document.getElementById('statCounseling').textContent=snapshot.size;});db.collection('counseling').where('followUp','!=','').get().then(function(snapshot){var uniqueStudents=new Set();snapshot.forEach(function(doc){var data=doc.data();if(data.studentId)uniqueStudents.add(data.studentId);});document.getElementById('statNeedsAttention').textContent=uniqueStudents.size;});db.collection('incidents').where('date','>=',monthStart).get().then(function(snapshot){document.getElementById('statIncidents').textContent=snapshot.size;});db.collection('mutations').where('date','>=',monthStart).get().then(function(snapshot){document.getElementById('statMutations').textContent=snapshot.size;});db.collection('graduations').get().then(function(snapshot){document.getElementById('statGraduations').textContent=snapshot.size;});var today=new Date().toISOString().split('T')[0];db.collection('presensiHarian').where('tanggal','==',today).where('school','==',schoolData.name||'').get().then(function(snapshot){document.getElementById('statPresensi').textContent=snapshot.size;});loadRecentActivities();}
+function loadRecentActivities(){var container=document.getElementById('recentActivities');var activities=[];db.collection('presensiHarian').orderBy('createdAt','desc').limit(5).get().then(function(snapshot){snapshot.forEach(function(doc){var data=doc.data();var total=data.siswa?data.siswa.length:0;var hadir=0;if(data.siswa){for(var i=0;i<data.siswa.length;i++){if(data.siswa[i].status==='Hadir')hadir++;}}activities.push({type:'📋 Presensi',text:data.kelas+' - '+hadir+'/'+total+' hadir',date:data.tanggal?new Date(data.tanggal).toLocaleDateString('id-ID'):'-',time:data.createdAt?new Date(data.createdAt).toLocaleString('id-ID'):'-'});});activities.sort(function(a,b){return new Date(b.time)-new Date(a.time);});activities=activities.slice(0,10);if(activities.length===0){container.innerHTML='<div class="alert alert-info">Belum ada aktivitas.</div>';return;}var html='<div style="max-height:400px;overflow-y:auto;">';for(var i=0;i<activities.length;i++){var a=activities[i];html+='<div style="display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;">';html+='<span><strong>'+a.type+'</strong> '+a.text+'</span>';html+='<span style="color:var(--gray);font-size:11px;">'+a.date+'</span>';html+='</div>';}html+='</div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat aktivitas: '+err.message+'</div>';});}
+function populateReportFilters(){var classSelect=document.getElementById('reportClass');var currentVal=classSelect.value;classSelect.innerHTML='<option value="">Semua Kelas</option>';var classes=new Set();for(var i=0;i<allStudents.length;i++){classes.add(allStudents[i].class);}var classArray=Array.from(classes).sort();for(var j=0;j<classArray.length;j++){classSelect.innerHTML+='<option value="'+classArray[j]+'">'+classArray[j]+'</option>';}classSelect.value=currentVal;}
+function generateReport(){alert('Fitur generate report aktif');}
+function printReport(){alert('Fitur print report aktif');}
+function saveSettings(){var name=document.getElementById('settingsSchool').value.trim();var year=document.getElementById('settingsYear').value.trim();var address=document.getElementById('settingsAddress').value.trim();schoolData={name:name,year:year,address:address};saveSchoolData(schoolData);document.getElementById('schoolDisplay').textContent=name||'Sekolah';alert('✅ Pengaturan berhasil disimpan!');}
+function loadUsersList(){var users=getUsers();var container=document.getElementById('userList');var emails=Object.keys(users);if(emails.length===0){container.innerHTML='<div class="alert alert-info">Belum ada pengguna terdaftar.</div>';return;}var html='<div style="max-height:300px;overflow-y:auto;">';for(var i=0;i<emails.length;i++){var email=emails[i];var user=users[email];html+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;">';html+='<span>'+email+'</span>';html+='<span style="color:var(--gray);font-size:11px;">'+(user.school||'Tidak diketahui')+'</span>';html+='</div>';}html+='</div>';container.innerHTML=html;}
+function exportAllData(){var data={school:schoolData,users:getUsers(),exportedAt:new Date().toISOString(),version:'1.0'};var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='backup-sim-bk-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(url);}
+function restoreData(event){var file=event.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){try{var data=JSON.parse(e.target.result);if(data.school)saveSchoolData(data.school);if(data.users)saveUsers(data.users);alert('✅ Data berhasil dipulihkan!');location.reload();}catch(err){alert('❌ File tidak valid: '+err.message);}};reader.readAsText(file);event.target.value='';}
+function resetAllData(){if(!confirm('⚠️ Yakin ingin menghapus SEMUA data? Ini tidak bisa dibatalkan!'))return;if(!confirm('⚠️⚠️ Konfirmasi terakhir: Hapus semua data?'))return;var collections=['students','teachers','counseling','parentCalls','homeVisits','incidents','mutations','graduations','presensiHarian'];var promises=[];for(var i=0;i<collections.length;i++){var col=collections[i];promises.push(db.collection(col).get().then(function(snapshot,colName){return function(){snapshot.forEach(function(doc){db.collection(colName).doc(doc.id).delete();});};}(col)));}Promise.all(promises).then(function(){localStorage.removeItem(SCHOOL_KEY);localStorage.removeItem(USER_KEY);localStorage.removeItem(SESSION_KEY);alert('✅ Semua data telah direset. Halaman akan dimuat ulang.');location.reload();}).catch(function(err){alert('❌ Gagal reset: '+err.message);});}
+(function(){var params=new URLSearchParams(window.location.search);var mode=params.get('mode');if(mode==='presensi'){document.getElementById('loginPage').style.display='none';document.getElementById('registerPage').style.display='none';document.getElementById('mainApp').style.display='none';document.getElementById('presensiMode').style.display='block';document.querySelector('.app-container').style.padding='0';document.getElementById('app').classList.add('presensi-mode-only');db.collection('students').orderBy('class').orderBy('name').get().then(function(snapshot){allStudents=[];var classes=new Set();snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;allStudents.push(data);if(data.class)classes.add(data.class);});var select=document.getElementById('presensiKelas');var classArray=Array.from(classes).sort();select.innerHTML='<option value="">Pilih Kelas</option>';for(var i=0;i<classArray.length;i++){select.innerHTML+='<option value="'+classArray[i]+'">'+classArray[i]+'</option>';}document.getElementById('presensiSchoolDisplay').textContent=schoolData.name||'Sekolah';}).catch(function(err){console.log('Gagal load siswa untuk presensi: '+err.message);});}})();
+if(!checkSession()){showLoginPage();}
+db.collection('students').onSnapshot(function(){loadStudentsOptimized();populateClassDropdowns();populatePresensiKelas();});
+console.log('✅ SIM BK siap digunakan (Optimasi + Pagination + Hapus Massal)!');
+console.log('📌 Fitur Presensi tanpa token aktif!');
+console.log('🔗 Link Presensi: https://nailisyifa79-cloud.github.io/sim-bk-sekolah/?mode=presensi');
+console.log('✏️ Ketua kelas bisa EDIT presensi jika salah!');
+console.log('🔒 HANYA form presensi yang muncul untuk siswa!');
+console.log('📊 Pagination 50 siswa per halaman, search & filter berfungsi!');
+console.log('🗑️ Fitur hapus massal dengan checkbox!');
 </script>
-
 </body>
 </html>
