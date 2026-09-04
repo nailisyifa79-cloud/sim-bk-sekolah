@@ -8,118 +8,173 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:Arial,sans-serif;background:#f0f4f8}
-        .header{background:#0d3b6b;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}
-        .header h1{font-size:18px}
-        .header h1 span{color:#f4b400}
-        .btn-logout{background:#d96b7b;color:#fff;border:0;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:bold}
-        .btn-logout:hover{background:#c45566}
-        .nav{background:#fff;padding:8px 12px;display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid #ddd;overflow-x:auto}
-        .nav button{padding:6px 12px;border:0;background:transparent;border-radius:6px;cursor:pointer;font-weight:bold;font-size:11px;color:#666;white-space:nowrap}
-        .nav button:hover{background:#e8f0fe;color:#1a5a9e}
-        .nav button.active{background:#1a5a9e;color:#fff}
-        .container{max-width:1200px;margin:0 auto;padding:12px}
-        .panel{background:#fff;border-radius:8px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
-        .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
-        .panel-header h2{font-size:15px;color:#0d3b6b}
-        .btn{padding:6px 14px;border:0;border-radius:6px;font-weight:bold;cursor:pointer;color:#fff;font-size:12px}
-        .btn-primary{background:#1a5a9e}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;color:#1a2a3a;display:flex;min-height:100vh}
+        :root{--primary:#1a5a9e;--primary-dark:#0d3b6b;--secondary:#f4b400;--success:#159a7c;--danger:#d96b7b;--gray:#6b7d90;--gray-light:#e8edf2;--shadow:0 2px 12px rgba(0,0,0,0.08);--radius:12px;--sidebar-width:220px}
+
+        /* SIDEBAR */
+        .sidebar{width:var(--sidebar-width);background:linear-gradient(180deg,#0d3b6b,#1a5a9e);color:#fff;min-height:100vh;padding:16px 0;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+        .sidebar-brand{padding:0 20px 16px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:12px}
+        .sidebar-brand h1{font-size:22px;font-weight:800}
+        .sidebar-brand h1 span{color:var(--secondary)}
+        .sidebar-brand .sub{font-size:11px;opacity:.7;margin-top:2px}
+        .sidebar-brand .by{font-size:10px;opacity:.5;margin-top:2px}
+        .sidebar-nav{flex:1;padding:0 8px}
+        .sidebar-nav .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;cursor:pointer;transition:.2s;font-size:13px;font-weight:500;color:rgba(255,255,255,0.7);border:0;background:transparent;width:100%;text-align:left}
+        .sidebar-nav .nav-item:hover{background:rgba(255,255,255,0.15);color:#fff}
+        .sidebar-nav .nav-item.active{background:rgba(255,255,255,0.2);color:#fff}
+        .sidebar-nav .nav-item .icon{font-size:18px;width:28px;text-align:center}
+        .sidebar-user{padding:12px 20px;border-top:1px solid rgba(255,255,255,0.1);font-size:13px;display:flex;justify-content:space-between;align-items:center}
+        .sidebar-user .btn-logout{background:var(--danger);color:#fff;border:0;padding:4px 14px;border-radius:4px;cursor:pointer;font-weight:600;font-size:11px}
+        .sidebar-user .btn-logout:hover{background:#c45566}
+
+        /* MAIN */
+        .main-content{margin-left:var(--sidebar-width);flex:1;padding:16px 20px;min-height:100vh}
+        .main-header{background:#fff;border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;box-shadow:var(--shadow);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+        .main-header .title{font-size:20px;font-weight:700;color:var(--primary-dark)}
+        .main-header .title small{font-weight:400;font-size:14px;color:var(--gray)}
+        .main-header .user-info{display:flex;align-items:center;gap:12px;font-size:14px}
+        .main-header .user-info .school-name{background:#e8f0fe;padding:3px 14px;border-radius:20px;font-size:13px}
+
+        .panel{background:#fff;border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;box-shadow:var(--shadow)}
+        .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+        .panel-header h2{font-size:18px;color:var(--primary-dark)}
+
+        .btn{padding:7px 18px;border:0;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:5px}
+        .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.12)}
+        .btn-primary{background:#1a5a9e;color:#fff}
         .btn-primary:hover{background:#0d3b6b}
-        .btn-success{background:#159a7c}
+        .btn-success{background:#159a7c;color:#fff}
         .btn-success:hover{background:#0d7a62}
-        .btn-danger{background:#d96b7b}
+        .btn-danger{background:#d96b7b;color:#fff}
         .btn-danger:hover{background:#c45566}
-        .btn-warning{background:#f4b400;color:#333}
+        .btn-warning{background:#f4b400;color:#fff}
         .btn-warning:hover{background:#d49c00}
-        .btn-sm{padding:3px 10px;font-size:10px}
-        .form-group{margin-bottom:10px}
-        .form-group label{display:block;font-weight:bold;font-size:12px;color:#0d3b6b;margin-bottom:3px}
-        .form-control{width:100%;padding:8px 12px;border:2px solid #ddd;border-radius:6px;font-size:13px}
-        .form-control:focus{border-color:#1a5a9e;outline:none}
-        .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
-        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:12px}
-        .stat-card{background:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-left:4px solid #1a5a9e}
-        .stat-card .number{font-size:20px;font-weight:bold;color:#0d3b6b}
-        .stat-card .label{font-size:10px;color:#666}
-        .stat-card.success{border-left-color:#159a7c}
-        .stat-card.success .number{color:#159a7c}
-        .stat-card.danger{border-left-color:#d96b7b}
-        .stat-card.danger .number{color:#d96b7b}
+        .btn-sm{padding:4px 12px;font-size:11px}
+
+        .form-group{margin-bottom:12px}
+        .form-group label{display:block;font-weight:600;font-size:13px;color:var(--primary-dark);margin-bottom:3px}
+        .form-control{width:100%;padding:8px 12px;border:2px solid var(--gray-light);border-radius:8px;font-size:14px;background:#fafcfe}
+        .form-control:focus{border-color:var(--primary);outline:none}
+        .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+        textarea.form-control{min-height:70px;resize:vertical}
+
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:14px}
+        .stat-card{background:#fff;padding:14px 18px;border-radius:var(--radius);box-shadow:var(--shadow);border-left:4px solid var(--primary)}
+        .stat-card .number{font-size:26px;font-weight:800;color:var(--primary-dark)}
+        .stat-card .label{font-size:12px;color:var(--gray);margin-top:2px}
+        .stat-card.success{border-left-color:var(--success)}
+        .stat-card.success .number{color:var(--success)}
+        .stat-card.danger{border-left-color:var(--danger)}
+        .stat-card.danger .number{color:var(--danger)}
         .stat-card.warning{border-left-color:#f4b400}
         .stat-card.warning .number{color:#b8860b}
-        .table-wrap{overflow-x:auto;border:1px solid #ddd;border-radius:6px;max-height:450px;overflow-y:auto}
-        table{width:100%;border-collapse:collapse;font-size:12px}
-        table th{background:#0d3b6b;color:#fff;padding:6px 10px;text-align:left;position:sticky;top:0;z-index:10;font-size:11px}
-        table td{padding:6px 10px;border-bottom:1px solid #eee}
+
+        .table-wrap{overflow-x:auto;border:1px solid var(--gray-light);border-radius:8px;max-height:450px;overflow-y:auto}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        table th{background:var(--primary-dark);color:#fff;padding:8px 12px;text-align:left;font-weight:600;font-size:12px;position:sticky;top:0;z-index:10}
+        table td{padding:7px 12px;border-bottom:1px solid var(--gray-light);vertical-align:middle}
         table tr:hover{background:#f8fafc}
-        .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:bold}
+
+        .badge{display:inline-block;padding:2px 12px;border-radius:20px;font-size:11px;font-weight:600}
         .badge-info{background:#d1ecf1;color:#0c5460}
         .badge-success{background:#d4edda;color:#155724}
         .badge-danger{background:#f8d7da;color:#721c24}
         .badge-warning{background:#fff3cd;color:#856404}
+
         .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;justify-content:center;align-items:center}
         .modal.active{display:flex}
-        .modal-box{background:#fff;border-radius:12px;padding:20px;max-width:500px;width:95%;max-height:90vh;overflow-y:auto}
-        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #eee}
-        .modal-header h2{font-size:17px;color:#0d3b6b}
-        .close-btn{background:none;border:0;font-size:22px;cursor:pointer;color:#999}
-        .close-btn:hover{color:#d96b7b}
-        .alert{padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:12px}
+        .modal-box{background:#fff;border-radius:var(--radius);padding:24px;max-width:550px;width:95%;max-height:90vh;overflow-y:auto}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--gray-light)}
+        .modal-header h2{font-size:20px;color:var(--primary-dark)}
+        .close-btn{background:none;border:0;font-size:28px;cursor:pointer;color:var(--gray);padding:0 4px}
+        .close-btn:hover{color:var(--danger)}
+
+        .alert{padding:10px 14px;border-radius:8px;margin-bottom:10px;font-size:13px}
         .alert-danger{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
         .alert-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
         .alert-info{background:#d1ecf1;color:#0c5460;border:1px solid #bee5eb}
-        .alert-warning{background:#fff3cd;color:#856404;border:1px solid #ffeeba}
+
         .tab-content{display:none}
         .tab-content.active{display:block}
-        .loading{text-align:center;padding:30px;color:#666;font-size:13px}
-        .spinner{display:inline-block;width:25px;height:25px;border:3px solid #ddd;border-top-color:#1a5a9e;border-radius:50%;animation:spin 0.8s linear infinite}
+
+        .loading{text-align:center;padding:30px;color:var(--gray);font-size:14px}
+        .spinner{display:inline-block;width:30px;height:30px;border:3px solid var(--gray-light);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
         @keyframes spin{to{transform:rotate(360deg)}}
-        .footer{text-align:center;padding:12px;color:#999;font-size:10px;border-top:1px solid #ddd;margin-top:12px;background:#fff;border-radius:8px}
-        .hidden{display:none!important}
-        .pagination{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:8px;gap:6px}
+
+        .pagination{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:10px;gap:6px}
         .pagination .pages{display:flex;gap:3px;flex-wrap:wrap}
-        .pagination .page-btn{padding:3px 8px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:11px}
+        .pagination .page-btn{padding:4px 10px;border:1px solid var(--gray-light);border-radius:4px;background:#fff;cursor:pointer;font-size:12px;font-weight:600}
         .pagination .page-btn:hover{background:#e8f0fe}
-        .pagination .page-btn.active{background:#1a5a9e;color:#fff;border-color:#1a5a9e}
+        .pagination .page-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
         .pagination .page-btn:disabled{opacity:0.5;cursor:not-allowed}
-        .toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-        .toolbar .form-control{width:auto;min-width:130px;padding:4px 8px;font-size:11px}
-        .settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
-        @media(max-width:768px){.header{flex-direction:column;text-align:center;gap:4px}.nav{justify-content:center}.nav button{font-size:10px;padding:4px 8px}.container{padding:8px}.panel{padding:10px}.stats-grid{grid-template-columns:repeat(2,1fr)}}
+
+        .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+        .toolbar .form-control{width:auto;min-width:140px;padding:5px 10px;font-size:13px}
+
+        .footer{text-align:center;padding:12px;color:var(--gray);font-size:11px;border-top:1px solid var(--gray-light);margin-top:12px;background:#fff;border-radius:var(--radius)}
+        .settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+
+        @media(max-width:768px){
+            .sidebar{width:60px;padding:10px 0}
+            .sidebar-brand h1{font-size:14px;text-align:center}
+            .sidebar-brand h1 span{display:block}
+            .sidebar-brand .sub,.sidebar-brand .by{display:none}
+            .sidebar-nav .nav-item{font-size:0;padding:10px;justify-content:center}
+            .sidebar-nav .nav-item .icon{font-size:20px;margin:0}
+            .sidebar-user{flex-direction:column;gap:6px;padding:8px 6px;font-size:10px}
+            .main-content{margin-left:60px;padding:10px}
+            .stats-grid{grid-template-columns:repeat(2,1fr)}
+            .form-row{grid-template-columns:1fr}
+            .panel-header{flex-direction:column;align-items:stretch}
+            .main-header .title{font-size:16px}
+            .main-header .title small{font-size:12px}
+        }
         @media print{.no-print{display:none!important}}
     </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<div class="header">
-    <h1>📚 SIM <span>BK</span></h1>
-    <div>
-        <span id="userDisplay" style="margin-right:10px;font-size:13px;">👤 Admin</span>
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <h1>📚 SIM <span>BK</span></h1>
+        <div class="sub">Sistem Informasi Manajemen</div>
+        <div class="sub" style="font-size:9px;opacity:0.5;">Bimbingan Konseling</div>
+        <div class="by">by @NaFaSBK</div>
+    </div>
+    <nav class="sidebar-nav">
+        <button class="nav-item active" onclick="showTab('dashboard')"><span class="icon">📊</span> Dashboard</button>
+        <button class="nav-item" onclick="showTab('students')"><span class="icon">👨‍🎓</span> Data Siswa</button>
+        <button class="nav-item" onclick="showTab('teachers')"><span class="icon">👩‍🏫</span> Guru BK</button>
+        <button class="nav-item" onclick="showTab('counseling')"><span class="icon">📋</span> Konseling</button>
+        <button class="nav-item" onclick="showTab('parent-call')"><span class="icon">📞</span> Panggilan OT</button>
+        <button class="nav-item" onclick="showTab('home-visit')"><span class="icon">🏠</span> Home Visit</button>
+        <button class="nav-item" onclick="showTab('incident')"><span class="icon">⚠️</span> Kejadian</button>
+        <button class="nav-item" onclick="showTab('mutation')"><span class="icon">📝</span> Mutasi</button>
+        <button class="nav-item" onclick="showTab('graduation')"><span class="icon">🎓</span> Lulusan</button>
+        <button class="nav-item" onclick="showTab('presensi')"><span class="icon">📋</span> Presensi</button>
+        <button class="nav-item" onclick="showTab('settings')"><span class="icon">⚙️</span> Pengaturan</button>
+    </nav>
+    <div class="sidebar-user">
+        <span id="userDisplay">👤 Admin</span>
         <button class="btn-logout" onclick="handleLogout()">🚪 Keluar</button>
     </div>
 </div>
 
-<!-- NAVIGASI -->
-<div class="nav" id="mainNav">
-    <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
-    <button onclick="showTab('students')">👨‍🎓 Siswa</button>
-    <button onclick="showTab('teachers')">👩‍🏫 Guru BK</button>
-    <button onclick="showTab('counseling')">📋 Konseling</button>
-    <button onclick="showTab('parent-call')">📞 Panggilan OT</button>
-    <button onclick="showTab('home-visit')">🏠 Home Visit</button>
-    <button onclick="showTab('incident')">⚠️ Kejadian</button>
-    <button onclick="showTab('mutation')">📝 Mutasi</button>
-    <button onclick="showTab('graduation')">🎓 Lulusan</button>
-    <button onclick="showTab('presensi')">📋 Presensi</button>
-    <button onclick="showTab('settings')">⚙️ Pengaturan</button>
-</div>
+<!-- MAIN CONTENT -->
+<div class="main-content">
 
-<div class="container">
+    <!-- HEADER -->
+    <div class="main-header">
+        <div class="title" id="pageTitle">📊 Dashboard <small>Sistem Informasi Manajemen Bimbingan Konseling</small></div>
+        <div class="user-info">
+            <span class="school-name" id="schoolDisplay">Sekolah</span>
+        </div>
+    </div>
 
     <!-- DASHBOARD -->
     <div id="tab-dashboard" class="tab-content active">
-        <div class="stats-grid" id="statsGrid">
+        <div class="stats-grid">
             <div class="stat-card"><div class="number" id="statStudents">0</div><div class="label">Total Siswa</div></div>
             <div class="stat-card success"><div class="number" id="statTeachers">0</div><div class="label">Guru BK</div></div>
             <div class="stat-card warning"><div class="number" id="statCounseling">0</div><div class="label">Konseling</div></div>
@@ -145,7 +200,7 @@
                     <button class="btn btn-warning" onclick="cetakLaporan('siswa')">🖨️ Cetak</button>
                 </div>
             </div>
-            <div class="form-row" style="margin-bottom:8px;">
+            <div class="form-row" style="margin-bottom:10px;">
                 <div><label>Filter Kelas</label><select id="filterClass" class="form-control" onchange="loadStudents()"><option value="">Semua</option></select></div>
                 <div><label>Cari</label><input type="text" id="searchStudent" class="form-control" placeholder="Cari nama..." oninput="loadStudents()"></div>
             </div>
@@ -156,10 +211,7 @@
     <!-- TEACHERS -->
     <div id="tab-teachers" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>👩‍🏫 Guru BK</h2>
-                <div><button class="btn btn-primary" onclick="openModal('teacherModal')">➕ Tambah</button>
-                <button class="btn btn-warning" onclick="cetakLaporan('guru')">🖨️ Cetak</button></div>
-            </div>
+            <div class="panel-header"><h2>👩‍🏫 Guru BK</h2><div><button class="btn btn-primary" onclick="openModal('teacherModal')">➕ Tambah</button><button class="btn btn-warning" onclick="cetakLaporan('guru')">🖨️ Cetak</button></div></div>
             <div id="teacherList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
         </div>
     </div>
@@ -167,11 +219,7 @@
     <!-- COUNSELING -->
     <div id="tab-counseling" class="tab-content">
         <div class="panel">
-            <div class="panel-header">
-                <h2>📋 Konseling</h2>
-                <div><button class="btn btn-primary" onclick="openModal('counselingModal')">➕ Tambah</button>
-                <button class="btn btn-warning" onclick="cetakLaporan('konseling')">🖨️ Cetak</button></div>
-            </div>
+            <div class="panel-header"><h2>📋 Konseling</h2><div><button class="btn btn-primary" onclick="openModal('counselingModal')">➕ Tambah</button><button class="btn btn-warning" onclick="cetakLaporan('konseling')">🖨️ Cetak</button></div></div>
             <div class="toolbar">
                 <select id="filterCounselingClass" class="form-control" onchange="loadCounseling()"><option value="">Semua Kelas</option></select>
                 <input type="month" id="filterCounselingMonth" class="form-control" onchange="loadCounseling()">
@@ -183,10 +231,7 @@
     <!-- PARENT CALL -->
     <div id="tab-parent-call" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>📞 Panggilan Orang Tua</h2>
-                <div><button class="btn btn-primary" onclick="openModal('parentCallModal')">➕ Tambah</button>
-                <button class="btn btn-warning" onclick="cetakLaporan('panggilan')">🖨️ Cetak</button></div>
-            </div>
+            <div class="panel-header"><h2>📞 Panggilan Orang Tua</h2><div><button class="btn btn-primary" onclick="openModal('parentCallModal')">➕ Tambah</button><button class="btn btn-warning" onclick="cetakLaporan('panggilan')">🖨️ Cetak</button></div></div>
             <div id="parentCallList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
         </div>
     </div>
@@ -194,10 +239,7 @@
     <!-- HOME VISIT -->
     <div id="tab-home-visit" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>🏠 Home Visit</h2>
-                <div><button class="btn btn-primary" onclick="openModal('homeVisitModal')">➕ Tambah</button>
-                <button class="btn btn-warning" onclick="cetakLaporan('homevisit')">🖨️ Cetak</button></div>
-            </div>
+            <div class="panel-header"><h2>🏠 Home Visit</h2><div><button class="btn btn-primary" onclick="openModal('homeVisitModal')">➕ Tambah</button><button class="btn btn-warning" onclick="cetakLaporan('homevisit')">🖨️ Cetak</button></div></div>
             <div id="homeVisitList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
         </div>
     </div>
@@ -205,10 +247,7 @@
     <!-- INCIDENT -->
     <div id="tab-incident" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>⚠️ Kejadian</h2>
-                <div><button class="btn btn-primary" onclick="openModal('incidentModal')">➕ Tambah</button>
-                <button class="btn btn-warning" onclick="cetakLaporan('kejadian')">🖨️ Cetak</button></div>
-            </div>
+            <div class="panel-header"><h2>⚠️ Kejadian</h2><div><button class="btn btn-primary" onclick="openModal('incidentModal')">➕ Tambah</button><button class="btn btn-warning" onclick="cetakLaporan('kejadian')">🖨️ Cetak</button></div></div>
             <div class="toolbar">
                 <select id="filterIncidentClass" class="form-control" onchange="loadIncidents()"><option value="">Semua Kelas</option></select>
                 <select id="filterIncidentType" class="form-control" onchange="loadIncidents()"><option value="">Semua</option><option value="Terlambat">⏰ Terlambat</option><option value="Perkelahian">👊 Perkelahian</option><option value="Pelanggaran">📜 Pelanggaran</option></select>
@@ -221,10 +260,7 @@
     <!-- MUTATION -->
     <div id="tab-mutation" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>📝 Mutasi Siswa</h2>
-                <div><button class="btn btn-primary" onclick="openModal('mutationModal')">➕ Tambah</button>
-                <button class="btn btn-warning" onclick="cetakLaporan('mutasi')">🖨️ Cetak</button></div>
-            </div>
+            <div class="panel-header"><h2>📝 Mutasi Siswa</h2><div><button class="btn btn-primary" onclick="openModal('mutationModal')">➕ Tambah</button><button class="btn btn-warning" onclick="cetakLaporan('mutasi')">🖨️ Cetak</button></div></div>
             <div class="toolbar">
                 <select id="filterMutationClass" class="form-control" onchange="loadMutations()"><option value="">Semua Kelas</option></select>
                 <input type="month" id="filterMutationMonth" class="form-control" onchange="loadMutations()">
@@ -236,10 +272,7 @@
     <!-- GRADUATION -->
     <div id="tab-graduation" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>🎓 Lulusan SNBP/SNBT</h2>
-                <div><button class="btn btn-primary" onclick="openModal('graduationModal')">➕ Tambah</button>
-                <button class="btn btn-warning" onclick="cetakLaporan('lulusan')">🖨️ Cetak</button></div>
-            </div>
+            <div class="panel-header"><h2>🎓 Lulusan SNBP/SNBT</h2><div><button class="btn btn-primary" onclick="openModal('graduationModal')">➕ Tambah</button><button class="btn btn-warning" onclick="cetakLaporan('lulusan')">🖨️ Cetak</button></div></div>
             <div class="toolbar">
                 <select id="filterGraduationYear" class="form-control" onchange="loadGraduations()"><option value="">Semua Tahun</option></select>
                 <select id="filterGraduationPath" class="form-control" onchange="loadGraduations()"><option value="">Semua</option><option value="SNBP">SNBP</option><option value="SNBT">SNBT</option></select>
@@ -251,10 +284,7 @@
     <!-- PRESENSI -->
     <div id="tab-presensi" class="tab-content">
         <div class="panel">
-            <div class="panel-header"><h2>📋 Presensi</h2>
-                <div><button class="btn btn-success" onclick="openPresensiLink()">🔗 Link</button>
-                <button class="btn btn-warning" onclick="cetakLaporan('presensi')">🖨️ Cetak</button></div>
-            </div>
+            <div class="panel-header"><h2>📋 Presensi</h2><div><button class="btn btn-success" onclick="openPresensiLink()">🔗 Link</button><button class="btn btn-warning" onclick="cetakLaporan('presensi')">🖨️ Cetak</button></div></div>
             <div class="toolbar">
                 <select id="filterPresensiClass" class="form-control" onchange="loadPresensi()"><option value="">Semua Kelas</option></select>
                 <input type="date" id="filterPresensiDate" class="form-control" onchange="loadPresensi()">
@@ -267,12 +297,11 @@
             <div class="form-group">
                 <label>Link Presensi</label>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                    <input type="text" id="presensiLinkDisplay" class="form-control" readonly style="flex:1;min-width:200px;background:#f5f7fa;font-size:12px;">
+                    <input type="text" id="presensiLinkDisplay" class="form-control" readonly style="flex:1;min-width:200px;background:#f5f7fa;font-size:13px;">
                     <button class="btn btn-success btn-sm" onclick="copyText(document.getElementById('presensiLinkDisplay').value)">📋 Salin</button>
                     <button class="btn btn-warning btn-sm" onclick="bagikanWA()">💬 WA</button>
                 </div>
             </div>
-            <div style="font-size:11px;color:#666;">💡 Ketua kelas pilih kelas → pilih tanggal → isi presensi → kirim.</div>
         </div>
     </div>
 
@@ -281,144 +310,49 @@
         <div class="panel">
             <div class="panel-header"><h2>⚙️ Pengaturan</h2></div>
             <div class="settings-grid">
-                <div style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid #ddd;">
-                    <h3 style="font-size:13px;color:#0d3b6b;margin-bottom:8px;">🏫 Data Sekolah</h3>
+                <div style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid var(--gray-light);">
+                    <h3 style="font-size:14px;color:var(--primary-dark);margin-bottom:8px;">🏫 Data Sekolah</h3>
                     <div class="form-group"><label>Nama Sekolah</label><input type="text" id="settingsSchool" class="form-control"></div>
                     <div class="form-group"><label>Tahun Ajaran</label><input type="text" id="settingsYear" class="form-control"></div>
                     <button class="btn btn-primary" onclick="saveSettings()">💾 Simpan</button>
                 </div>
-                <div style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid #ddd;">
-                    <h3 style="font-size:13px;color:#0d3b6b;margin-bottom:8px;">📋 Backup</h3>
-                    <button class="btn btn-success" onclick="exportAllData()" style="width:100%;margin-bottom:6px;">📤 Backup Data</button>
-                    <button class="btn btn-outline" onclick="document.getElementById('restoreInput').click()" style="width:100%;">📥 Restore Data</button>
+                <div style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid var(--gray-light);">
+                    <h3 style="font-size:14px;color:var(--primary-dark);margin-bottom:8px;">📋 Backup</h3>
+                    <button class="btn btn-success" onclick="exportAllData()" style="width:100%;margin-bottom:6px;">📤 Backup</button>
+                    <button class="btn btn-outline" onclick="document.getElementById('restoreInput').click()" style="width:100%;">📥 Restore</button>
                     <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(event)">
                     <hr style="margin:10px 0;">
-                    <button class="btn btn-danger" onclick="resetAllData()" style="width:100%;">🗑️ Reset Semua</button>
+                    <button class="btn btn-danger" onclick="resetAllData()" style="width:100%;">🗑️ Reset</button>
                 </div>
-                <div style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid #ddd;">
-                    <h3 style="font-size:13px;color:#0d3b6b;margin-bottom:8px;">👥 Pengguna</h3>
+                <div style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid var(--gray-light);">
+                    <h3 style="font-size:14px;color:var(--primary-dark);margin-bottom:8px;">👥 Pengguna</h3>
                     <div id="userList"></div>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="footer">© 2026 <strong style="color:var(--primary);">@NaFaS<span style="color:var(--secondary);">BK</span></strong> | Sistem Informasi Manajemen Bimbingan Konseling</div>
 </div>
-
-<div class="footer">© 2026 <strong style="color:#0d3b6b;">@NaFaS<span style="color:#f4b400;">BK</span></strong> | Sistem Informasi Manajemen Bimbingan Konseling</div>
 
 <!-- MODALS -->
-<div class="modal" id="studentModal">
-    <div class="modal-box">
-        <div class="modal-header"><h2>➕ Tambah Siswa</h2><button class="close-btn" onclick="closeModal('studentModal')">&times;</button></div>
-        <div id="studentModalAlert"></div>
-        <div class="form-group"><label>Nama <span style="color:red;">*</span></label><input type="text" id="studentName" class="form-control" placeholder="Nama siswa"></div>
-        <div class="form-group"><label>Kelas <span style="color:red;">*</span></label><input type="text" id="studentClass" class="form-control" placeholder="Contoh: 10 IPA 1"></div>
-        <div class="form-group"><label>Tahun Ajaran</label><input type="text" id="studentYear" class="form-control" placeholder="2025/2026"></div>
-        <div class="form-group"><label>NISN</label><input type="text" id="studentNISN" class="form-control"></div>
-        <div class="form-group"><label>Jenis Kelamin</label><select id="studentGender" class="form-control"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
-        <button class="btn btn-success" onclick="saveStudent()">💾 Simpan</button>
-    </div>
-</div>
+<div class="modal" id="studentModal"><div class="modal-box"><div class="modal-header"><h2>➕ Tambah Siswa</h2><button class="close-btn" onclick="closeModal('studentModal')">&times;</button></div><div id="studentModalAlert"></div><div class="form-group"><label>Nama <span style="color:red;">*</span></label><input type="text" id="studentName" class="form-control"></div><div class="form-group"><label>Kelas <span style="color:red;">*</span></label><input type="text" id="studentClass" class="form-control"></div><div class="form-group"><label>Tahun</label><input type="text" id="studentYear" class="form-control"></div><div class="form-group"><label>NISN</label><input type="text" id="studentNISN" class="form-control"></div><div class="form-group"><label>JK</label><select id="studentGender" class="form-control"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div><button class="btn btn-success" onclick="saveStudent()">💾 Simpan</button></div></div>
 
-<div class="modal" id="bulkStudentModal">
-    <div class="modal-box">
-        <div class="modal-header"><h2>📋 Tambah Per Kelas</h2><button class="close-btn" onclick="closeModal('bulkStudentModal')">&times;</button></div>
-        <div id="bulkStudentModalAlert"></div>
-        <div class="form-group"><label>Kelas <span style="color:red;">*</span></label><input type="text" id="bulkClass" class="form-control" placeholder="Contoh: 10 IPA 1"></div>
-        <div class="form-group"><label>Tahun <span style="color:red;">*</span></label><input type="text" id="bulkYear" class="form-control" placeholder="2025/2026"></div>
-        <div class="form-group"><label>Daftar Nama <span style="color:red;">*</span></label><textarea id="bulkStudents" class="form-control" rows="8" placeholder="Satu nama per baris"></textarea></div>
-        <button class="btn btn-success" onclick="saveBulkStudents()">💾 Simpan</button>
-    </div>
-</div>
+<div class="modal" id="bulkStudentModal"><div class="modal-box"><div class="modal-header"><h2>📋 Tambah Per Kelas</h2><button class="close-btn" onclick="closeModal('bulkStudentModal')">&times;</button></div><div id="bulkStudentModalAlert"></div><div class="form-group"><label>Kelas <span style="color:red;">*</span></label><input type="text" id="bulkClass" class="form-control"></div><div class="form-group"><label>Tahun <span style="color:red;">*</span></label><input type="text" id="bulkYear" class="form-control"></div><div class="form-group"><label>Nama (1 per baris)</label><textarea id="bulkStudents" class="form-control" rows="6"></textarea></div><button class="btn btn-success" onclick="saveBulkStudents()">💾 Simpan</button></div></div>
 
-<div class="modal" id="teacherModal">
-    <div class="modal-box">
-        <div class="modal-header"><h2>➕ Tambah Guru BK</h2><button class="close-btn" onclick="closeModal('teacherModal')">&times;</button></div>
-        <div id="teacherModalAlert"></div>
-        <div class="form-group"><label>Nama <span style="color:red;">*</span></label><input type="text" id="teacherName" class="form-control"></div>
-        <div class="form-group"><label>Kelas <span style="color:red;">*</span></label><input type="text" id="teacherClasses" class="form-control" placeholder="Pisahkan dengan koma"></div>
-        <button class="btn btn-success" onclick="saveTeacher()">💾 Simpan</button>
-    </div>
-</div>
+<div class="modal" id="teacherModal"><div class="modal-box"><div class="modal-header"><h2>➕ Guru BK</h2><button class="close-btn" onclick="closeModal('teacherModal')">&times;</button></div><div id="teacherModalAlert"></div><div class="form-group"><label>Nama <span style="color:red;">*</span></label><input type="text" id="teacherName" class="form-control"></div><div class="form-group"><label>Kelas <span style="color:red;">*</span></label><input type="text" id="teacherClasses" class="form-control" placeholder="Pisah koma"></div><button class="btn btn-success" onclick="saveTeacher()">💾 Simpan</button></div></div>
 
-<div class="modal" id="counselingModal">
-    <div class="modal-box">
-        <div class="modal-header"><h2>📋 Konseling</h2><button class="close-btn" onclick="closeModal('counselingModal')">&times;</button></div>
-        <div id="counselingModalAlert"></div>
-        <div class="form-group"><label>Kelas</label><select id="counselingClassSelect" class="form-control" onchange="updateCounselingStudent()"><option value="">Pilih Kelas</option></select></div>
-        <div class="form-group"><label>Siswa</label><select id="counselingStudent" class="form-control"><option value="">Pilih Siswa</option></select></div>
-        <div class="form-group"><label>Tanggal</label><input type="date" id="counselingDate" class="form-control"></div>
-        <div class="form-group"><label>Masalah</label><textarea id="counselingProblem" class="form-control" rows="2"></textarea></div>
-        <div class="form-group"><label>Hasil</label><textarea id="counselingResult" class="form-control" rows="2"></textarea></div>
-        <button class="btn btn-success" onclick="saveCounseling()">💾 Simpan</button>
-    </div>
-</div>
+<div class="modal" id="counselingModal"><div class="modal-box"><div class="modal-header"><h2>📋 Konseling</h2><button class="close-btn" onclick="closeModal('counselingModal')">&times;</button></div><div id="counselingModalAlert"></div><div class="form-group"><label>Kelas</label><select id="counselingClassSelect" class="form-control" onchange="updateCounselingStudent()"><option value="">Pilih</option></select></div><div class="form-group"><label>Siswa</label><select id="counselingStudent" class="form-control"><option value="">Pilih</option></select></div><div class="form-group"><label>Tanggal</label><input type="date" id="counselingDate" class="form-control"></div><div class="form-group"><label>Masalah</label><textarea id="counselingProblem" class="form-control" rows="2"></textarea></div><div class="form-group"><label>Hasil</label><textarea id="counselingResult" class="form-control" rows="2"></textarea></div><button class="btn btn-success" onclick="saveCounseling()">💾 Simpan</button></div></div>
 
-<div class="modal" id="parentCallModal">
-    <div class="modal-box">
-        <div class="modal-header"><h2>📞 Panggilan OT</h2><button class="close-btn" onclick="closeModal('parentCallModal')">&times;</button></div>
-        <div id="parentCallModalAlert"></div>
-        <div class="form-group"><label>Kelas</label><select id="parentCallClassSelect" class="form-control" onchange="updateParentCallStudent()"><option value="">Pilih Kelas</option></select></div>
-        <div class="form-group"><label>Siswa</label><select id="parentCallStudent" class="form-control"><option value="">Pilih Siswa</option></select></div>
-        <div class="form-group"><label>Tanggal</label><input type="date" id="parentCallDate" class="form-control"></div>
-        <div class="form-group"><label>Masalah</label><textarea id="parentCallProblem" class="form-control" rows="2"></textarea></div>
-        <div class="form-group"><label>Hasil</label><textarea id="parentCallResult" class="form-control" rows="2"></textarea></div>
-        <button class="btn btn-success" onclick="saveParentCall()">💾 Simpan</button>
-    </div>
-</div>
+<div class="modal" id="parentCallModal"><div class="modal-box"><div class="modal-header"><h2>📞 Panggilan OT</h2><button class="close-btn" onclick="closeModal('parentCallModal')">&times;</button></div><div id="parentCallModalAlert"></div><div class="form-group"><label>Kelas</label><select id="parentCallClassSelect" class="form-control" onchange="updateParentCallStudent()"><option value="">Pilih</option></select></div><div class="form-group"><label>Siswa</label><select id="parentCallStudent" class="form-control"><option value="">Pilih</option></select></div><div class="form-group"><label>Tanggal</label><input type="date" id="parentCallDate" class="form-control"></div><div class="form-group"><label>Masalah</label><textarea id="parentCallProblem" class="form-control" rows="2"></textarea></div><div class="form-group"><label>Hasil</label><textarea id="parentCallResult" class="form-control" rows="2"></textarea></div><button class="btn btn-success" onclick="saveParentCall()">💾 Simpan</button></div></div>
 
-<div class="modal" id="homeVisitModal">
-    <div class="modal-box">
-        <div class="modal-header"><h2>🏠 Home Visit</h2><button class="close-btn" onclick="closeModal('homeVisitModal')">&times;</button></div>
-        <div id="homeVisitModalAlert"></div>
-        <div class="form-group"><label>Kelas</label><select id="homeVisitClassSelect" class="form-control" onchange="updateHomeVisitStudent()"><option value="">Pilih Kelas</option></select></div>
-        <div class="form-group"><label>Siswa</label><select id="homeVisitStudent" class="form-control"><option value="">Pilih Siswa</option></select></div>
-        <div class="form-group"><label>Tanggal</label><input type="date" id="homeVisitDate" class="form-control"></div>
-        <div class="form-group"><label>Masalah</label><textarea id="homeVisitProblem" class="form-control" rows="2"></textarea></div>
-        <div class="form-group"><label>Hasil</label><textarea id="homeVisitResult" class="form-control" rows="2"></textarea></div>
-        <button class="btn btn-success" onclick="saveHomeVisit()">💾 Simpan</button>
-    </div>
-</div>
+<div class="modal" id="homeVisitModal"><div class="modal-box"><div class="modal-header"><h2>🏠 Home Visit</h2><button class="close-btn" onclick="closeModal('homeVisitModal')">&times;</button></div><div id="homeVisitModalAlert"></div><div class="form-group"><label>Kelas</label><select id="homeVisitClassSelect" class="form-control" onchange="updateHomeVisitStudent()"><option value="">Pilih</option></select></div><div class="form-group"><label>Siswa</label><select id="homeVisitStudent" class="form-control"><option value="">Pilih</option></select></div><div class="form-group"><label>Tanggal</label><input type="date" id="homeVisitDate" class="form-control"></div><div class="form-group"><label>Masalah</label><textarea id="homeVisitProblem" class="form-control" rows="2"></textarea></div><div class="form-group"><label>Hasil</label><textarea id="homeVisitResult" class="form-control" rows="2"></textarea></div><button class="btn btn-success" onclick="saveHomeVisit()">💾 Simpan</button></div></div>
 
-<div class="modal" id="incidentModal">
-    <div class="modal-box">
-        <div class="modal-header"><h2>⚠️ Kejadian</h2><button class="close-btn" onclick="closeModal('incidentModal')">&times;</button></div>
-        <div id="incidentModalAlert"></div>
-        <div class="form-group"><label>Kelas</label><select id="incidentClassSelect" class="form-control" onchange="updateIncidentStudent()"><option value="">Pilih Kelas</option></select></div>
-        <div class="form-group"><label>Siswa</label><select id="incidentStudent" class="form-control"><option value="">Pilih Siswa</option></select></div>
-        <div class="form-group"><label>Tanggal</label><input type="date" id="incidentDate" class="form-control"></div>
-        <div class="form-group"><label>Jenis</label><select id="incidentType" class="form-control"><option value="Terlambat">⏰ Terlambat</option><option value="Perkelahian">👊 Perkelahian</option><option value="Pelanggaran">📜 Pelanggaran</option><option value="Lainnya">📌 Lainnya</option></select></div>
-        <div class="form-group"><label>Deskripsi</label><textarea id="incidentDescription" class="form-control" rows="2"></textarea></div>
-        <button class="btn btn-success" onclick="saveIncident()">💾 Simpan</button>
-    </div>
-</div>
+<div class="modal" id="incidentModal"><div class="modal-box"><div class="modal-header"><h2>⚠️ Kejadian</h2><button class="close-btn" onclick="closeModal('incidentModal')">&times;</button></div><div id="incidentModalAlert"></div><div class="form-group"><label>Kelas</label><select id="incidentClassSelect" class="form-control" onchange="updateIncidentStudent()"><option value="">Pilih</option></select></div><div class="form-group"><label>Siswa</label><select id="incidentStudent" class="form-control"><option value="">Pilih</option></select></div><div class="form-group"><label>Tanggal</label><input type="date" id="incidentDate" class="form-control"></div><div class="form-group"><label>Jenis</label><select id="incidentType" class="form-control"><option value="Terlambat">⏰ Terlambat</option><option value="Perkelahian">👊 Perkelahian</option><option value="Pelanggaran">📜 Pelanggaran</option></select></div><div class="form-group"><label>Deskripsi</label><textarea id="incidentDescription" class="form-control" rows="2"></textarea></div><button class="btn btn-success" onclick="saveIncident()">💾 Simpan</button></div></div>
 
-<div class="modal" id="mutationModal">
-    <div class="modal-box">
-        <div class="modal-header"><h2>📝 Mutasi</h2><button class="close-btn" onclick="closeModal('mutationModal')">&times;</button></div>
-        <div id="mutationModalAlert"></div>
-        <div class="form-group"><label>Kelas</label><select id="mutationClassSelect" class="form-control" onchange="updateMutationStudent()"><option value="">Pilih Kelas</option></select></div>
-        <div class="form-group"><label>Siswa</label><select id="mutationStudent" class="form-control"><option value="">Pilih Siswa</option></select></div>
-        <div class="form-group"><label>Tanggal</label><input type="date" id="mutationDate" class="form-control"></div>
-        <div class="form-group"><label>Jenis</label><select id="mutationType" class="form-control"><option value="Masuk">📥 Masuk</option><option value="Keluar">📤 Keluar</option><option value="Pindah">🔄 Pindah</option><option value="Drop Out">⛔ Drop Out</option></select></div>
-        <div class="form-group"><label>Alasan</label><textarea id="mutationReason" class="form-control" rows="2"></textarea></div>
-        <button class="btn btn-success" onclick="saveMutation()">💾 Simpan</button>
-    </div>
-</div>
+<div class="modal" id="mutationModal"><div class="modal-box"><div class="modal-header"><h2>📝 Mutasi</h2><button class="close-btn" onclick="closeModal('mutationModal')">&times;</button></div><div id="mutationModalAlert"></div><div class="form-group"><label>Kelas</label><select id="mutationClassSelect" class="form-control" onchange="updateMutationStudent()"><option value="">Pilih</option></select></div><div class="form-group"><label>Siswa</label><select id="mutationStudent" class="form-control"><option value="">Pilih</option></select></div><div class="form-group"><label>Tanggal</label><input type="date" id="mutationDate" class="form-control"></div><div class="form-group"><label>Jenis</label><select id="mutationType" class="form-control"><option value="Masuk">📥 Masuk</option><option value="Keluar">📤 Keluar</option><option value="Pindah">🔄 Pindah</option></select></div><div class="form-group"><label>Alasan</label><textarea id="mutationReason" class="form-control" rows="2"></textarea></div><button class="btn btn-success" onclick="saveMutation()">💾 Simpan</button></div></div>
 
-<div class="modal" id="graduationModal">
-    <div class="modal-box">
-        <div class="modal-header"><h2>🎓 Lulusan</h2><button class="close-btn" onclick="closeModal('graduationModal')">&times;</button></div>
-        <div id="graduationModalAlert"></div>
-        <div class="form-group"><label>Kelas</label><select id="graduationClassSelect" class="form-control" onchange="updateGraduationStudent()"><option value="">Pilih Kelas</option></select></div>
-        <div class="form-group"><label>Siswa</label><select id="graduationStudent" class="form-control"><option value="">Pilih Siswa</option></select></div>
-        <div class="form-group"><label>Jalur</label><select id="graduationPath" class="form-control"><option value="SNBP">🎯 SNBP</option><option value="SNBT">📝 SNBT</option></select></div>
-        <div class="form-group"><label>Kampus</label><input type="text" id="graduationUniversity" class="form-control"></div>
-        <div class="form-group"><label>Jurusan</label><input type="text" id="graduationMajor" class="form-control"></div>
-        <button class="btn btn-success" onclick="saveGraduation()">💾 Simpan</button>
-    </div>
-</div>
+<div class="modal" id="graduationModal"><div class="modal-box"><div class="modal-header"><h2>🎓 Lulusan</h2><button class="close-btn" onclick="closeModal('graduationModal')">&times;</button></div><div id="graduationModalAlert"></div><div class="form-group"><label>Kelas</label><select id="graduationClassSelect" class="form-control" onchange="updateGraduationStudent()"><option value="">Pilih</option></select></div><div class="form-group"><label>Siswa</label><select id="graduationStudent" class="form-control"><option value="">Pilih</option></select></div><div class="form-group"><label>Jalur</label><select id="graduationPath" class="form-control"><option value="SNBP">SNBP</option><option value="SNBT">SNBT</option></select></div><div class="form-group"><label>Kampus</label><input type="text" id="graduationUniversity" class="form-control"></div><div class="form-group"><label>Jurusan</label><input type="text" id="graduationMajor" class="form-control"></div><button class="btn btn-success" onclick="saveGraduation()">💾 Simpan</button></div></div>
 
 <script>
 // ============ FIREBASE ============
@@ -448,19 +382,15 @@ function saveSchoolData(data) { localStorage.setItem('SIMBK_SCHOOL', JSON.string
 
 // ============ CEK SESSION ============
 var session = getSession();
-if (!session || !session.email) {
-    window.location.href = 'index.html';
-}
+if (!session || !session.email) { window.location.href = 'index.html'; }
 var users = getUsers();
-if (!users[session.email]) {
-    clearSession();
-    window.location.href = 'index.html';
-}
+if (!users[session.email]) { clearSession(); window.location.href = 'index.html'; }
 var currentUser = users[session.email];
 document.getElementById('userDisplay').textContent = '👤 ' + (currentUser.school || 'Admin');
 var schoolData = getSchoolData();
 document.getElementById('settingsSchool').value = schoolData.name || '';
 document.getElementById('settingsYear').value = schoolData.year || '';
+document.getElementById('schoolDisplay').textContent = schoolData.name || 'Sekolah';
 
 // ============ VARIABEL ============
 var allStudents = [];
@@ -470,15 +400,32 @@ var pageSize = 20;
 var totalStudents = 0;
 var filteredStudents = [];
 
-// ============ FUNGSI DASAR ============
+// ============ FUNGSI ============
 function showTab(tabId) {
-    var tabs = document.querySelectorAll('.tab-content');
-    for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
-    document.getElementById('tab-' + tabId).classList.add('active');
-    var btns = document.querySelectorAll('#mainNav button');
-    for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
-    var activeBtn = document.querySelector('#mainNav button[onclick="showTab(\'' + tabId + '\')"]');
+    var navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+    for (var i = 0; i < navItems.length; i++) navItems[i].classList.remove('active');
+    var activeBtn = document.querySelector('.sidebar-nav .nav-item[onclick="showTab(\'' + tabId + '\')"]');
     if (activeBtn) activeBtn.classList.add('active');
+    
+    var tabs = document.querySelectorAll('.tab-content');
+    for (var j = 0; j < tabs.length; j++) tabs[j].classList.remove('active');
+    document.getElementById('tab-' + tabId).classList.add('active');
+    
+    var titles = {
+        'dashboard': '📊 Dashboard',
+        'students': '👨‍🎓 Data Siswa',
+        'teachers': '👩‍🏫 Guru BK',
+        'counseling': '📋 Konseling',
+        'parent-call': '📞 Panggilan Orang Tua',
+        'home-visit': '🏠 Home Visit',
+        'incident': '⚠️ Kejadian',
+        'mutation': '📝 Mutasi Siswa',
+        'graduation': '🎓 Lulusan SNBP/SNBT',
+        'presensi': '📋 Presensi',
+        'settings': '⚙️ Pengaturan'
+    };
+    document.querySelector('.main-header .title').innerHTML = titles[tabId] + ' <small>Sistem Informasi Manajemen Bimbingan Konseling</small>';
+    
     if (tabId === 'students') loadStudents();
     else if (tabId === 'teachers') loadTeachers();
     else if (tabId === 'counseling') loadCounseling();
@@ -516,22 +463,16 @@ function handleLogout() {
 }
 
 function copyText(text) {
-    try {
-        navigator.clipboard.writeText(text).then(function() { alert('✅ Disalin!'); });
-    } catch(e) {
+    try { navigator.clipboard.writeText(text).then(function() { alert('✅ Disalin!'); }); } catch(e) {
         var a = document.createElement('textarea');
-        a.value = text;
-        document.body.appendChild(a);
-        a.select();
-        document.execCommand('copy');
-        a.remove();
+        a.value = text; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove();
         alert('✅ Disalin!');
     }
 }
 
 function bagikanWA() {
     var link = document.getElementById('presensiLinkDisplay').value;
-    var pesan = encodeURIComponent('📋 *Presensi Harian - SIM BK*\n\nKlik link berikut untuk mengisi presensi:\n' + link);
+    var pesan = encodeURIComponent('📋 *Presensi Harian - SIM BK*\n\n' + link);
     window.open('https://wa.me/?text=' + pesan, '_blank');
 }
 
@@ -539,6 +480,55 @@ function openPresensiLink() {
     var link = window.location.href.replace('dashboard.html', '') + '?mode=presensi';
     document.getElementById('presensiLinkDisplay').value = link;
     window.open(link, '_blank');
+}
+
+function cetakLaporan(jenis) {
+    var title = '';
+    var table = null;
+    var map = {
+        'siswa': { title: '📋 LAPORAN DATA SISWA', tab: 'tab-students' },
+        'guru': { title: '📋 LAPORAN GURU BK', tab: 'tab-teachers' },
+        'konseling': { title: '📋 LAPORAN KONSELING', tab: 'tab-counseling' },
+        'panggilan': { title: '📋 LAPORAN PANGGILAN', tab: 'tab-parent-call' },
+        'homevisit': { title: '📋 LAPORAN HOME VISIT', tab: 'tab-home-visit' },
+        'kejadian': { title: '📋 LAPORAN KEJADIAN', tab: 'tab-incident' },
+        'mutasi': { title: '📋 LAPORAN MUTASI', tab: 'tab-mutation' },
+        'lulusan': { title: '📋 LAPORAN LULUSAN', tab: 'tab-graduation' },
+        'presensi': { title: '📋 LAPORAN PRESENSI', tab: 'tab-presensi' }
+    };
+    var info = map[jenis];
+    if (!info) { alert('⚠️ Jenis tidak dikenal!'); return; }
+    title = info.title;
+    table = document.querySelector('#' + info.tab + ' .table-wrap');
+    if (!table || !table.innerHTML || table.innerHTML.includes('Tidak ada') || table.innerHTML.includes('Belum ada')) {
+        alert('⚠️ Tidak ada data untuk dicetak!');
+        return;
+    }
+    var content = table.innerHTML;
+    var w = window.open('', '_blank', 'width=900,height=700');
+    if (!w) { alert('⚠️ Izinkan pop-up!'); return; }
+    var now = new Date();
+    var tanggal = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    w.document.write('<!DOCTYPE html><html><head><title>' + title + '</title><style>');
+    w.document.write('body{font-family:Arial;padding:20px}');
+    w.document.write('h2{color:#0d3b6b;border-bottom:3px solid #0d3b6b;padding-bottom:8px;text-align:center}');
+    w.document.write('.sub{text-align:center;color:#666;font-size:13px;margin-bottom:16px}');
+    w.document.write('table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}');
+    w.document.write('table th{background:#0d3b6b;color:#fff;padding:6px 10px;text-align:left}');
+    w.document.write('table td{padding:5px 10px;border-bottom:1px solid #eee}');
+    w.document.write('.badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:bold}');
+    w.document.write('.badge-info{background:#d1ecf1;color:#0c5460}');
+    w.document.write('.badge-success{background:#d4edda;color:#155724}');
+    w.document.write('.badge-danger{background:#f8d7da;color:#721c24}');
+    w.document.write('.badge-warning{background:#fff3cd;color:#856404}');
+    w.document.write('.footer{text-align:center;font-size:10px;color:#999;border-top:1px solid #ddd;padding-top:10px;margin-top:16px}');
+    w.document.write('</style></head><body>');
+    w.document.write('<h2>' + title + '</h2>');
+    w.document.write('<div class="sub">' + (schoolData.name || 'Sekolah') + ' | ' + tanggal + '</div>');
+    w.document.write(content);
+    w.document.write('<div class="footer">SIM BK | @NaFaSBK</div>');
+    w.document.write('</body></html>');
+    w.document.close();
 }
 
 function populateClassDropdowns() {
@@ -584,70 +574,10 @@ function updateIncidentStudent() { var v = document.getElementById('incidentClas
 function updateMutationStudent() { var v = document.getElementById('mutationClassSelect').value; populateFilteredStudents('mutationStudent', v); }
 function updateGraduationStudent() { var v = document.getElementById('graduationClassSelect').value; populateFilteredStudents('graduationStudent', v); }
 
-// ============ CETAK LAPORAN ============
-function cetakLaporan(jenis) {
-    var title = '';
-    var content = '';
-    var table = null;
-    
-    var map = {
-        'siswa': { title: '📋 LAPORAN DATA SISWA', tab: 'tab-students' },
-        'guru': { title: '📋 LAPORAN GURU BK', tab: 'tab-teachers' },
-        'konseling': { title: '📋 LAPORAN KONSELING', tab: 'tab-counseling' },
-        'panggilan': { title: '📋 LAPORAN PANGGILAN ORANG TUA', tab: 'tab-parent-call' },
-        'homevisit': { title: '📋 LAPORAN HOME VISIT', tab: 'tab-home-visit' },
-        'kejadian': { title: '📋 LAPORAN KEJADIAN', tab: 'tab-incident' },
-        'mutasi': { title: '📋 LAPORAN MUTASI SISWA', tab: 'tab-mutation' },
-        'lulusan': { title: '📋 LAPORAN LULUSAN', tab: 'tab-graduation' },
-        'presensi': { title: '📋 LAPORAN PRESENSI', tab: 'tab-presensi' }
-    };
-    
-    var info = map[jenis];
-    if (!info) { alert('⚠️ Jenis laporan tidak dikenal!'); return; }
-    title = info.title;
-    
-    table = document.querySelector('#' + info.tab + ' .table-wrap');
-    if (!table || !table.innerHTML || table.innerHTML.includes('Tidak ada') || table.innerHTML.includes('Belum ada')) {
-        alert('⚠️ Tidak ada data untuk dicetak!');
-        return;
-    }
-    content = table.innerHTML;
-    
-    var w = window.open('', '_blank', 'width=900,height=700');
-    if (!w) { alert('⚠️ Izinkan pop-up untuk mencetak.'); return; }
-    
-    var now = new Date();
-    var tanggal = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-    
-    w.document.write('<!DOCTYPE html><html><head><title>' + title + '</title><style>');
-    w.document.write('body{font-family:Arial,sans-serif;padding:20px;color:#1a2a3a}');
-    w.document.write('h2{color:#0d3b6b;border-bottom:3px solid #0d3b6b;padding-bottom:8px;text-align:center}');
-    w.document.write('.sub{text-align:center;color:#666;font-size:13px;margin-bottom:16px}');
-    w.document.write('table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}');
-    w.document.write('table th{background:#0d3b6b;color:#fff;padding:6px 10px;text-align:left}');
-    w.document.write('table td{padding:5px 10px;border-bottom:1px solid #eee}');
-    w.document.write('table tr:nth-child(even){background:#f8fafc}');
-    w.document.write('.badge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:bold}');
-    w.document.write('.badge-info{background:#d1ecf1;color:#0c5460}');
-    w.document.write('.badge-success{background:#d4edda;color:#155724}');
-    w.document.write('.badge-danger{background:#f8d7da;color:#721c24}');
-    w.document.write('.badge-warning{background:#fff3cd;color:#856404}');
-    w.document.write('.footer{text-align:center;font-size:10px;color:#999;border-top:1px solid #ddd;padding-top:10px;margin-top:16px}');
-    w.document.write('@media print{body{padding:10px}}');
-    w.document.write('</style></head><body>');
-    w.document.write('<h2>' + title + '</h2>');
-    w.document.write('<div class="sub">' + (schoolData.name || 'Sekolah') + ' | Dicetak: ' + tanggal + '</div>');
-    w.document.write(content);
-    w.document.write('<div class="footer">Dicetak dari SIM BK | @NaFaSBK</div>');
-    w.document.write('</body></html>');
-    w.document.close();
-}
-
 // ============ STUDENTS ============
 function loadStudents() {
     var container = document.getElementById('studentList');
     container.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat...</div>';
-    
     db.collection('students').orderBy('class').orderBy('name').get().then(function(snapshot) {
         allStudents = [];
         var classes = new Set();
@@ -657,7 +587,6 @@ function loadStudents() {
             allStudents.push(data);
             if (data.class) classes.add(data.class);
         });
-        
         var classArray = Array.from(classes).sort();
         var filter = document.getElementById('filterClass');
         var currentVal = filter.value;
@@ -666,13 +595,11 @@ function loadStudents() {
             filter.innerHTML += '<option value="' + classArray[j] + '">' + classArray[j] + '</option>';
         }
         filter.value = currentVal;
-        
         var classFilter = document.getElementById('filterClass').value;
         var search = document.getElementById('searchStudent').value.toLowerCase();
         filteredStudents = allStudents;
         if (classFilter) filteredStudents = filteredStudents.filter(function(s) { return s.class === classFilter; });
         if (search) filteredStudents = filteredStudents.filter(function(s) { return s.name.toLowerCase().includes(search); });
-        
         totalStudents = filteredStudents.length;
         currentPage = 1;
         renderStudents();
@@ -688,22 +615,19 @@ function renderStudents() {
     var start = (currentPage - 1) * pageSize;
     var end = Math.min(start + pageSize, totalStudents);
     var pageData = filteredStudents.slice(start, end);
-    
     if (totalStudents === 0) {
         container.innerHTML = '<div class="alert alert-info">📭 Tidak ada data siswa.</div>';
         return;
     }
-    
     var html = '<div class="table-wrap"><table><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Tahun</th><th>NISN</th><th>JK</th><th>Aksi</th></tr></thead><tbody>';
     for (var i = 0; i < pageData.length; i++) {
         var s = pageData[i];
         html += '<tr><td>' + (start + i + 1) + '</td><td><strong>' + s.name + '</strong></td><td><span class="badge badge-info">' + (s.class || '-') + '</span></td><td>' + (s.year || '-') + '</td><td>' + (s.nisn || '-') + '</td><td>' + (s.gender || '-') + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteStudent(\'' + s.id + '\')">🗑️</button></td></tr>';
     }
     html += '</tbody></table></div>';
-    
     var totalPages = Math.ceil(totalStudents / pageSize);
     html += '<div class="pagination">';
-    html += '<span style="font-size:11px;color:#666;">' + (start + 1) + '-' + end + ' dari ' + totalStudents + '</span>';
+    html += '<span style="font-size:12px;color:#666;">' + (start + 1) + '-' + end + ' dari ' + totalStudents + '</span>';
     html += '<div class="pages">';
     html += '<button class="page-btn" onclick="goToPage(1)" ' + (currentPage === 1 ? 'disabled' : '') + '>⏮</button>';
     html += '<button class="page-btn" onclick="goToPage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + '>◀</button>';
@@ -758,7 +682,7 @@ function saveBulkStudents() {
         }));
     }
     Promise.all(promises).then(function() {
-        alertEl.innerHTML = '<div class="alert alert-success">✅ ' + names.length + ' siswa berhasil ditambahkan!</div>';
+        alertEl.innerHTML = '<div class="alert alert-success">✅ ' + names.length + ' siswa berhasil!</div>';
         setTimeout(function() { closeModal('bulkStudentModal'); loadStudents(); updateDashboard(); }, 1200);
     }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
@@ -780,7 +704,7 @@ function loadTeachers() {
             var t = allTeachers[i];
             var classList = t.classes ? t.classes.split(',').map(function(c) { return c.trim(); }) : [];
             html += '<tr><td>' + (i + 1) + '</td><td><strong>' + t.name + '</strong></td><td>';
-            for (var j = 0; j < classList.length; j++) { html += '<span class="badge badge-info" style="margin:2px;">' + classList[j] + '</span>'; }
+            for (var j = 0; j < classList.length; j++) { html += '<span class="badge badge-info">' + classList[j] + '</span>'; }
             html += '</td><td><button class="btn btn-danger btn-sm" onclick="deleteTeacher(\'' + t.id + '\')">🗑️</button></td></tr>';
         }
         html += '</tbody></table></div>';
@@ -808,7 +732,6 @@ function loadCounseling() {
     var container = document.getElementById('counselingList');
     var classFilter = document.getElementById('filterCounselingClass').value;
     var monthFilter = document.getElementById('filterCounselingMonth').value;
-    
     db.collection('counseling').orderBy('date', 'desc').get().then(function(snapshot) {
         var items = [];
         snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
@@ -937,7 +860,6 @@ function loadIncidents() {
     var classFilter = document.getElementById('filterIncidentClass').value;
     var typeFilter = document.getElementById('filterIncidentType').value;
     var monthFilter = document.getElementById('filterIncidentMonth').value;
-    
     db.collection('incidents').orderBy('date', 'desc').get().then(function(snapshot) {
         var items = [];
         snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
@@ -984,7 +906,6 @@ function loadMutations() {
     var container = document.getElementById('mutationList');
     var classFilter = document.getElementById('filterMutationClass').value;
     var monthFilter = document.getElementById('filterMutationMonth').value;
-    
     db.collection('mutations').orderBy('date', 'desc').get().then(function(snapshot) {
         var items = [];
         snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
@@ -1031,7 +952,6 @@ function loadGraduations() {
     var container = document.getElementById('graduationList');
     var yearFilter = document.getElementById('filterGraduationYear').value;
     var pathFilter = document.getElementById('filterGraduationPath').value;
-    
     db.collection('graduations').orderBy('year', 'desc').get().then(function(snapshot) {
         var items = [];
         snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
@@ -1078,13 +998,11 @@ function loadPresensi() {
     var container = document.getElementById('presensiList');
     var classFilter = document.getElementById('filterPresensiClass').value;
     var dateFilter = document.getElementById('filterPresensiDate').value;
-    
     if (!dateFilter) {
         var today = new Date().toISOString().split('T')[0];
         document.getElementById('filterPresensiDate').value = today;
         dateFilter = today;
     }
-    
     db.collection('presensiHarian').orderBy('tanggal', 'desc').limit(50).get().then(function(snapshot) {
         var items = [];
         snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
@@ -1142,9 +1060,9 @@ function loadRecentActivities() {
                     if (data.siswa[i].status === 'Hadir') hadir++;
                 }
             }
-            html += '<div style="display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid #eee;font-size:12px;">';
+            html += '<div style="display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid #eee;font-size:13px;">';
             html += '<span>📋 Presensi <strong>' + data.kelas + '</strong> - ' + hadir + '/' + total + ' hadir</span>';
-            html += '<span style="color:#999;font-size:10px;">' + new Date(data.tanggal).toLocaleDateString('id-ID') + '</span>';
+            html += '<span style="color:#999;font-size:11px;">' + new Date(data.tanggal).toLocaleDateString('id-ID') + '</span>';
             html += '</div>';
             count++;
         });
@@ -1154,7 +1072,7 @@ function loadRecentActivities() {
             container.innerHTML = html;
         }
     }).catch(function(err) {
-        container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>');
+        container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
     });
 }
 
@@ -1164,6 +1082,7 @@ function saveSettings() {
     var year = document.getElementById('settingsYear').value.trim();
     schoolData = { name: name, year: year };
     saveSchoolData(schoolData);
+    document.getElementById('schoolDisplay').textContent = name || 'Sekolah';
     alert('✅ Pengaturan berhasil disimpan!');
 }
 
@@ -1172,13 +1091,13 @@ function loadUsersList() {
     var container = document.getElementById('userList');
     var emails = Object.keys(users);
     if (emails.length === 0) { container.innerHTML = '<div class="alert alert-info">Belum ada pengguna.</div>'; return; }
-    var html = '<div style="max-height:200px;overflow-y:auto;font-size:12px;">';
+    var html = '<div style="max-height:200px;overflow-y:auto;font-size:13px;">';
     for (var i = 0; i < emails.length; i++) {
         var email = emails[i];
         var user = users[email];
         html += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;">';
         html += '<span>' + email + '</span>';
-        html += '<span style="color:#999;font-size:10px;">' + (user.school || '-') + '</span>';
+        html += '<span style="color:#999;font-size:11px;">' + (user.school || '-') + '</span>';
         html += '</div>';
     }
     html += '</div>';
@@ -1206,7 +1125,7 @@ function restoreData(event) {
             var data = JSON.parse(e.target.result);
             if (data.school) saveSchoolData(data.school);
             if (data.users) saveUsers(data.users);
-            alert('✅ Data berhasil dipulihkan! Halaman akan dimuat ulang.');
+            alert('✅ Data berhasil dipulihkan!');
             location.reload();
         } catch(err) { alert('❌ File tidak valid: ' + err.message); }
     };
@@ -1229,28 +1148,34 @@ function resetAllData() {
         localStorage.removeItem('SIMBK_SCHOOL');
         localStorage.removeItem('SIMBK_USERS');
         localStorage.removeItem('SIMBK_SESSION');
-        alert('✅ Semua data direset. Halaman dimuat ulang.');
+        alert('✅ Semua data direset.');
         location.reload();
     }).catch(function(err) { alert('❌ Gagal reset: ' + err.message); });
 }
 
-// ============ PRESENSI MODE (SISWA) ============
+// ============ PRESENSI MODE ============
 (function() {
     var params = new URLSearchParams(window.location.search);
     var mode = params.get('mode');
     if (mode === 'presensi') {
-        document.querySelector('.container').innerHTML = '';
-        document.querySelector('.nav').innerHTML = '';
-        document.querySelector('.footer').innerHTML = '';
-        document.querySelector('.header').innerHTML = '<h1>📋 Presensi <span>Harian</span></h1><div><button class="btn-logout" onclick="handleLogout()">🚪 Keluar</button></div>';
-        
+        document.querySelector('.main-content').innerHTML = '';
+        document.querySelector('.sidebar').innerHTML = '';
+        document.querySelector('.sidebar').style.display = 'none';
+        document.querySelector('.main-content').style.marginLeft = '0';
         var div = document.createElement('div');
-        div.className = 'container';
         div.style.maxWidth = '500px';
-        div.style.margin = '0 auto';
-        div.innerHTML = '<div class="panel"><h2 style="font-size:16px;color:#0d3b6b;margin-bottom:12px;">📋 Form Presensi</h2><div id="presensiModeContent"><div class="loading"><span class="spinner"></span> Memuat...</div></div></div>';
-        document.querySelector('.container').appendChild(div);
-        
+        div.style.margin = '20px auto';
+        div.style.padding = '0 16px';
+        div.innerHTML = `
+            <div style="background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h1 style="font-size:20px;color:#0d3b6b;">📋 Presensi <span style="color:#f4b400;">Harian</span></h1>
+                    <button class="btn btn-danger" onclick="handleLogout()">🚪 Keluar</button>
+                </div>
+                <div id="presensiModeContent"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+            </div>
+        `;
+        document.querySelector('.main-content').appendChild(div);
         db.collection('students').orderBy('class').orderBy('name').get().then(function(snapshot) {
             var students = [];
             var classes = new Set();
@@ -1261,7 +1186,6 @@ function resetAllData() {
                 if (data.class) classes.add(data.class);
             });
             window._presensiStudents = students;
-            
             var today = new Date().toISOString().split('T')[0];
             var html = '<div class="form-group"><label>📚 Pilih Kelas</label><select id="presensiKelas" class="form-control" onchange="loadPresensiSiswa()"><option value="">Pilih Kelas</option>';
             var classArray = Array.from(classes).sort();
@@ -1282,40 +1206,30 @@ function loadPresensiSiswa() {
     var kelas = document.getElementById('presensiKelas').value;
     var tanggal = document.getElementById('presensiTanggal').value;
     var container = document.getElementById('presensiFormContent');
-    
     if (!kelas || !tanggal) {
         container.innerHTML = '<div class="alert alert-info">Pilih kelas dan tanggal</div>';
         return;
     }
-    
     var students = window._presensiStudents || [];
     var filtered = students.filter(function(s) { return s.class === kelas; });
     if (filtered.length === 0) {
         container.innerHTML = '<div class="alert alert-warning">Belum ada siswa di kelas ini.</div>';
         return;
     }
-    
     var html = '<div style="margin-top:8px;"><h3 style="font-size:14px;color:#0d3b6b;">📋 ' + kelas + ' - ' + new Date(tanggal).toLocaleDateString('id-ID') + '</h3>';
-    html += '<button class="btn btn-success btn-sm" onclick="setAllHadir()" style="margin:6px 0;padding:4px 12px;">✅ Semua Hadir</button>';
+    html += '<button class="btn btn-success btn-sm" onclick="setAllHadir()" style="margin:6px 0;">✅ Semua Hadir</button>';
     html += '<div class="table-wrap" style="max-height:400px;"><table><thead><tr><th>No</th><th>Nama</th><th>Status</th><th>Keterangan</th></tr></thead><tbody>';
     for (var i = 0; i < filtered.length; i++) {
         var s = filtered[i];
-        html += '<tr>';
-        html += '<td>' + (i + 1) + '</td>';
-        html += '<td><strong>' + s.name + '</strong></td>';
+        html += '<tr><td>' + (i + 1) + '</td><td><strong>' + s.name + '</strong></td>';
         html += '<td><select class="form-control" style="width:110px;padding:4px 6px;font-size:11px;" id="ps_' + i + '">';
-        html += '<option value="Hadir">✅ Hadir</option>';
-        html += '<option value="Sakit">🤒 Sakit</option>';
-        html += '<option value="Izin">📝 Izin</option>';
-        html += '<option value="Alfa">❌ Alfa</option>';
+        html += '<option value="Hadir">✅ Hadir</option><option value="Sakit">🤒 Sakit</option><option value="Izin">📝 Izin</option><option value="Alfa">❌ Alfa</option>';
         html += '</select></td>';
-        html += '<td><input type="text" class="form-control" style="width:130px;padding:4px 6px;font-size:11px;" id="pn_' + i + '" placeholder="Keterangan"></td>';
-        html += '</tr>';
+        html += '<td><input type="text" class="form-control" style="width:130px;padding:4px 6px;font-size:11px;" id="pn_' + i + '" placeholder="Keterangan"></td></tr>';
     }
     html += '</tbody></table></div>';
-    html += '<button class="btn btn-success" onclick="kirimPresensiSiswa()" style="margin-top:8px;">📤 Kirim Presensi</button>';
-    html += '<div id="presensiAlert" style="margin-top:8px;"></div>';
-    html += '</div>';
+    html += '<button class="btn btn-success" onclick="kirimPresensiSiswa()" style="margin-top:8px;">📤 Kirim</button>';
+    html += '<div id="presensiAlert" style="margin-top:8px;"></div></div>';
     container.innerHTML = html;
 }
 
@@ -1335,7 +1249,6 @@ function kirimPresensiSiswa() {
     var tanggal = document.getElementById('presensiTanggal').value;
     var alertEl = document.getElementById('presensiAlert');
     if (!kelas || !tanggal) { alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Pilih kelas dan tanggal!</div>'; return; }
-    
     var items = document.querySelectorAll('#presensiFormContent table tbody tr');
     var siswaData = [];
     for (var i = 0; i < items.length; i++) {
@@ -1351,7 +1264,6 @@ function kirimPresensiSiswa() {
         }
         siswaData.push({ nama: nama, status: status, keterangan: keterangan });
     }
-    
     alertEl.innerHTML = '<div class="alert alert-info">⏳ Menyimpan...</div>';
     db.collection('presensiHarian').add({
         kelas: kelas, tanggal: tanggal, siswa: siswaData,
@@ -1370,7 +1282,6 @@ function kirimPresensiSiswa() {
 var baseUrl = window.location.href.replace('dashboard.html', '');
 document.getElementById('presensiLinkDisplay').value = baseUrl + '?mode=presensi';
 
-// Load semua data
 loadStudents();
 loadTeachers();
 loadCounseling();
