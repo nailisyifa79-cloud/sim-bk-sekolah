@@ -449,7 +449,7 @@ function saveUsers(users) { localStorage.setItem(USER_KEY, JSON.stringify(users)
 function getSession() {
     try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch(e) { return null; }
 }
-function saveSession(email) { localStorage.setItem(SESSION_KEY, JSON.stringify({ email: email })); }
+function saveSession(email) { localStorage.setItem(SESSION_KEY, JSON.stringify({ email: email, loginAt: new Date().toISOString() })); }
 function clearSession() { localStorage.removeItem(SESSION_KEY); }
 function getSchoolData() {
     try { return JSON.parse(localStorage.getItem(SCHOOL_KEY)) || { name: '', year: '', address: '' }; } catch(e) { return { name: '', year: '', address: '' }; }
@@ -616,6 +616,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// ============ LOAD ALL DATA ============
 function loadAllData() {
     loadStudents();
     loadTeachers();
@@ -632,6 +633,7 @@ function loadAllData() {
     populatePresensiKelas();
 }
 
+// ============ FUNGSI DROPDOWN ============
 function populateClassDropdowns() {
     var classes = new Set();
     for (var i = 0; i < allStudents.length; i++) {
@@ -691,6 +693,7 @@ function updateIncidentStudent() { var v = document.getElementById('incidentClas
 function updateMutationStudent() { var v = document.getElementById('mutationClassSelect').value; populateFilteredStudents('mutationStudent', v); }
 function updateGraduationStudent() { var v = document.getElementById('graduationClassSelect').value; populateFilteredStudents('graduationStudent', v); }
 
+// ============ TAB ============
 function showTab(tabId) {
     var tabs = document.querySelectorAll('.tab-content');
     for (var i = 0; i < tabs.length; i++) { tabs[i].classList.remove('active'); }
@@ -1303,9 +1306,10 @@ function openPresensiLink() {
     window.open(link, '_blank');
 }
 
+// ============ PRESENSI SISWA ============
 function loadPresensiSiswa() {
     var container = document.getElementById('presensiFormContent');
-    container.innerHTML = '<div class="alert alert-info">📌 Silakan pilih kelas dan tanggal untuk mengisi presensi.</div>';
+    container.innerHTML = '<div class="alert alert-info">📌 Fitur presensi siswa akan segera hadir.</div>';
 }
 
 function keluarPresensi() {
@@ -1368,7 +1372,8 @@ function loadRecentActivities() {
         }
         html += '</div>';
         container.innerHTML = html;
-    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat aktivitas: ' + err.message + '</div>');
+    }).catch(function(err) {
+        container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat aktivitas: ' + err.message + '</div>';
     });
 }
 
@@ -1446,7 +1451,9 @@ function resetAllData() {
         localStorage.removeItem(SESSION_KEY);
         alert('✅ Semua data telah direset. Halaman akan dimuat ulang.');
         location.reload();
-    }).catch(function(err) { alert('❌ Gagal reset: ' + err.message); });
+    }).catch(function(err) {
+        alert('❌ Gagal reset: ' + err.message);
+    });
 }
 
 // ============ PRESENSI MODE ============
@@ -1486,6 +1493,13 @@ function resetAllData() {
 if (!checkSession()) {
     showLoginPage();
 }
+
+// ============ FIRESTORE LISTENER ============
+db.collection('students').onSnapshot(function() {
+    loadStudents();
+    populateClassDropdowns();
+    populatePresensiKelas();
+});
 
 console.log('✅ SIM BK siap digunakan!');
 console.log('🔗 Link Presensi: https://nailisyifa79-cloud.github.io/sim-bk-sekolah/?mode=presensi');
