@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SIM BK - Dashboard</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Arial;background:#f0f4f8;padding:16px}
+        .header{background:#0d3b6b;color:#fff;padding:16px 20px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}
+        .header h1{font-size:18px}
+        .header h1 span{color:#f4b400}
+        .btn-logout{background:#d96b7b;color:#fff;border:0;padding:6px 14px;border-radius:6px;cursor:pointer}
+        .btn-logout:hover{background:#c45566}
+        .nav{background:#fff;padding:8px 12px;border-radius:8px;margin:12px 0;display:flex;gap:4px;flex-wrap:wrap}
+        .nav button{padding:6px 12px;border:0;background:transparent;border-radius:6px;cursor:pointer;font-weight:bold;font-size:11px;color:#666}
+        .nav button:hover{background:#e8f0fe;color:#1a5a9e}
+        .nav button.active{background:#1a5a9e;color:#fff}
+        .panel{background:#fff;border-radius:8px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+        .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+        .panel-header h2{font-size:15px;color:#0d3b6b}
+        .btn{padding:5px 12px;border:0;border-radius:6px;font-weight:bold;cursor:pointer;color:#fff;font-size:11px}
+        .btn-primary{background:#1a5a9e}
+        .btn-primary:hover{background:#0d3b6b}
+        .btn-success{background:#159a7c}
+        .btn-success:hover{background:#0d7a62}
+        .btn-danger{background:#d96b7b}
+        .btn-danger:hover{background:#c45566}
+        .btn-warning{background:#f4b400;color:#333}
+        .btn-warning:hover{background:#d49c00}
+        .btn-sm{padding:3px 8px;font-size:10px}
+        .form-group{margin-bottom:10px}
+        .form-group label{display:block;font-weight:bold;font-size:12px;color:#0d3b6b;margin-bottom:3px}
+        .form-control{width:100%;padding:8px 12px;border:2px solid #ddd;border-radius:6px;font-size:13px}
+        .form-control:focus{border-color:#1a5a9e;outline:none}
+        .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px}
+        .stat-card{background:#fff;padding:12px 16px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-left:4px solid #1a5a9e}
+        .stat-card .number{font-size:22px;font-weight:bold;color:#0d3b6b}
+        .stat-card .label{font-size:10px;color:#666}
+        .stat-card.success{border-left-color:#159a7c}
+        .stat-card.success .number{color:#159a7c}
+        .stat-card.danger{border-left-color:#d96b7b}
+        .stat-card.danger .number{color:#d96b7b}
+        .stat-card.warning{border-left-color:#f4b400}
+        .stat-card.warning .number{color:#b8860b}
+        .table-wrap{overflow-x:auto;border:1px solid #ddd;border-radius:6px;max-height:400px;overflow-y:auto}
+        table{width:100%;border-collapse:collapse;font-size:12px}
+        table th{background:#0d3b6b;color:#fff;padding:6px 10px;text-align:left;position:sticky;top:0;z-index:10}
+        table td{padding:6px 10px;border-bottom:1px solid #eee}
+        table tr:hover{background:#f8fafc}
+        .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:bold}
+        .badge-info{background:#d1ecf1;color:#0c5460}
+        .badge-success{background:#d4edda;color:#155724}
+        .badge-danger{background:#f8d7da;color:#721c24}
+        .badge-warning{background:#fff3cd;color:#856404}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;justify-content:center;align-items:center}
+        .modal.active{display:flex}
+        .modal-box{background:#fff;border-radius:12px;padding:20px;max-width:500px;width:95%;max-height:90vh;overflow-y:auto}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #eee}
+        .modal-header h2{font-size:17px;color:#0d3b6b}
+        .close-btn{background:none;border:0;font-size:22px;cursor:pointer;color:#999}
+        .close-btn:hover{color:#d96b7b}
+        .alert{padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:12px}
+        .alert-danger{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
+        .alert-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
+        .alert-info{background:#d1ecf1;color:#0c5460;border:1px solid #bee5eb}
+        .tab-content{display:none}
+        .tab-content.active{display:block}
+        .loading{text-align:center;padding:20px;color:#666}
+        .spinner{display:inline-block;width:25px;height:25px;border:3px solid #ddd;border-top-color:#1a5a9e;border-radius:50%;animation:spin 0.8s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .footer{text-align:center;padding:12px;color:#999;font-size:10px;border-top:1px solid #ddd;margin-top:12px;background:#fff;border-radius:8px}
+        .pagination{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:8px;gap:6px}
+        .pagination .pages{display:flex;gap:3px;flex-wrap:wrap}
+        .pagination .page-btn{padding:3px 8px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:11px}
+        .pagination .page-btn:hover{background:#e8f0fe}
+        .pagination .page-btn.active{background:#1a5a9e;color:#fff;border-color:#1a5a9e}
+        .pagination .page-btn:disabled{opacity:0.5;cursor:not-allowed}
+        .toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+        .toolbar .form-control{width:auto;min-width:130px;padding:4px 8px;font-size:11px}
+        .settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+        @media(max-width:768px){.header{flex-direction:column;text-align:center;gap:8px}.nav{justify-content:center}.nav button{font-size:10px;padding:4px 8px}.stats-grid{grid-template-columns:repeat(2,1fr)}.form-row{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <h1>📚 SIM <span>BK</span></h1>
+    <div>
+        <span id="userDisplay" style="margin-right:10px;font-size:13px;">👤 Admin</span>
+        <button class="btn-logout" onclick="logout()">🚪 Keluar</button>
+    </div>
+</div>
+
+<!-- NAVIGASI -->
+<div class="nav" id="mainNav">
+    <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
+    <button onclick="showTab('students')">👨‍🎓 Siswa</button>
+    <button onclick="showTab('teachers')">👩‍🏫 Guru BK</button>
+    <button onclick="showTab('counseling')">📋 Konseling</button>
+    <button onclick="showTab('parent-call')">📞 Panggilan OT</button>
+    <button onclick="showTab('home-visit')">🏠 Home Visit</button>
+    <button onclick="showTab('incident')">⚠️ Kejadian</button>
+    <button onclick="showTab('mutation')">📝 Mutasi</button>
+    <button onclick="showTab('graduation')">🎓 Lulusan</button>
+    <button onclick="showTab('presensi')">📋 Presensi</button>
+    <button onclick="showTab('settings')">⚙️ Pengaturan</button>
+</div>
+
+<div class="container" id="container">
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard" class="tab-content active">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="number" id="statStudents">0</div><div class="label">Total Siswa</div></div>
+            <div class="stat-card success"><div class="number" id="statTeachers">0</div><div class="label">Guru BK</div></div>
+            <div class="stat-card warning"><div class="number" id="statCounseling">0</div><div class="label">Konseling</div></div>
+            <div class="stat-card danger"><div class="number" id="statIncidents">0</div><div class="label">Kejadian</div></div>
+            <div class="stat-card"><div class="number" id="statMutations">0</div><div class="label">Mutasi</div></div>
+            <div class="stat-card success"><div class="number" id="statGraduations">0</div><div class="label">Lulusan</div></div>
+            <div class="stat-card warning"><div class="number" id="statPresensi">0</div><div class="label">Presensi</div></div>
+        </div>
+        <div class="panel">
+            <div class="panel-header"><h2>📊 Aktivitas Terbaru</h2></div>
+            <div id="recentActivities"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+        </div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div id="tab-students" class="tab-content">
+        <div class="panel">
+            <div class="panel-header">
+                <h2>👨‍🎓 Data Siswa</h2>
+                <div>
+                    <button class="btn btn-primary" onclick="openModal('studentModal')">➕</button>
+                    <button class="btn btn-success" onclick="openModal('bulkStudentModal')">📋</button>
+                    <button class="btn btn-warning" onclick="cetak('siswa')">🖨️</button>
+                </div>
+            </div>
+            <div class="form-row" style="margin-bottom:8px;">
+                <div><label>Kelas</label><select id="filterClass" class="form-control" onchange="loadStudents()"><option value="">Semua</option></select></div>
+                <div><label>Cari</label><input type="text" id="searchStudent" class="form-control" placeholder="Cari..." oninput="loadStudents()"></div>
+            </div>
+            <div id="studentList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+        </div>
+    </div>
+
+    <!-- TEACHERS -->
+    <div id="tab-teachers" class="tab-content">
+        <div class="panel">
+            <div class="panel-header"><h2>👩‍🏫 Guru BK</h2><div><button class="btn btn-primary" onclick="openModal('teacherModal')">➕</button><button class="btn btn-warning" onclick="cetak('guru')">🖨️</button></div></div>
+            <div id="teacherList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+        </div>
+    </div>
+
+    <!-- COUNSELING -->
+    <div id="tab-counseling" class="tab-content">
+        <div class="panel">
+            <div class="panel-header"><h2>📋 Konseling</h2><div><button class="btn btn-primary" onclick="openModal('counselingModal')">➕</button><button class="btn btn-warning" onclick="cetak('konseling')">🖨️</button></div></div>
+            <div id="counselingList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+        </div>
+    </div>
+
+    <!-- PARENT CALL -->
+    <div id="tab-parent-call" class="tab-content">
+        <div class="panel">
+            <div class="panel-header"><h2>📞 Panggilan OT</h2><div><button class="btn btn-primary" onclick="openModal('parentCallModal')">➕</button><button class="btn btn-warning" onclick="cetak('panggilan')">🖨️</button></div></div>
+            <div id="parentCallList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+        </div>
+    </div>
+
+    <!-- HOME VISIT -->
+    <div id="tab-home-visit" class="tab-content">
+        <div class="panel">
+            <div class="panel-header"><h2>🏠 Home Visit</h2><div><button class="btn btn-primary" onclick="openModal('homeVisitModal')">➕</button><button class="btn btn-warning" onclick="cetak('homevisit')">🖨️</button></div></div>
+            <div id="homeVisitList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+        </div>
+    </div>
+
+    <!-- INCIDENT -->
+    <div id="tab-incident" class="tab-content">
+        <div class="panel">
+            <div class="panel-header"><h2>⚠️ Kejadian</h2><div><button class="btn btn-primary" onclick="openModal('incidentModal')">➕</button><button class="btn btn-warning" onclick="cetak('kejadian')">🖨️</button></div></div>
+            <div id="incidentList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+        </div>
+    </div>
+
+    <!-- MUTATION -->
+    <div id="tab-mutation" class="tab-content">
+        <div class="panel">
+            <div class="panel-header"><h2>📝 Mutasi</h2><div><button class="btn btn-primary" onclick="openModal('mutationModal')">➕</button><button class="btn btn-warning" onclick="cetak('mutasi')">🖨️</button></div></div>
+            <div id="mutationList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+        </div>
+    </div>
+
+    <!-- GRADUATION -->
+    <div id="tab-graduation" class="tab-content">
+        <div class="panel">
+            <div class="panel-header"><h2>🎓 Lulusan</h2><div><button class="btn btn-primary" onclick="openModal('graduationModal')">➕</button><button class="btn btn-warning" onclick="cetak('lulusan')">🖨️</button></div></div>
+            <div id="graduationList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+        </div>
+    </div>
+
+    <!-- PRESENSI -->
+    <div id="tab-presensi" class="tab-content">
+        <div class="panel">
+            <div class="panel-header"><h2>📋 Presensi</h2><div><button class="btn btn-success" onclick="openPresensi()">🔗 Link</button><button class="btn btn-warning" onclick="cetak('presensi')">🖨️</button></div></div>
+            <div id="presensiList"><div class="loading"><span class="spinner"></span> Memuat...</div></div>
+        </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="tab-settings" class="tab-content">
+        <div class="panel">
+            <div class="panel-header"><h2>⚙️ Pengaturan</h2></div>
+            <div class="settings-grid">
+                <div style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid #ddd;">
+                    <h3 style="font-size:13px;color:#0d3b6b;margin-bottom:8px;">🏫 Data Sekolah</h3>
+                    <div class="form-group"><label>Nama Sekolah</label><input type="text" id="settingsSchool" class="form-control"></div>
+                    <div class="form-group"><label>Tahun Ajaran</label><input type="text" id="settingsYear" class="form-control"></div>
+                    <button class="btn btn-primary" onclick="saveSettings()">💾 Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal" id="studentModal"><div class="modal-box"><div class="modal-header"><h2>➕ Siswa</h2><button class="close-btn" onclick="closeModal('studentModal')">&times;</button></div><div id="studentModalAlert"></div><div class="form-group"><label>Nama</label><input type="text" id="studentName" class="form-control"></div><div class="form-group"><label>Kelas</label><input type="text" id="studentClass" class="form-control"></div><button class="btn btn-success" onclick="saveStudent()">💾 Simpan</button></div></div>
+
+<div class="modal" id="bulkStudentModal"><div class="modal-box"><div class="modal-header"><h2>📋 Per Kelas</h2><button class="close-btn" onclick="closeModal('bulkStudentModal')">&times;</button></div><div id="bulkStudentModalAlert"></div><div class="form-group"><label>Kelas</label><input type="text" id="bulkClass" class="form-control"></div><div class="form-group"><label>Nama (1 per baris)</label><textarea id="bulkStudents" class="form-control" rows="6"></textarea></div><button class="btn btn-success" onclick="saveBulkStudents()">💾 Simpan</button></div></div>
+
+<div class="modal" id="teacherModal"><div class="modal-box"><div class="modal-header"><h2>➕ Guru</h2><button class="close-btn" onclick="closeModal('teacherModal')">&times;</button></div><div id="teacherModalAlert"></div><div class="form-group"><label>Nama</label><input type="text" id="teacherName" class="form-control"></div><div class="form-group"><label>Kelas</label><input type="text" id="teacherClasses" class="form-control"></div><button class="btn btn-success" onclick="saveTeacher()">💾 Simpan</button></div></div>
+
+<div class="modal" id="counselingModal"><div class="modal-box"><div class="modal-header"><h2>📋 Konseling</h2><button class="close-btn" onclick="closeModal('counselingModal')">&times;</button></div><div id="counselingModalAlert"></div><div class="form-group"><label>Siswa</label><input type="text" id="counselingStudent" class="form-control"></div><div class="form-group"><label>Kelas</label><input type="text" id="counselingClass" class="form-control"></div><div class="form-group"><label>Tanggal</label><input type="date" id="counselingDate" class="form-control"></div><div class="form-group"><label>Masalah</label><textarea id="counselingProblem" class="form-control" rows="2"></textarea></div><div class="form-group"><label>Hasil</label><textarea id="counselingResult" class="form-control" rows="2"></textarea></div><button class="btn btn-success" onclick="saveCounseling()">💾 Simpan</button></div></div>
+
+<div class="modal" id="parentCallModal"><div class="modal-box"><div class="modal-header"><h2>📞 Panggilan</h2><button class="close-btn" onclick="closeModal('parentCallModal')">&times;</button></div><div id="parentCallModalAlert"></div><div class="form-group"><label>Siswa</label><input type="text" id="parentCallStudent" class="form-control"></div><div class="form-group"><label>Kelas</label><input type="text" id="parentCallClass" class="form-control"></div><div class="form-group"><label>Tanggal</label><input type="date" id="parentCallDate" class="form-control"></div><div class="form-group"><label>Masalah</label><textarea id="parentCallProblem" class="form-control" rows="2"></textarea></div><div class="form-group"><label>Hasil</label><textarea id="parentCallResult" class="form-control" rows="2"></textarea></div><button class="btn btn-success" onclick="saveParentCall()">💾 Simpan</button></div></div>
+
+<div class="modal" id="homeVisitModal"><div class="modal-box"><div class="modal-header"><h2>🏠 Home Visit</h2><button class="close-btn" onclick="closeModal('homeVisitModal')">&times;</button></div><div id="homeVisitModalAlert"></div><div class="form-group"><label>Siswa</label><input type="text" id="homeVisitStudent" class="form-control"></div><div class="form-group"><label>Kelas</label><input type="text" id="homeVisitClass" class="form-control"></div><div class="form-group"><label>Tanggal</label><input type="date" id="homeVisitDate" class="form-control"></div><div class="form-group"><label>Masalah</label><textarea id="homeVisitProblem" class="form-control" rows="2"></textarea></div><div class="form-group"><label>Hasil</label><textarea id="homeVisitResult" class="form-control" rows="2"></textarea></div><button class="btn btn-success" onclick="saveHomeVisit()">💾 Simpan</button></div></div>
+
+<div class="modal" id="incidentModal"><div class="modal-box"><div class="modal-header"><h2>⚠️ Kejadian</h2><button class="close-btn" onclick="closeModal('incidentModal')">&times;</button></div><div id="incidentModalAlert"></div><div class="form-group"><label>Siswa</label><input type="text" id="incidentStudent" class="form-control"></div><div class="form-group"><label>Kelas</label><input type="text" id="incidentClass" class="form-control"></div><div class="form-group"><label>Tanggal</label><input type="date" id="incidentDate" class="form-control"></div><div class="form-group"><label>Jenis</label><select id="incidentType" class="form-control"><option value="Terlambat">⏰ Terlambat</option><option value="Perkelahian">👊 Perkelahian</option><option value="Lainnya">📌 Lainnya</option></select></div><div class="form-group"><label>Deskripsi</label><textarea id="incidentDescription" class="form-control" rows="2"></textarea></div><button class="btn btn-success" onclick="saveIncident()">💾 Simpan</button></div></div>
+
+<div class="modal" id="mutationModal"><div class="modal-box"><div class="modal-header"><h2>📝 Mutasi</h2><button class="close-btn" onclick="closeModal('mutationModal')">&times;</button></div><div id="mutationModalAlert"></div><div class="form-group"><label>Siswa</label><input type="text" id="mutationStudent" class="form-control"></div><div class="form-group"><label>Kelas</label><input type="text" id="mutationClass" class="form-control"></div><div class="form-group"><label>Tanggal</label><input type="date" id="mutationDate" class="form-control"></div><div class="form-group"><label>Jenis</label><select id="mutationType" class="form-control"><option value="Masuk">📥 Masuk</option><option value="Keluar">📤 Keluar</option></select></div><div class="form-group"><label>Alasan</label><textarea id="mutationReason" class="form-control" rows="2"></textarea></div><button class="btn btn-success" onclick="saveMutation()">💾 Simpan</button></div></div>
+
+<div class="modal" id="graduationModal"><div class="modal-box"><div class="modal-header"><h2>🎓 Lulusan</h2><button class="close-btn" onclick="closeModal('graduationModal')">&times;</button></div><div id="graduationModalAlert"></div><div class="form-group"><label>Siswa</label><input type="text" id="graduationStudent" class="form-control"></div><div class="form-group"><label>Kelas</label><input type="text" id="graduationClass" class="form-control"></div><div class="form-group"><label>Jalur</label><select id="graduationPath" class="form-control"><option value="SNBP">SNBP</option><option value="SNBT">SNBT</option></select></div><div class="form-group"><label>Kampus</label><input type="text" id="graduationUniversity" class="form-control"></div><div class="form-group"><label>Jurusan</label><input type="text" id="graduationMajor" class="form-control"></div><button class="btn btn-success" onclick="saveGraduation()">💾 Simpan</button></div></div>
+
+<div class="footer">© 2026 <strong style="color:#0d3b6b;">@NaFaSBK</strong> | SIM BK</div>
+
+<script>
+// ============ FIREBASE ============
+var firebaseConfig = {
+    apiKey: "AIzaSyA2AQNbuiqycFQ4S-vsthw9NFMNyb-acFA",
+    authDomain: "sosio-digital.firebaseapp.com",
+    projectId: "sosio-digital",
+    storageBucket: "sosio-digital.firebasestorage.app",
+    messagingSenderId: "562983012848",
+    appId: "1:562983012848:web:aced97fe045efed03cf535"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+// ============ CEK SESSION ============
+var sesi = localStorage.getItem('sesi');
+if (!sesi) {
+    window.location.href = 'index.html';
+}
+document.getElementById('userDisplay').textContent = '👤 ' + sesi;
+
+// ============ LOGOUT ============
+function logout() {
+    localStorage.removeItem('sesi');
+    window.location.href = 'index.html';
+}
+
+// ============ VARIABEL ============
+var allStudents = [];
+var currentPage = 1;
+var pageSize = 20;
+var totalStudents = 0;
+var filteredStudents = [];
+
+// ============ FUNGSI ============
+function showTab(tabId) {
+    var tabs = document.querySelectorAll('.tab-content');
+    for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+    document.getElementById('tab-' + tabId).classList.add('active');
+    var btns = document.querySelectorAll('#mainNav button');
+    for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
+    var activeBtn = document.querySelector('#mainNav button[onclick="showTab(\'' + tabId + '\')"]');
+    if (activeBtn) activeBtn.classList.add('active');
+    if (tabId === 'students') loadStudents();
+    else if (tabId === 'teachers') loadTeachers();
+    else if (tabId === 'counseling') loadCounseling();
+    else if (tabId === 'parent-call') loadParentCalls();
+    else if (tabId === 'home-visit') loadHomeVisits();
+    else if (tabId === 'incident') loadIncidents();
+    else if (tabId === 'mutation') loadMutations();
+    else if (tabId === 'graduation') loadGraduations();
+    else if (tabId === 'presensi') loadPresensi();
+}
+
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+    document.getElementById(id + 'Alert').innerHTML = '';
+    var today = new Date().toISOString().split('T')[0];
+    var dateInput = document.getElementById(id.replace('Modal', 'Date'));
+    if (dateInput) dateInput.value = today;
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+}
+
+document
