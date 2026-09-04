@@ -6,7 +6,6 @@
     <title>SIM BK - Sistem Informasi Manajemen BK</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;color:#1a2a3a;display:flex;flex-direction:column;min-height:100vh}
@@ -152,7 +151,7 @@
 <body>
 <div class="app-container" id="app">
 
-    <!-- ============ HALAMAN LOGIN ============ -->
+    <!-- HALAMAN LOGIN -->
     <div id="loginPage">
         <div class="auth-container">
             <div class="auth-logo">
@@ -170,13 +169,13 @@
                 <label>🔒 Password</label>
                 <input type="password" id="loginPassword" class="form-control" placeholder="Masukkan password" value="admin123">
             </div>
-            <button class="btn btn-primary btn-block" onclick="handleLogin()">🚀 Masuk</button>
-            <div class="toggle-link">Belum punya akun? <a onclick="showRegisterPage()">Daftar di sini</a></div>
+            <button class="btn btn-primary btn-block" id="btnLogin">🚀 Masuk</button>
+            <div class="toggle-link">Belum punya akun? <a id="goToRegister">Daftar di sini</a></div>
             <div class="demo-info">💡 <b>Demo:</b> admin@sekolah.com | admin123</div>
         </div>
     </div>
 
-    <!-- ============ HALAMAN REGISTER ============ -->
+    <!-- HALAMAN REGISTER -->
     <div id="registerPage" style="display:none;">
         <div class="auth-container">
             <div class="auth-logo">
@@ -198,12 +197,12 @@
                 <label>🏫 Nama Sekolah <span class="required">*</span></label>
                 <input type="text" id="registerSchool" class="form-control" placeholder="Nama sekolah">
             </div>
-            <button class="btn btn-success btn-block" onclick="handleRegister()">📝 Daftar</button>
-            <div class="toggle-link">Sudah punya akun? <a onclick="showLoginPage()">Masuk di sini</a></div>
+            <button class="btn btn-success btn-block" id="btnRegister">📝 Daftar</button>
+            <div class="toggle-link">Sudah punya akun? <a id="goToLogin">Masuk di sini</a></div>
         </div>
     </div>
 
-    <!-- ============ APLIKASI UTAMA ============ -->
+    <!-- APLIKASI UTAMA -->
     <div id="mainApp" style="display:none;">
         <div class="header">
             <div class="header-brand">
@@ -348,11 +347,11 @@
                     <label>Link Presensi</label>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
                         <input type="text" id="presensiLinkDisplay" class="form-control" readonly style="flex:1;min-width:200px;background:#f5f7fa;font-size:13px;" value="https://nailisyifa79-cloud.github.io/sim-bk-sekolah/?mode=presensi">
-                        <button class="btn btn-success" onclick="copyText(document.getElementById('presensiLinkDisplay').value)">📋 Salin</button>
+                        <button class="btn btn-success" onclick="copyText()">📋 Salin</button>
                         <button class="btn btn-warning" onclick="bagikanWA()">💬 Bagikan WA</button>
                     </div>
                 </div>
-                <div style="font-size:11px;color:var(--gray);">💡 Ketua kelas pilih kelas → pilih tanggal → isi presensi → kirim. <b>Bisa diedit jika salah!</b></div>
+                <div style="font-size:11px;color:var(--gray);">💡 Ketua kelas pilih kelas → pilih tanggal → isi presensi → kirim.</div>
             </div>
         </div>
 
@@ -380,7 +379,7 @@
         </div>
     </div>
 
-    <!-- ============ MODALS ============ -->
+    <!-- MODALS -->
     <div class="modal-overlay" id="studentModal"><div class="modal-box"><div class="modal-header"><h2>➕ Tambah Siswa</h2><button class="close-btn" onclick="closeModal('studentModal')">&times;</button></div><div id="studentModalAlert"></div><div class="form-group"><label>Nama Lengkap <span class="required">*</span></label><input type="text" id="studentName" class="form-control" placeholder="Nama siswa"></div><div class="form-group"><label>Kelas <span class="required">*</span></label><input type="text" id="studentClass" class="form-control" placeholder="Contoh: 10 IPA 1"></div><div class="form-group"><label>Tahun Ajaran</label><input type="text" id="studentYear" class="form-control" placeholder="2025/2026"></div><div class="form-group"><label>NISN</label><input type="text" id="studentNISN" class="form-control" placeholder="Nomor Induk Siswa Nasional"></div><div class="form-group"><label>Jenis Kelamin</label><select id="studentGender" class="form-control"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div><button class="btn btn-success" onclick="saveStudent()">💾 Simpan</button></div></div>
 
     <div class="modal-overlay" id="bulkStudentModal"><div class="modal-box"><div class="modal-header"><h2>📋 Tambah Siswa Per Kelas</h2><button class="close-btn" onclick="closeModal('bulkStudentModal')">&times;</button></div><div id="bulkStudentModalAlert"></div><div class="form-group"><label>Kelas <span class="required">*</span></label><input type="text" id="bulkClass" class="form-control" placeholder="Contoh: 10 IPA 1"></div><div class="form-group"><label>Tahun Ajaran <span class="required">*</span></label><input type="text" id="bulkYear" class="form-control" placeholder="2025/2026"></div><div class="form-group"><label>Daftar Nama Siswa <span class="required">*</span></label><textarea id="bulkStudents" class="form-control" rows="10" placeholder="Tulis satu nama per baris"></textarea><small style="color:var(--gray);font-size:11px;">Masukkan satu nama per baris</small></div><div id="bulkProgress" style="display:none;"><div class="progress-container"><div class="progress-bar" id="bulkProgressBar" style="width:0%;">0%</div></div><div id="bulkStatusText" style="font-size:13px;color:var(--gray);text-align:center;"></div></div><button class="btn btn-success" onclick="saveBulkStudents()">💾 Simpan Semua</button></div></div>
@@ -399,10 +398,10 @@
 
     <div class="modal-overlay" id="graduationModal"><div class="modal-box"><div class="modal-header"><h2>🎓 Lulusan SNBP/SNBT</h2><button class="close-btn" onclick="closeModal('graduationModal')">&times;</button></div><div id="graduationModalAlert"></div><div class="form-group"><label>Kelas</label><select id="graduationClassSelect" class="form-control" onchange="updateGraduationStudent()"><option value="">Pilih Kelas</option></select></div><div class="form-group"><label>Siswa</label><select id="graduationStudent" class="form-control"><option value="">Pilih Siswa</option></select></div><div class="form-group"><label>Jalur</label><select id="graduationPath" class="form-control"><option value="SNBP">🎯 SNBP</option><option value="SNBT">📝 SNBT</option></select></div><div class="form-group"><label>Kampus</label><input type="text" id="graduationUniversity" class="form-control" placeholder="Nama Universitas/Institut"></div><div class="form-group"><label>Jurusan/Program Studi</label><input type="text" id="graduationMajor" class="form-control" placeholder="Nama Jurusan/Prodi"></div><div class="form-group"><label>Tahun Lulus</label><select id="graduationYear" class="form-control"><option value="2026/2027">2026/2027</option><option value="2027/2028">2027/2028</option><option value="2028/2029">2028/2029</option><option value="2029/2030">2029/2030</option><option value="2030/2031">2030/2031</option><option value="2031/2032">2031/2032</option></select></div><button class="btn btn-success" onclick="saveGraduation()">💾 Simpan</button></div></div>
 
-    <!-- ============ PRESENSI MODE (untuk siswa) ============ -->
+    <!-- PRESENSI MODE (untuk siswa) -->
     <div id="presensiMode" style="display:none;">
         <div class="header" style="border-radius:10px 10px 0 0;">
-            <div class="header-brand"><div><h1>📋 Presensi <span>Harian</span></h1><div class="subtitle" style="font-size:10px;opacity:.7;">Sistem Informasi Manajemen Bimbingan Konseling</div></div></div>
+            <div class="header-brand"><div><h1>📋 Presensi <span>Harian</span></h1><div style="font-size:10px;opacity:.7;">Sistem Informasi Manajemen Bimbingan Konseling</div></div></div>
             <div class="header-info"><span class="school-name" id="presensiSchoolDisplay">Sekolah</span><button class="btn-logout" onclick="keluarPresensi()">🚪 Keluar</button></div>
         </div>
         <div class="panel">
@@ -468,6 +467,19 @@ var totalStudents = 0;
 var filteredStudents = [];
 var selectedStudents = {};
 
+// ============ CEK & BUAT USER DEMO ============
+var users = getUsers();
+if (Object.keys(users).length === 0) {
+    users["admin@sekolah.com"] = {
+        password: "admin123",
+        school: "Sekolah Demo",
+        registeredAt: new Date().toISOString(),
+        role: "admin"
+    };
+    saveUsers(users);
+    console.log('✅ User demo otomatis dibuat: admin@sekolah.com / admin123');
+}
+
 // ============ AUTH ============
 function showLoginPage() {
     document.getElementById('loginPage').style.display = 'block';
@@ -495,7 +507,7 @@ function handleLogin() {
     
     var users = getUsers();
     if (!users[email]) {
-        alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Email tidak terdaftar! Silakan daftar terlebih dahulu.</div>';
+        alertEl.innerHTML = '<div class="alert alert-danger">⚠️ Email tidak terdaftar! <a onclick="showRegisterPage()" style="color:#1a5a9e;font-weight:bold;cursor:pointer;">Daftar di sini</a></div>';
         return;
     }
     if (users[email].password !== password) {
@@ -594,14 +606,30 @@ function checkSession() {
     return false;
 }
 
-// ============ ENTER KEY UNTUK LOGIN ============
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        if (document.getElementById('loginPage').style.display !== 'none') {
-            handleLogin();
-        } else if (document.getElementById('registerPage').style.display !== 'none') {
-            handleRegister();
-        }
+// ============ EVENT LISTENER ============
+document.addEventListener('DOMContentLoaded', function() {
+    // Tombol login
+    document.getElementById('btnLogin').addEventListener('click', handleLogin);
+    document.getElementById('loginPassword').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') handleLogin();
+    });
+    document.getElementById('loginEmail').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') handleLogin();
+    });
+    
+    // Tombol register
+    document.getElementById('btnRegister').addEventListener('click', handleRegister);
+    document.getElementById('registerPassword').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') handleRegister();
+    });
+    
+    // Toggle halaman
+    document.getElementById('goToRegister').addEventListener('click', showRegisterPage);
+    document.getElementById('goToLogin').addEventListener('click', showLoginPage);
+    
+    // Cek session
+    if (!checkSession()) {
+        showLoginPage();
     }
 });
 
@@ -620,11 +648,6 @@ function loadAllData() {
     loadUsersList();
     populateClassDropdowns();
     populatePresensiKelas();
-}
-
-// ============ FUNGSI CETAK ============
-function cetakLaporan(jenis) {
-    alert('🖨️ Fitur cetak laporan akan segera hadir!');
 }
 
 // ============ FUNGSI DROPDOWN ============
@@ -847,7 +870,7 @@ function saveStudent() {
     }).then(function() {
         alertEl.innerHTML = '<div class="alert alert-success">✅ Siswa berhasil ditambahkan!</div>';
         setTimeout(function() { closeModal('studentModal'); loadStudents(); updateDashboard(); }, 1000);
-    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'; });
+    }).catch(function(err) { alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>'); });
 }
 
 function saveBulkStudents() {
@@ -1274,7 +1297,8 @@ function loadPresensiRekap() {
     }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: ' + err.message + '</div>'); });
 }
 
-function copyText(text) {
+function copyText() {
+    var text = document.getElementById('presensiLinkDisplay').value;
     try {
         navigator.clipboard.writeText(text).then(function() { alert('✅ Disalin!'); });
     } catch(e) {
@@ -1302,7 +1326,7 @@ function openPresensiLink() {
 // ============ PRESENSI SISWA ============
 function loadPresensiSiswa() {
     var container = document.getElementById('presensiFormContent');
-    container.innerHTML = '<div class="alert alert-info">📌 Fitur presensi siswa sedang dalam pengembangan.</div>';
+    container.innerHTML = '<div class="alert alert-info">📌 Fitur presensi siswa akan segera hadir.</div>';
 }
 
 function keluarPresensi() {
