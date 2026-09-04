@@ -425,7 +425,7 @@
 </div>
 
 <script>
-// FIREBASE
+// ============ FIREBASE ============
 var firebaseConfig = {
     apiKey: "AIzaSyA2AQNbuiqycFQ4S-vsthw9NFMNyb-acFA",
     authDomain: "sosio-digital.firebaseapp.com",
@@ -437,7 +437,7 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 
-// LOCAL STORAGE
+// ============ LOCAL STORAGE ============
 var USER_KEY = 'SIMBK_USERS';
 var SESSION_KEY = 'SIMBK_SESSION';
 var SCHOOL_KEY = 'SIMBK_SCHOOL';
@@ -456,7 +456,7 @@ function getSchoolData() {
 }
 function saveSchoolData(data) { localStorage.setItem(SCHOOL_KEY, JSON.stringify(data)); }
 
-// BUAT USER DEMO OTOMATIS
+// ============ BUAT USER DEMO OTOMATIS ============
 var users = getUsers();
 if (Object.keys(users).length === 0) {
     users["admin@sekolah.com"] = {
@@ -469,7 +469,7 @@ if (Object.keys(users).length === 0) {
     console.log('✅ User demo otomatis dibuat');
 }
 
-// VARIABEL
+// ============ VARIABEL ============
 var currentUser = null;
 var schoolData = { name: '', year: '', address: '' };
 var allStudents = [];
@@ -480,7 +480,7 @@ var totalStudents = 0;
 var filteredStudents = [];
 var selectedStudents = {};
 
-// AUTH
+// ============ FUNGSI AUTH ============
 function showLoginPage() {
     document.getElementById('loginPage').style.display = 'block';
     document.getElementById('registerPage').style.display = 'none';
@@ -605,7 +605,7 @@ function checkSession() {
     return false;
 }
 
-// ENTER KEY
+// ============ ENTER KEY ============
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         if (document.getElementById('loginPage').style.display !== 'none') {
@@ -735,6 +735,7 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// ============ STUDENTS ============
 function loadStudents() {
     var container = document.getElementById('studentList');
     container.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat data siswa...</div>';
@@ -908,6 +909,7 @@ function deleteStudent(id) {
     db.collection('students').doc(id).delete().then(function() { loadStudents(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
+// ============ TEACHERS ============
 function loadTeachers() {
     var container = document.getElementById('teacherList');
     db.collection('teachers').orderBy('name').get().then(function(snapshot) {
@@ -942,6 +944,7 @@ function deleteTeacher(id) {
     db.collection('teachers').doc(id).delete().then(function() { loadTeachers(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
+// ============ COUNSELING ============
 function loadCounseling() {
     var container = document.getElementById('counselingList');
     var classFilter = document.getElementById('filterCounselingClass').value;
@@ -987,6 +990,7 @@ function deleteCounseling(id) {
     db.collection('counseling').doc(id).delete().then(function() { loadCounseling(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
+// ============ PARENT CALL ============
 function loadParentCalls() {
     var container = document.getElementById('parentCallList');
     db.collection('parentCalls').orderBy('date', 'desc').get().then(function(snapshot) {
@@ -1027,6 +1031,7 @@ function deleteParentCall(id) {
     db.collection('parentCalls').doc(id).delete().then(function() { loadParentCalls(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
+// ============ HOME VISIT ============
 function loadHomeVisits() {
     var container = document.getElementById('homeVisitList');
     db.collection('homeVisits').orderBy('date', 'desc').get().then(function(snapshot) {
@@ -1067,6 +1072,7 @@ function deleteHomeVisit(id) {
     db.collection('homeVisits').doc(id).delete().then(function() { loadHomeVisits(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
+// ============ INCIDENT ============
 function loadIncidents() {
     var container = document.getElementById('incidentList');
     var classFilter = document.getElementById('filterIncidentClass').value;
@@ -1114,6 +1120,7 @@ function deleteIncident(id) {
     db.collection('incidents').doc(id).delete().then(function() { loadIncidents(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
+// ============ MUTATION ============
 function loadMutations() {
     var container = document.getElementById('mutationList');
     var classFilter = document.getElementById('filterMutationClass').value;
@@ -1159,6 +1166,7 @@ function deleteMutation(id) {
     db.collection('mutations').doc(id).delete().then(function() { loadMutations(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
+// ============ GRADUATION ============
 function loadGraduations() {
     var container = document.getElementById('graduationList');
     var yearFilter = document.getElementById('filterGraduationYear').value;
@@ -1207,6 +1215,7 @@ function deleteGraduation(id) {
     db.collection('graduations').doc(id).delete().then(function() { loadGraduations(); updateDashboard(); }).catch(function(err) { alert('Gagal menghapus: ' + err.message); });
 }
 
+// ============ PRESENSI ============
 function loadPresensiRekap() {
     var container = document.getElementById('presensiRekapContainer');
     container.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat data presensi...</div>';
@@ -1306,6 +1315,7 @@ function keluarPresensi() {
     showTab('presensi');
 }
 
+// ============ DASHBOARD ============
 function updateDashboard() {
     db.collection('students').get().then(function(snapshot) { document.getElementById('statTotalStudents').textContent = snapshot.size; });
     db.collection('teachers').get().then(function(snapshot) { document.getElementById('statTeachers').textContent = snapshot.size; });
@@ -1358,9 +1368,11 @@ function loadRecentActivities() {
         }
         html += '</div>';
         container.innerHTML = html;
-    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat aktivitas: ' + err.message + '</div>'); });
+    }).catch(function(err) { container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat aktivitas: ' + err.message + '</div>');
+    });
 }
 
+// ============ SETTINGS ============
 function saveSettings() {
     var name = document.getElementById('settingsSchool').value.trim();
     var year = document.getElementById('settingsYear').value.trim();
@@ -1437,7 +1449,7 @@ function resetAllData() {
     }).catch(function(err) { alert('❌ Gagal reset: ' + err.message); });
 }
 
-// PRESENSI MODE
+// ============ PRESENSI MODE ============
 (function() {
     var params = new URLSearchParams(window.location.search);
     var mode = params.get('mode');
@@ -1470,7 +1482,7 @@ function resetAllData() {
     }
 })();
 
-// CEK SESSION AWAL
+// ============ CEK SESSION AWAL ============
 if (!checkSession()) {
     showLoginPage();
 }
