@@ -7,13 +7,12 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
-        /* ============ RESET & VARIABEL ============ */
         *{margin:0;padding:0;box-sizing:border-box}
         :root{--primary:#1a5a9e;--primary-dark:#0d3b6b;--primary-light:#e8f0fe;--secondary:#f4b400;--success:#159a7c;--danger:#d96b7b;--warning:#f4b400;--gray:#6b7d90;--gray-light:#e8edf2;--shadow:0 2px 12px rgba(0,0,0,0.08);--radius:12px;--sidebar-width:220px}
         body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;color:#1a2a3a;display:flex;min-height:100vh}
         a{text-decoration:none;color:var(--primary);cursor:pointer}
 
-        /* ============ SIDEBAR ============ */
+        /* SIDEBAR */
         .sidebar{width:var(--sidebar-width);background:linear-gradient(180deg,var(--primary-dark),var(--primary));color:#fff;min-height:100vh;padding:16px 0;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
         .sidebar-brand{padding:0 20px 16px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:12px}
         .sidebar-brand h1{font-size:22px;font-weight:800}
@@ -29,19 +28,20 @@
         .sidebar-user .btn-logout{background:var(--danger);color:#fff;border:0;padding:4px 12px;border-radius:4px;cursor:pointer;font-weight:600;font-size:11px}
         .sidebar-user .btn-logout:hover{background:#c45566}
 
-        /* ============ MAIN CONTENT ============ */
+        /* MAIN CONTENT */
         .main-content{margin-left:var(--sidebar-width);flex:1;padding:16px 20px;min-height:100vh}
         .main-header{background:#fff;border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;box-shadow:var(--shadow);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
         .main-header .title{font-size:18px;font-weight:700;color:var(--primary-dark)}
         .main-header .title small{font-weight:400;font-size:13px;color:var(--gray)}
         .main-header .user-info{display:flex;align-items:center;gap:12px;font-size:13px}
 
-        /* ============ PANEL & CARD ============ */
+        /* PANEL */
         .panel{background:#fff;border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;box-shadow:var(--shadow)}
         .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
         .panel-header h2{font-size:17px;color:var(--primary-dark)}
         .panel-header .actions{display:flex;gap:6px;flex-wrap:wrap}
 
+        /* STATS */
         .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:14px}
         .stat-card{background:#fff;padding:12px 16px;border-radius:var(--radius);box-shadow:var(--shadow);border-left:4px solid var(--primary)}
         .stat-card .number{font-size:24px;font-weight:800;color:var(--primary-dark)}
@@ -53,7 +53,7 @@
         .stat-card.warning{border-left-color:var(--warning)}
         .stat-card.warning .number{color:#b8860b}
 
-        /* ============ FORM ============ */
+        /* FORM */
         .form-group{margin-bottom:12px}
         .form-group label{display:block;font-weight:600;font-size:13px;color:var(--primary-dark);margin-bottom:3px}
         .form-group label .required{color:var(--danger)}
@@ -62,7 +62,7 @@
         .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
         textarea.form-control{min-height:70px;resize:vertical}
 
-        /* ============ BUTTON ============ */
+        /* BUTTON */
         .btn{padding:7px 16px;border:0;border-radius:8px;font-weight:600;font-size:12px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:5px;justify-content:center}
         .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.12)}
         .btn-primary{background:var(--primary);color:#fff}
@@ -77,21 +77,21 @@
         .btn-outline:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
         .btn-sm{padding:4px 10px;font-size:10px}
 
-        /* ============ TABLE ============ */
+        /* TABLE */
         .table-wrap{overflow-x:auto;border:1px solid var(--gray-light);border-radius:8px;max-height:450px;overflow-y:auto}
         table{width:100%;border-collapse:collapse;font-size:12px}
         table th{background:var(--primary-dark);color:#fff;padding:8px 12px;text-align:left;font-weight:600;font-size:11px;position:sticky;top:0;z-index:10}
         table td{padding:7px 12px;border-bottom:1px solid var(--gray-light);vertical-align:middle}
         table tr:hover{background:#f8fafc}
 
-        /* ============ BADGE ============ */
+        /* BADGE */
         .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:600}
         .badge-info{background:#d1ecf1;color:#0c5460}
         .badge-success{background:#d4edda;color:#155724}
         .badge-danger{background:#f8d7da;color:#721c24}
         .badge-warning{background:#fff3cd;color:#856404}
 
-        /* ============ MODAL ============ */
+        /* MODAL */
         .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;justify-content:center;align-items:center}
         .modal.active{display:flex}
         .modal-box{background:#fff;border-radius:var(--radius);padding:24px;max-width:550px;width:95%;max-height:90vh;overflow-y:auto}
@@ -100,23 +100,23 @@
         .close-btn{background:none;border:0;font-size:26px;cursor:pointer;color:var(--gray);padding:0 4px}
         .close-btn:hover{color:var(--danger)}
 
-        /* ============ ALERT ============ */
+        /* ALERT */
         .alert{padding:10px 14px;border-radius:8px;margin-bottom:10px;font-size:13px}
         .alert-danger{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
         .alert-success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
         .alert-info{background:#d1ecf1;color:#0c5460;border:1px solid #bee5eb}
         .alert-warning{background:#fff3cd;color:#856404;border:1px solid #ffeeba}
 
-        /* ============ TAB CONTENT ============ */
+        /* TAB CONTENT */
         .tab-content{display:none}
         .tab-content.active{display:block}
 
-        /* ============ LOADING ============ */
+        /* LOADING */
         .loading{text-align:center;padding:30px;color:var(--gray)}
         .spinner{display:inline-block;width:28px;height:28px;border:3px solid var(--gray-light);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
         @keyframes spin{to{transform:rotate(360deg)}}
 
-        /* ============ PAGINATION ============ */
+        /* PAGINATION */
         .pagination{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:10px;gap:6px}
         .pagination .pages{display:flex;gap:3px;flex-wrap:wrap}
         .pagination .page-btn{padding:3px 9px;border:1px solid var(--gray-light);border-radius:4px;background:#fff;cursor:pointer;font-size:11px;font-weight:600;transition:.2s}
@@ -124,17 +124,26 @@
         .pagination .page-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
         .pagination .page-btn:disabled{opacity:0.5;cursor:not-allowed}
 
-        /* ============ TOOLBAR ============ */
+        /* TOOLBAR */
         .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
         .toolbar .form-control{width:auto;min-width:130px;padding:5px 10px;font-size:12px}
 
-        /* ============ FOOTER ============ */
+        /* FOOTER */
         .footer{text-align:center;padding:12px;color:var(--gray);font-size:10px;border-top:1px solid var(--gray-light);margin-top:12px;background:#fff;border-radius:var(--radius)}
 
-        /* ============ SETTINGS GRID ============ */
+        /* SETTINGS GRID */
         .settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
 
-        /* ============ RESPONSIVE ============ */
+        /* SELECT ALL */
+        .select-all-container{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 12px;background:#f8fafc;border-radius:6px;border:1px solid var(--gray-light);flex-wrap:wrap}
+        .select-all-container input[type="checkbox"]{width:18px;height:18px;cursor:pointer}
+        .select-all-container label{font-size:12px;font-weight:600;color:var(--primary-dark);cursor:pointer;margin:0}
+        .select-all-container .btn-hapus-massal{background:var(--danger);color:#fff;border:0;padding:4px 16px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;margin-left:auto;transition:.2s}
+        .select-all-container .btn-hapus-massal:hover{background:#c45566}
+        .select-all-container .btn-hapus-massal:disabled{opacity:0.5;cursor:not-allowed}
+        .student-checkbox{width:18px;height:18px;cursor:pointer}
+
+        /* RESPONSIVE */
         @media(max-width:768px){
             .sidebar{width:60px;padding:10px 0}
             .sidebar-brand h1{font-size:14px;text-align:center}
@@ -149,6 +158,7 @@
             .form-row{grid-template-columns:1fr}
             .panel-header{flex-direction:column;align-items:stretch}
             .panel-header .actions{justify-content:flex-start}
+            .modal-box{padding:16px}
         }
         @media print{.no-print{display:none!important}}
     </style>
@@ -591,21 +601,19 @@ var currentPage = 1;
 var pageSize = 20;
 var totalStudents = 0;
 var filteredStudents = [];
+var selectedStudents = {};
 
 // ============ FUNGSI ============
 function showTab(tabId) {
-    // Update sidebar
     var navItems = document.querySelectorAll('.sidebar-nav .nav-item');
     for (var i = 0; i < navItems.length; i++) navItems[i].classList.remove('active');
     var activeBtn = document.querySelector('.sidebar-nav .nav-item[onclick="showTab(\'' + tabId + '\')"]');
     if (activeBtn) activeBtn.classList.add('active');
     
-    // Update content
     var tabs = document.querySelectorAll('.tab-content');
     for (var j = 0; j < tabs.length; j++) tabs[j].classList.remove('active');
     document.getElementById('tab-' + tabId).classList.add('active');
     
-    // Update title
     var titles = {
         'dashboard': '📊 Dashboard',
         'students': '👨‍🎓 Data Siswa',
@@ -621,7 +629,6 @@ function showTab(tabId) {
     };
     document.querySelector('.main-header .title').innerHTML = titles[tabId] + ' <small>Sistem Informasi Manajemen Bimbingan Konseling</small>';
     
-    // Load data
     if (tabId === 'students') loadStudents();
     else if (tabId === 'teachers') loadTeachers();
     else if (tabId === 'counseling') loadCounseling();
@@ -639,6 +646,24 @@ function openModal(id) {
     var today = new Date().toISOString().split('T')[0];
     var dateInput = document.getElementById(id.replace('Modal', 'Date'));
     if (dateInput) dateInput.value = today;
+    if (id === 'studentModal') {
+        document.getElementById('studentName').value = '';
+        document.getElementById('studentClass').value = '';
+        document.getElementById('studentYear').value = schoolData.year || '';
+        document.getElementById('studentNISN').value = '';
+    }
+    if (id === 'bulkStudentModal') {
+        document.getElementById('bulkClass').value = '';
+        document.getElementById('bulkYear').value = schoolData.year || '';
+        document.getElementById('bulkStudents').value = '';
+    }
+    if (id === 'teacherModal') {
+        document.getElementById('teacherName').value = '';
+        document.getElementById('teacherClasses').value = '';
+    }
+    if (id === 'counselingModal' || id === 'parentCallModal' || id === 'homeVisitModal' || id === 'incidentModal' || id === 'mutationModal' || id === 'graduationModal') {
+        populateClassDropdowns();
+    }
 }
 
 function closeModal(id) {
@@ -684,61 +709,77 @@ function openPresensiLink() {
     window.open(link, '_blank');
 }
 
+function populateClassDropdowns() {
+    var classes = new Set();
+    for (var i = 0; i < allStudents.length; i++) {
+        if (allStudents[i].class) classes.add(allStudents[i].class);
+    }
+    var classArray = Array.from(classes).sort();
+    var dropdownIds = ['counselingClassSelect', 'parentCallClassSelect', 'homeVisitClassSelect', 'incidentClassSelect', 'mutationClassSelect', 'graduationClassSelect'];
+    for (var d = 0; d < dropdownIds.length; d++) {
+        var select = document.getElementById(dropdownIds[d]);
+        if (!select) continue;
+        var currentVal = select.value;
+        select.innerHTML = '<option value="">Pilih Kelas</option>';
+        for (var j = 0; j < classArray.length; j++) {
+            select.innerHTML += '<option value="' + classArray[j] + '">' + classArray[j] + '</option>';
+        }
+        select.value = currentVal;
+    }
+}
+
+function populateFilteredStudents(selectId, classFilter) {
+    var select = document.getElementById(selectId);
+    if (!select) return;
+    var currentVal = select.value;
+    select.innerHTML = '<option value="">Pilih Siswa</option>';
+    var filtered = allStudents;
+    if (classFilter) {
+        filtered = allStudents.filter(function(s) { return s.class === classFilter; });
+    }
+    var sorted = filtered.slice().sort(function(a, b) { return a.name.localeCompare(b.name); });
+    for (var i = 0; i < sorted.length; i++) {
+        var s = sorted[i];
+        select.innerHTML += '<option value="' + s.id + '">' + s.name + '</option>';
+    }
+    select.value = currentVal;
+}
+
+function updateCounselingStudent() { var v = document.getElementById('counselingClassSelect').value; populateFilteredStudents('counselingStudent', v); }
+function updateParentCallStudent() { var v = document.getElementById('parentCallClassSelect').value; populateFilteredStudents('parentCallStudent', v); }
+function updateHomeVisitStudent() { var v = document.getElementById('homeVisitClassSelect').value; populateFilteredStudents('homeVisitStudent', v); }
+function updateIncidentStudent() { var v = document.getElementById('incidentClassSelect').value; populateFilteredStudents('incidentStudent', v); }
+function updateMutationStudent() { var v = document.getElementById('mutationClassSelect').value; populateFilteredStudents('mutationStudent', v); }
+function updateGraduationStudent() { var v = document.getElementById('graduationClassSelect').value; populateFilteredStudents('graduationStudent', v); }
+
 // ============ CETAK LAPORAN ============
 function cetakLaporan(jenis) {
     var title = '';
     var content = '';
     var table = null;
     
-    if (jenis === 'siswa') {
-        title = '📋 LAPORAN DATA SISWA';
-        table = document.querySelector('#tab-students .table-wrap');
-        if (!table || !table.innerHTML || table.innerHTML.includes('Tidak ada')) { alert('⚠️ Tidak ada data siswa untuk dicetak!'); return; }
-        content = table.innerHTML;
-    } else if (jenis === 'guru') {
-        title = '📋 LAPORAN GURU BK';
-        table = document.querySelector('#tab-teachers .table-wrap');
-        if (!table || !table.innerHTML || table.innerHTML.includes('Tidak ada')) { alert('⚠️ Tidak ada data guru untuk dicetak!'); return; }
-        content = table.innerHTML;
-    } else if (jenis === 'konseling') {
-        title = '📋 LAPORAN KONSELING';
-        table = document.querySelector('#tab-counseling .table-wrap');
-        if (!table || !table.innerHTML || table.innerHTML.includes('Tidak ada')) { alert('⚠️ Tidak ada data konseling untuk dicetak!'); return; }
-        content = table.innerHTML;
-    } else if (jenis === 'panggilan') {
-        title = '📋 LAPORAN PANGGILAN ORANG TUA';
-        table = document.querySelector('#tab-parent-call .table-wrap');
-        if (!table || !table.innerHTML || table.innerHTML.includes('Tidak ada')) { alert('⚠️ Tidak ada data panggilan untuk dicetak!'); return; }
-        content = table.innerHTML;
-    } else if (jenis === 'homevisit') {
-        title = '📋 LAPORAN HOME VISIT';
-        table = document.querySelector('#tab-home-visit .table-wrap');
-        if (!table || !table.innerHTML || table.innerHTML.includes('Tidak ada')) { alert('⚠️ Tidak ada data home visit untuk dicetak!'); return; }
-        content = table.innerHTML;
-    } else if (jenis === 'kejadian') {
-        title = '📋 LAPORAN KEJADIAN';
-        table = document.querySelector('#tab-incident .table-wrap');
-        if (!table || !table.innerHTML || table.innerHTML.includes('Tidak ada')) { alert('⚠️ Tidak ada data kejadian untuk dicetak!'); return; }
-        content = table.innerHTML;
-    } else if (jenis === 'mutasi') {
-        title = '📋 LAPORAN MUTASI SISWA';
-        table = document.querySelector('#tab-mutation .table-wrap');
-        if (!table || !table.innerHTML || table.innerHTML.includes('Tidak ada')) { alert('⚠️ Tidak ada data mutasi untuk dicetak!'); return; }
-        content = table.innerHTML;
-    } else if (jenis === 'lulusan') {
-        title = '📋 LAPORAN LULUSAN SNBP/SNBT';
-        table = document.querySelector('#tab-graduation .table-wrap');
-        if (!table || !table.innerHTML || table.innerHTML.includes('Tidak ada')) { alert('⚠️ Tidak ada data lulusan untuk dicetak!'); return; }
-        content = table.innerHTML;
-    } else if (jenis === 'presensi') {
-        title = '📋 LAPORAN PRESENSI';
-        table = document.querySelector('#tab-presensi .table-wrap');
-        if (!table || !table.innerHTML || table.innerHTML.includes('Tidak ada')) { alert('⚠️ Tidak ada data presensi untuk dicetak!'); return; }
-        content = table.innerHTML;
-    } else {
-        alert('⚠️ Jenis laporan tidak dikenal!');
+    var map = {
+        'siswa': { title: '📋 LAPORAN DATA SISWA', tab: 'tab-students', empty: 'Tidak ada data siswa' },
+        'guru': { title: '📋 LAPORAN GURU BK', tab: 'tab-teachers', empty: 'Tidak ada data guru' },
+        'konseling': { title: '📋 LAPORAN KONSELING', tab: 'tab-counseling', empty: 'Tidak ada data konseling' },
+        'panggilan': { title: '📋 LAPORAN PANGGILAN ORANG TUA', tab: 'tab-parent-call', empty: 'Tidak ada data panggilan' },
+        'homevisit': { title: '📋 LAPORAN HOME VISIT', tab: 'tab-home-visit', empty: 'Tidak ada data home visit' },
+        'kejadian': { title: '📋 LAPORAN KEJADIAN', tab: 'tab-incident', empty: 'Tidak ada data kejadian' },
+        'mutasi': { title: '📋 LAPORAN MUTASI SISWA', tab: 'tab-mutation', empty: 'Tidak ada data mutasi' },
+        'lulusan': { title: '📋 LAPORAN LULUSAN SNBP/SNBT', tab: 'tab-graduation', empty: 'Tidak ada data lulusan' },
+        'presensi': { title: '📋 LAPORAN PRESENSI', tab: 'tab-presensi', empty: 'Tidak ada data presensi' }
+    };
+    
+    var info = map[jenis];
+    if (!info) { alert('⚠️ Jenis laporan tidak dikenal!'); return; }
+    title = info.title;
+    
+    table = document.querySelector('#' + info.tab + ' .table-wrap');
+    if (!table || !table.innerHTML || table.innerHTML.includes(info.empty)) {
+        alert('⚠️ ' + info.empty + ' untuk dicetak!');
         return;
     }
+    content = table.innerHTML;
     
     var w = window.open('', '_blank', 'width=900,height=700');
     if (!w) { alert('⚠️ Izinkan pop-up untuk mencetak.'); return; }
@@ -803,6 +844,7 @@ function loadStudents() {
         
         totalStudents = filteredStudents.length;
         currentPage = 1;
+        selectedStudents = {};
         renderStudents();
         updateDashboard();
     }).catch(function(err) {
@@ -821,10 +863,34 @@ function renderStudents() {
         return;
     }
     
-    var html = '<div class="table-wrap"><table><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Tahun</th><th>NISN</th><th>JK</th><th>Aksi</th></tr></thead><tbody>';
+    var selectedCount = 0;
+    var allChecked = true;
+    for (var j = 0; j < pageData.length; j++) {
+        var s = pageData[j];
+        if (selectedStudents[s.id]) { selectedCount++; } else { allChecked = false; }
+    }
+    
+    var html = '<div class="select-all-container">';
+    html += '<input type="checkbox" id="selectAllCheckbox" ' + (allChecked && pageData.length > 0 ? 'checked' : '') + ' onchange="toggleSelectAll()">';
+    html += '<label for="selectAllCheckbox">Pilih Semua</label>';
+    html += '<span style="font-size:11px;color:var(--gray);">(' + selectedCount + '/' + pageData.length + ')</span>';
+    html += '<button class="btn-hapus-massal" id="btnHapusMassal" onclick="hapusMassal()" ' + (selectedCount === 0 ? 'disabled' : '') + '>🗑️ Hapus ' + (selectedCount > 0 ? selectedCount : '') + ' Terpilih</button>';
+    html += '</div>';
+    html += '<div class="table-wrap"><table><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Tahun</th><th>NISN</th><th>JK</th><th>Aksi</th></tr></thead><tbody>';
     for (var i = 0; i < pageData.length; i++) {
         var s = pageData[i];
-        html += '<tr><td>' + (start + i + 1) + '</td><td><strong>' + s.name + '</strong></td><td><span class="badge badge-info">' + (s.class || '-') + '</span></td><td>' + (s.year || '-') + '</td><td>' + (s.nisn || '-') + '</td><td>' + (s.gender || '-') + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteStudent(\'' + s.id + '\')">🗑️</button></td></tr>';
+        var no = start + i + 1;
+        var checked = selectedStudents[s.id] ? 'checked' : '';
+        html += '<tr>';
+        html += '<td>' + no + '</td>';
+        html += '<td><input type="checkbox" class="student-checkbox" data-id="' + s.id + '" ' + checked + ' onchange="toggleStudent(\'' + s.id + '\')"></td>';
+        html += '<td><strong>' + s.name + '</strong></td>';
+        html += '<td><span class="badge badge-info">' + (s.class || '-') + '</span></td>';
+        html += '<td>' + (s.year || '-') + '</td>';
+        html += '<td>' + (s.nisn || '-') + '</td>';
+        html += '<td>' + (s.gender || '-') + '</td>';
+        html += '<td><button class="btn btn-danger btn-sm" onclick="deleteStudent(\'' + s.id + '\')">🗑️</button></td>';
+        html += '</tr>';
     }
     html += '</tbody></table></div>';
     
@@ -848,6 +914,55 @@ function goToPage(page) {
     if (page < 1 || page > totalPages) return;
     currentPage = page;
     renderStudents();
+}
+
+function toggleStudent(id) {
+    if (selectedStudents[id]) { delete selectedStudents[id]; } else { selectedStudents[id] = true; }
+    updateHapusButton();
+}
+
+function toggleSelectAll() {
+    var checked = document.getElementById('selectAllCheckbox').checked;
+    var start = (currentPage - 1) * pageSize;
+    var end = Math.min(start + pageSize, totalStudents);
+    var pageData = filteredStudents.slice(start, end);
+    for (var j = 0; j < pageData.length; j++) {
+        var s = pageData[j];
+        if (checked) { selectedStudents[s.id] = true; } else { delete selectedStudents[s.id]; }
+    }
+    var checkboxes = document.querySelectorAll('.student-checkbox');
+    for (var k = 0; k < checkboxes.length; k++) { checkboxes[k].checked = checked; }
+    updateHapusButton();
+}
+
+function updateHapusButton() {
+    var btn = document.getElementById('btnHapusMassal');
+    var count = Object.keys(selectedStudents).length;
+    if (btn) {
+        if (count === 0) { btn.disabled = true; btn.textContent = '🗑️ Hapus Terpilih'; } 
+        else { btn.disabled = false; btn.textContent = '🗑️ Hapus ' + count + ' Terpilih'; }
+    }
+}
+
+function hapusMassal() {
+    var ids = Object.keys(selectedStudents);
+    if (ids.length === 0) { alert('⚠️ Pilih siswa terlebih dahulu!'); return; }
+    if (!confirm('⚠️ Hapus ' + ids.length + ' siswa secara permanen?')) return;
+    
+    var container = document.getElementById('studentList');
+    container.innerHTML = '<div class="loading"><span class="spinner"></span> Menghapus ' + ids.length + ' siswa...</div>';
+    
+    var promises = [];
+    for (var i = 0; i < ids.length; i++) {
+        promises.push(db.collection('students').doc(ids[i]).delete().catch(function(err) { console.log('Gagal hapus: ' + err.message); }));
+    }
+    Promise.all(promises).then(function() {
+        for (var i = 0; i < ids.length; i++) { delete selectedStudents[ids[i]]; }
+        container.innerHTML = '<div class="alert alert-success">✅ ' + ids.length + ' siswa berhasil dihapus!</div>';
+        setTimeout(function() { loadStudents(); updateDashboard(); }, 1000);
+    }).catch(function(err) {
+        container.innerHTML = '<div class="alert alert-danger">❌ Gagal menghapus: ' + err.message + '</div>';
+    });
 }
 
 function saveStudent() {
@@ -976,16 +1091,6 @@ function deleteCounseling(id) {
     db.collection('counseling').doc(id).delete().then(function() { loadCounseling(); updateDashboard(); }).catch(function(err) { alert('Gagal: ' + err.message); });
 }
 
-function updateCounselingStudent() {
-    var classVal = document.getElementById('counselingClassSelect').value;
-    var select = document.getElementById('counselingStudent');
-    select.innerHTML = '<option value="">Pilih Siswa</option>';
-    var filtered = allStudents.filter(function(s) { return s.class === classVal; });
-    for (var i = 0; i < filtered.length; i++) {
-        select.innerHTML += '<option value="' + filtered[i].id + '">' + filtered[i].name + '</option>';
-    }
-}
-
 // ============ PARENT CALL ============
 function loadParentCalls() {
     var container = document.getElementById('parentCallList');
@@ -1027,16 +1132,6 @@ function deleteParentCall(id) {
     db.collection('parentCalls').doc(id).delete().then(function() { loadParentCalls(); updateDashboard(); }).catch(function(err) { alert('Gagal: ' + err.message); });
 }
 
-function updateParentCallStudent() {
-    var classVal = document.getElementById('parentCallClassSelect').value;
-    var select = document.getElementById('parentCallStudent');
-    select.innerHTML = '<option value="">Pilih Siswa</option>';
-    var filtered = allStudents.filter(function(s) { return s.class === classVal; });
-    for (var i = 0; i < filtered.length; i++) {
-        select.innerHTML += '<option value="' + filtered[i].id + '">' + filtered[i].name + '</option>';
-    }
-}
-
 // ============ HOME VISIT ============
 function loadHomeVisits() {
     var container = document.getElementById('homeVisitList');
@@ -1076,16 +1171,6 @@ function saveHomeVisit() {
 function deleteHomeVisit(id) {
     if (!confirm('Yakin ingin menghapus?')) return;
     db.collection('homeVisits').doc(id).delete().then(function() { loadHomeVisits(); updateDashboard(); }).catch(function(err) { alert('Gagal: ' + err.message); });
-}
-
-function updateHomeVisitStudent() {
-    var classVal = document.getElementById('homeVisitClassSelect').value;
-    var select = document.getElementById('homeVisitStudent');
-    select.innerHTML = '<option value="">Pilih Siswa</option>';
-    var filtered = allStudents.filter(function(s) { return s.class === classVal; });
-    for (var i = 0; i < filtered.length; i++) {
-        select.innerHTML += '<option value="' + filtered[i].id + '">' + filtered[i].name + '</option>';
-    }
 }
 
 // ============ INCIDENT ============
@@ -1136,16 +1221,6 @@ function deleteIncident(id) {
     db.collection('incidents').doc(id).delete().then(function() { loadIncidents(); updateDashboard(); }).catch(function(err) { alert('Gagal: ' + err.message); });
 }
 
-function updateIncidentStudent() {
-    var classVal = document.getElementById('incidentClassSelect').value;
-    var select = document.getElementById('incidentStudent');
-    select.innerHTML = '<option value="">Pilih Siswa</option>';
-    var filtered = allStudents.filter(function(s) { return s.class === classVal; });
-    for (var i = 0; i < filtered.length; i++) {
-        select.innerHTML += '<option value="' + filtered[i].id + '">' + filtered[i].name + '</option>';
-    }
-}
-
 // ============ MUTATION ============
 function loadMutations() {
     var container = document.getElementById('mutationList');
@@ -1191,16 +1266,6 @@ function saveMutation() {
 function deleteMutation(id) {
     if (!confirm('Yakin ingin menghapus?')) return;
     db.collection('mutations').doc(id).delete().then(function() { loadMutations(); updateDashboard(); }).catch(function(err) { alert('Gagal: ' + err.message); });
-}
-
-function updateMutationStudent() {
-    var classVal = document.getElementById('mutationClassSelect').value;
-    var select = document.getElementById('mutationStudent');
-    select.innerHTML = '<option value="">Pilih Siswa</option>';
-    var filtered = allStudents.filter(function(s) { return s.class === classVal; });
-    for (var i = 0; i < filtered.length; i++) {
-        select.innerHTML += '<option value="' + filtered[i].id + '">' + filtered[i].name + '</option>';
-    }
 }
 
 // ============ GRADUATION ============
@@ -1250,16 +1315,6 @@ function deleteGraduation(id) {
     db.collection('graduations').doc(id).delete().then(function() { loadGraduations(); updateDashboard(); }).catch(function(err) { alert('Gagal: ' + err.message); });
 }
 
-function updateGraduationStudent() {
-    var classVal = document.getElementById('graduationClassSelect').value;
-    var select = document.getElementById('graduationStudent');
-    select.innerHTML = '<option value="">Pilih Siswa</option>';
-    var filtered = allStudents.filter(function(s) { return s.class === classVal; });
-    for (var i = 0; i < filtered.length; i++) {
-        select.innerHTML += '<option value="' + filtered[i].id + '">' + filtered[i].name + '</option>';
-    }
-}
-
 // ============ PRESENSI ============
 function loadPresensi() {
     var container = document.getElementById('presensiList');
@@ -1272,12 +1327,12 @@ function loadPresensi() {
         dateFilter = today;
     }
     
-    db.collection('presensiHarian').orderBy('tanggal', 'desc').limit(30).get().then(function(snapshot) {
+    db.collection('presensiHarian').orderBy('tanggal', 'desc').limit(50).get().then(function(snapshot) {
         var items = [];
         snapshot.forEach(function(doc) { var data = doc.data(); data.id = doc.id; items.push(data); });
         if (classFilter) items = items.filter(function(p) { return p.kelas === classFilter; });
         if (dateFilter) items = items.filter(function(p) { return p.tanggal === dateFilter; });
-        if (items.length === 0) { container.innerHTML = '<div class="alert alert-info">📭 Belum ada presensi.</div>'; return; }
+        if (items.length === 0) { container.innerHTML = '<div class="alert alert-info">📭 Belum ada presensi untuk tanggal ini.</div>'; return; }
         var html = '<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alfa</th><th>Aksi</th></tr></thead><tbody>';
         for (var i = 0; i < items.length; i++) {
             var p = items[i];
@@ -1492,28 +1547,83 @@ function loadPresensiSiswa() {
         return;
     }
     
-    var html = '<div style="margin-top:8px;"><h3 style="font-size:14px;color:#0d3b6b;">📋 ' + kelas + ' - ' + new Date(tanggal).toLocaleDateString('id-ID') + '</h3>';
-    html += '<button class="btn btn-success btn-sm" onclick="setAllHadir()" style="margin:6px 0;padding:4px 12px;">✅ Semua Hadir</button>';
-    html += '<div class="table-wrap" style="max-height:400px;"><table><thead><tr><th>No</th><th>Nama</th><th>Status</th><th>Keterangan</th></tr></thead><tbody>';
-    for (var i = 0; i < filtered.length; i++) {
-        var s = filtered[i];
-        html += '<tr>';
-        html += '<td>' + (i + 1) + '</td>';
-        html += '<td><strong>' + s.name + '</strong></td>';
-        html += '<td><select class="form-control" style="width:110px;padding:4px 6px;font-size:11px;" id="ps_' + i + '">';
-        html += '<option value="Hadir">✅ Hadir</option>';
-        html += '<option value="Sakit">🤒 Sakit</option>';
-        html += '<option value="Izin">📝 Izin</option>';
-        html += '<option value="Alfa">❌ Alfa</option>';
-        html += '</select></td>';
-        html += '<td><input type="text" class="form-control" style="width:130px;padding:4px 6px;font-size:11px;" id="pn_' + i + '" placeholder="Keterangan"></td>';
-        html += '</tr>';
+    // Cek apakah sudah ada presensi untuk tanggal ini
+    db.collection('presensiHarian').where('kelas', '==', kelas).where('tanggal', '==', tanggal).get().then(function(snapshot) {
+        var existingData = {};
+        var docId = null;
+        snapshot.forEach(function(doc) {
+            var data = doc.data();
+            docId = doc.id;
+            if (data.siswa) {
+                data.siswa.forEach(function(s) { existingData[s.nama] = { status: s.status, keterangan: s.keterangan || '' }; });
+            }
+        });
+        
+        var html = '<div style="margin-top:8px;"><h3 style="font-size:14px;color:#0d3b6b;">📋 ' + kelas + ' - ' + new Date(tanggal).toLocaleDateString('id-ID') + '</h3>';
+        if (docId) {
+            html += '<div class="alert alert-info" style="font-size:12px;">✅ Presensi sudah dilaporkan. <button class="btn btn-warning btn-sm" onclick="enableEditPresensiSiswa(\'' + docId + '\')">✏️ Edit</button></div>';
+        }
+        html += '<button class="btn btn-success btn-sm" onclick="setAllHadir()" style="margin:6px 0;padding:4px 12px;">✅ Semua Hadir</button>';
+        html += '<div class="table-wrap" style="max-height:400px;"><table><thead><tr><th>No</th><th>Nama</th><th>Status</th><th>Keterangan</th></tr></thead><tbody>';
+        for (var i = 0; i < filtered.length; i++) {
+            var s = filtered[i];
+            var existing = existingData[s.name] || {};
+            var status = existing.status || 'Hadir';
+            var keterangan = existing.keterangan || '';
+            var disabled = docId && !window._presensiEditMode ? 'disabled' : '';
+            html += '<tr>';
+            html += '<td>' + (i + 1) + '</td>';
+            html += '<td><strong>' + s.name + '</strong></td>';
+            html += '<td><select class="form-control" style="width:110px;padding:4px 6px;font-size:11px;" id="ps_' + i + '" ' + disabled + '>';
+            html += '<option value="Hadir" ' + (status === 'Hadir' ? 'selected' : '') + '>✅ Hadir</option>';
+            html += '<option value="Sakit" ' + (status === 'Sakit' ? 'selected' : '') + '>🤒 Sakit</option>';
+            html += '<option value="Izin" ' + (status === 'Izin' ? 'selected' : '') + '>📝 Izin</option>';
+            html += '<option value="Alfa" ' + (status === 'Alfa' ? 'selected' : '') + '>❌ Alfa</option>';
+            html += '</select></td>';
+            html += '<td><input type="text" class="form-control" style="width:130px;padding:4px 6px;font-size:11px;" id="pn_' + i + '" placeholder="Keterangan" value="' + keterangan + '" ' + disabled + '></td>';
+            html += '</tr>';
+        }
+        html += '</tbody></table></div>';
+        if (!docId || window._presensiEditMode) {
+            html += '<button class="btn btn-success" onclick="kirimPresensiSiswa()" style="margin-top:8px;">📤 Kirim Presensi</button>';
+        }
+        html += '<div id="presensiAlert" style="margin-top:8px;"></div>';
+        html += '</div>';
+        container.innerHTML = html;
+        window._presensiEditDocId = docId;
+    }).catch(function() {
+        // Jika error, tampilkan form tanpa cek
+        var html = '<div style="margin-top:8px;"><h3 style="font-size:14px;color:#0d3b6b;">📋 ' + kelas + ' - ' + new Date(tanggal).toLocaleDateString('id-ID') + '</h3>';
+        html += '<button class="btn btn-success btn-sm" onclick="setAllHadir()" style="margin:6px 0;padding:4px 12px;">✅ Semua Hadir</button>';
+        html += '<div class="table-wrap" style="max-height:400px;"><table><thead><tr><th>No</th><th>Nama</th><th>Status</th><th>Keterangan</th></tr></thead><tbody>';
+        for (var i = 0; i < filtered.length; i++) {
+            var s = filtered[i];
+            html += '<tr>';
+            html += '<td>' + (i + 1) + '</td>';
+            html += '<td><strong>' + s.name + '</strong></td>';
+            html += '<td><select class="form-control" style="width:110px;padding:4px 6px;font-size:11px;" id="ps_' + i + '">';
+            html += '<option value="Hadir">✅ Hadir</option>';
+            html += '<option value="Sakit">🤒 Sakit</option>';
+            html += '<option value="Izin">📝 Izin</option>';
+            html += '<option value="Alfa">❌ Alfa</option>';
+            html += '</select></td>';
+            html += '<td><input type="text" class="form-control" style="width:130px;padding:4px 6px;font-size:11px;" id="pn_' + i + '" placeholder="Keterangan"></td>';
+            html += '</tr>';
+        }
+        html += '</tbody></table></div>';
+        html += '<button class="btn btn-success" onclick="kirimPresensiSiswa()" style="margin-top:8px;">📤 Kirim Presensi</button>';
+        html += '<div id="presensiAlert" style="margin-top:8px;"></div>';
+        html += '</div>';
+        container.innerHTML = html;
+    });
+}
+
+function enableEditPresensiSiswa(docId) {
+    if (confirm('✏️ Edit presensi ini?')) {
+        window._presensiEditMode = true;
+        window._presensiEditDocId = docId;
+        loadPresensiSiswa();
     }
-    html += '</tbody></table></div>';
-    html += '<button class="btn btn-success" onclick="kirimPresensiSiswa()" style="margin-top:8px;">📤 Kirim Presensi</button>';
-    html += '<div id="presensiAlert" style="margin-top:8px;"></div>';
-    html += '</div>';
-    container.innerHTML = html;
 }
 
 function setAllHadir() {
@@ -1550,15 +1660,35 @@ function kirimPresensiSiswa() {
     }
     
     alertEl.innerHTML = '<div class="alert alert-info">⏳ Menyimpan...</div>';
-    db.collection('presensiHarian').add({
-        kelas: kelas, tanggal: tanggal, siswa: siswaData,
-        dikirimOleh: 'Ketua Kelas', createdAt: new Date().toISOString()
-    }).then(function() {
-        alertEl.innerHTML = '<div class="alert alert-success">✅ Presensi berhasil dikirim!</div>';
-        setTimeout(function() { alertEl.innerHTML = ''; }, 3000);
-    }).catch(function(err) {
-        alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
-    });
+    
+    if (window._presensiEditMode && window._presensiEditDocId) {
+        db.collection('presensiHarian').doc(window._presensiEditDocId).update({
+            siswa: siswaData, updatedAt: new Date().toISOString()
+        }).then(function() {
+            alertEl.innerHTML = '<div class="alert alert-success">✅ Presensi berhasil DIUPDATE!</div>';
+            window._presensiEditMode = false;
+            window._presensiEditDocId = null;
+            loadPresensiSiswa();
+            loadPresensi();
+            updateDashboard();
+            setTimeout(function() { alertEl.innerHTML = ''; }, 3000);
+        }).catch(function(err) {
+            alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal update: ' + err.message + '</div>';
+        });
+    } else {
+        db.collection('presensiHarian').add({
+            kelas: kelas, tanggal: tanggal, siswa: siswaData,
+            dikirimOleh: 'Ketua Kelas', createdAt: new Date().toISOString()
+        }).then(function() {
+            alertEl.innerHTML = '<div class="alert alert-success">✅ Presensi berhasil dikirim!</div>';
+            loadPresensiSiswa();
+            loadPresensi();
+            updateDashboard();
+            setTimeout(function() { alertEl.innerHTML = ''; }, 3000);
+        }).catch(function(err) {
+            alertEl.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
+        });
+    }
 }
 
 // ============ LOAD AWAL ============
@@ -1577,8 +1707,9 @@ loadGraduations();
 loadPresensi();
 updateDashboard();
 loadUsersList();
+populateClassDropdowns();
 
-console.log('✅ SIM BK siap digunakan! (Sidebar menu)');
+console.log('✅ SIM BK siap digunakan! (Sidebar + Semua Fitur)');
 console.log('🔗 Link Presensi: ' + baseUrl + '?mode=presensi');
 </script>
 </body>
