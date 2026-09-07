@@ -152,6 +152,10 @@
         .presensi-mode-only .flex-header{justify-content:center!important}
         .presensi-mode-only .panel:first-child{margin-top:0!important}
         .presensi-mode-only .header-info{justify-content:center!important}
+        .range-filter{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+        .range-filter .form-group{flex:1;min-width:150px;margin-bottom:0}
+        .range-filter .form-group label{font-size:11px;margin-bottom:2px}
+        .btn-sm{padding:6px 14px;font-size:12px}
     </style>
 </head>
 <body>
@@ -284,7 +288,7 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
                     <div class="form-row" style="flex:1;gap:10px;">
                         <div style="flex:1;"><label>Filter Kelas</label><select id="filterPresensiClass" class="form-control" onchange="loadPresensiRekap()"><option value="">Semua Kelas</option></select></div>
-                        <div style="flex:1;"><label>Periode</label><select id="filterPresensiPeriod" class="form-control" onchange="loadPresensiRekap()"><option value="daily">📅 Harian</option><option value="weekly" selected>📆 Mingguan</option><option value="monthly">📊 Bulanan</option><option value="semester">📚 Semester</option></select></div>
+                        <div style="flex:1;"><label>Periode</label><select id="filterPresensiPeriod" class="form-control" onchange="loadPresensiRekap()"><option value="daily">📅 Harian</option><option value="weekly" selected>📆 Mingguan</option><option value="monthly">📊 Bulanan</option><option value="semester">📚 Semester</option><option value="all">📂 Semua Data</option></select></div>
                         <div style="flex:1;"><label>Tanggal</label><input type="date" id="filterPresensiDate" class="form-control" onchange="loadPresensiRekap()"></div>
                     </div>
                     <span class="presensi-refresh-indicator" id="presensiRefreshStatus">🔄 Auto-refresh aktif</span>
@@ -441,6 +445,19 @@ function loadPresensiRekap(){
         return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     }
     
+    // Jika periode "all" (semua data), tidak perlu filter tanggal
+    if(period === 'all'){
+        // Ambil semua data tanpa filter tanggal
+        var queryAll = db.collection('presensiHarian').orderBy('tanggal', 'desc');
+        queryAll.get().then(function(snapshot){
+            renderPresensiData(snapshot, classFilter, 'Semua Data');
+        }).catch(function(err){
+            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+' <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">🔄 Coba Lagi</button></div>';
+        });
+        return;
+    }
+    
+    // Filter berdasarkan periode
     switch(period){
         case 'daily':
             if(dateFilter){ startDate = new Date(dateFilter); endDate = new Date(dateFilter); }
@@ -473,100 +490,121 @@ function loadPresensiRekap(){
         .orderBy('tanggal', 'desc');
     
     query.get().then(function(snapshot){
-        var items = [];
-        snapshot.forEach(function(doc){
-            var data = doc.data();
-            data.id = doc.id;
-            items.push(data);
-        });
-        
-        if(classFilter){
-            items = items.filter(function(p){ return p.kelas === classFilter; });
-        }
-        
-        if(items.length === 0){
-            container.innerHTML = '<div class="alert alert-info">📭 Belum ada laporan presensi untuk periode ini. <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">🔄 Refresh</button></div>';
-            return;
-        }
-        
-        var rekapKelas = {};
-        for(var i=0; i<items.length; i++){
-            var p = items[i];
-            if(!rekapKelas[p.kelas]){
-                rekapKelas[p.kelas] = { total:0, hadir:0, sakit:0, izin:0, alfa:0, hari:0, data:[] };
-            }
-            var siswa = p.siswa || [];
-            var hadir=0, sakit=0, izin=0, alfa=0;
-            for(var j=0; j<siswa.length; j++){
-                var status = siswa[j].status || 'Hadir';
-                if(status === 'Hadir') hadir++;
-                else if(status === 'Sakit') sakit++;
-                else if(status === 'Izin') izin++;
-                else if(status === 'Alfa') alfa++;
-            }
-            var total = hadir + sakit + izin + alfa;
-            rekapKelas[p.kelas].total += total;
-            rekapKelas[p.kelas].hadir += hadir;
-            rekapKelas[p.kelas].sakit += sakit;
-            rekapKelas[p.kelas].izin += izin;
-            rekapKelas[p.kelas].alfa += alfa;
-            rekapKelas[p.kelas].hari++;
-            rekapKelas[p.kelas].data.push({
-                tanggal: p.tanggal,
-                hadir: hadir, sakit: sakit, izin: izin, alfa: alfa, total: total,
-                dikirimOleh: p.dikirimOleh || 'Ketua Kelas'
-            });
-        }
-        
-        var html = '';
-        var kelasList = Object.keys(rekapKelas).sort();
-        var periodLabel = {'daily':'Harian','weekly':'Mingguan','monthly':'Bulanan','semester':'Semester'};
-        var label = periodLabel[period] || 'Periode';
-        var rangeText = startStr + ' s.d ' + endStr;
-        
-        html += '<div style="margin-bottom:12px;padding:10px;background:#e8f0fe;border-radius:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">';
-        html += '<div><strong>📊 Rekap Presensi '+label+'</strong> <span style="font-size:12px;color:var(--gray);">('+rangeText+')</span> | <span style="font-size:12px;color:var(--gray);">Total '+items.length+' laporan</span></div>';
-        html += '<span style="font-size:11px;color:var(--gray);">🔄 Auto-refresh setiap 30 detik</span>';
-        html += '</div>';
-        
-        for(var k=0; k<kelasList.length; k++){
-            var kelas = kelasList[k];
-            var r = rekapKelas[kelas];
-            var persen = r.total > 0 ? Math.round((r.hadir/r.total)*100) : 0;
-            
-            html += '<div class="panel" style="margin-bottom:12px;padding:12px;">';
-            html += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">';
-            html += '<h3 style="font-size:15px;color:var(--primary-dark);">📚 '+kelas+'</h3>';
-            html += '<span style="font-size:12px;color:var(--gray);">📅 '+r.hari+' hari laporan</span>';
-            html += '</div>';
-            html += '<div class="presensi-rekap-grid">';
-            html += '<div class="rekap-item hadir"><div class="num">'+r.hadir+'</div><div class="label">✅ Hadir</div></div>';
-            html += '<div class="rekap-item sakit"><div class="num">'+r.sakit+'</div><div class="label">🤒 Sakit</div></div>';
-            html += '<div class="rekap-item izin"><div class="num">'+r.izin+'</div><div class="label">📝 Izin</div></div>';
-            html += '<div class="rekap-item alfa"><div class="num">'+r.alfa+'</div><div class="label">❌ Alfa</div></div>';
-            html += '<div class="rekap-item"><div class="num" style="color:var(--primary-dark);">'+persen+'%</div><div class="label">📊 Kehadiran</div></div>';
-            html += '</div>';
-            html += '<div style="margin-top:6px;">';
-            html += '<button class="btn btn-outline btn-sm" onclick="toggleDetailPresensi(\''+kelas+'\')">📋 Detail Harian</button>';
-            html += '<div id="detail-'+kelas+'" style="display:none;margin-top:8px;font-size:12px;max-height:200px;overflow-y:auto;border:1px solid var(--gray-light);border-radius:6px;padding:8px;">';
-            for(var d=0; d<r.data.length; d++){
-                var dt = r.data[d];
-                html += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;">';
-                html += '<span>'+new Date(dt.tanggal).toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short'})+'</span>';
-                html += '<span>✅'+dt.hadir+' 🤒'+dt.sakit+' 📝'+dt.izin+' ❌'+dt.alfa+' | <strong>'+Math.round((dt.hadir/dt.total)*100)+'%</strong></span>';
-                html += '</div>';
-            }
-            html += '</div>';
-            html += '</div>';
-            html += '</div>';
-        }
-        
-        container.innerHTML = html;
+        var labelMap = {'daily':'Harian','weekly':'Mingguan','monthly':'Bulanan','semester':'Semester'};
+        var label = labelMap[period] || 'Periode';
+        renderPresensiData(snapshot, classFilter, label + ' (' + startStr + ' s.d ' + endStr + ')');
     }).catch(function(err){
         container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+' <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">🔄 Coba Lagi</button></div>';
     });
 }
+
+function renderPresensiData(snapshot, classFilter, periodLabel){
+    var container = document.getElementById('presensiRekapContainer');
+    var items = [];
+    snapshot.forEach(function(doc){
+        var data = doc.data();
+        data.id = doc.id;
+        items.push(data);
+    });
+    
+    if(classFilter){
+        items = items.filter(function(p){ return p.kelas === classFilter; });
+    }
+    
+    if(items.length === 0){
+        container.innerHTML = '<div class="alert alert-info">📭 Belum ada laporan presensi untuk periode ini. <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">🔄 Refresh</button></div>';
+        return;
+    }
+    
+    var rekapKelas = {};
+    for(var i=0; i<items.length; i++){
+        var p = items[i];
+        if(!rekapKelas[p.kelas]){
+            rekapKelas[p.kelas] = { total:0, hadir:0, sakit:0, izin:0, alfa:0, hari:0, data:[] };
+        }
+        var siswa = p.siswa || [];
+        var hadir=0, sakit=0, izin=0, alfa=0;
+        for(var j=0; j<siswa.length; j++){
+            var status = siswa[j].status || 'Hadir';
+            if(status === 'Hadir') hadir++;
+            else if(status === 'Sakit') sakit++;
+            else if(status === 'Izin') izin++;
+            else if(status === 'Alfa') alfa++;
+        }
+        var total = hadir + sakit + izin + alfa;
+        rekapKelas[p.kelas].total += total;
+        rekapKelas[p.kelas].hadir += hadir;
+        rekapKelas[p.kelas].sakit += sakit;
+        rekapKelas[p.kelas].izin += izin;
+        rekapKelas[p.kelas].alfa += alfa;
+        rekapKelas[p.kelas].hari++;
+        rekapKelas[p.kelas].data.push({
+            tanggal: p.tanggal,
+            hadir: hadir, sakit: sakit, izin: izin, alfa: alfa, total: total,
+            dikirimOleh: p.dikirimOleh || 'Ketua Kelas'
+        });
+    }
+    
+    var html = '';
+    var kelasList = Object.keys(rekapKelas).sort();
+    
+    html += '<div style="margin-bottom:12px;padding:10px;background:#e8f0fe;border-radius:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">';
+    html += '<div><strong>📊 Rekap Presensi</strong> <span style="font-size:12px;color:var(--gray);">('+periodLabel+')</span> | <span style="font-size:12px;color:var(--gray);">Total '+items.length+' laporan</span></div>';
+    html += '<span style="font-size:11px;color:var(--gray);">🔄 Auto-refresh setiap 30 detik</span>';
+    html += '</div>';
+    
+    // Jika tidak ada kelas yang ditemukan
+    if(kelasList.length === 0){
+        container.innerHTML = '<div class="alert alert-info">📭 Tidak ada data presensi untuk kelas yang dipilih. <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">🔄 Refresh</button></div>';
+        return;
+    }
+    
+    for(var k=0; k<kelasList.length; k++){
+        var kelas = kelasList[k];
+        var r = rekapKelas[kelas];
+        var persen = r.total > 0 ? Math.round((r.hadir/r.total)*100) : 0;
+        
+        html += '<div class="panel" style="margin-bottom:12px;padding:12px;">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">';
+        html += '<h3 style="font-size:15px;color:var(--primary-dark);">📚 '+kelas+'</h3>';
+        html += '<span style="font-size:12px;color:var(--gray);">📅 '+r.hari+' hari laporan</span>';
+        html += '</div>';
+        html += '<div class="presensi-rekap-grid">';
+        html += '<div class="rekap-item hadir"><div class="num">'+r.hadir+'</div><div class="label">✅ Hadir</div></div>';
+        html += '<div class="rekap-item sakit"><div class="num">'+r.sakit+'</div><div class="label">🤒 Sakit</div></div>';
+        html += '<div class="rekap-item izin"><div class="num">'+r.izin+'</div><div class="label">📝 Izin</div></div>';
+        html += '<div class="rekap-item alfa"><div class="num">'+r.alfa+'</div><div class="label">❌ Alfa</div></div>';
+        html += '<div class="rekap-item"><div class="num" style="color:var(--primary-dark);">'+persen+'%</div><div class="label">📊 Kehadiran</div></div>';
+        html += '</div>';
+        html += '<div style="margin-top:6px;">';
+        html += '<button class="btn btn-outline btn-sm" onclick="toggleDetailPresensi(\''+kelas+'\')">📋 Detail Harian</button>';
+        html += '<button class="btn btn-danger btn-sm" style="margin-left:4px;" onclick="loadDetailTidakHadirKelas(\''+kelas+'\')">📋 Tidak Hadir</button>';
+        html += '<div id="detail-'+kelas+'" style="display:none;margin-top:8px;font-size:12px;max-height:200px;overflow-y:auto;border:1px solid var(--gray-light);border-radius:6px;padding:8px;">';
+        for(var d=0; d<r.data.length; d++){
+            var dt = r.data[d];
+            html += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;">';
+            html += '<span>'+new Date(dt.tanggal).toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short'})+'</span>';
+            html += '<span>✅'+dt.hadir+' 🤒'+dt.sakit+' 📝'+dt.izin+' ❌'+dt.alfa+' | <strong>'+Math.round((dt.hadir/dt.total)*100)+'%</strong></span>';
+            html += '</div>';
+        }
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+    }
+    
+    container.innerHTML = html;
+}
+
 function toggleDetailPresensi(kelas){var el=document.getElementById('detail-'+kelas);if(el){if(el.style.display==='none'){el.style.display='block';}else{el.style.display='none';}}}
+
+// Fungsi untuk load detail tidak hadir dengan filter kelas
+function loadDetailTidakHadirKelas(kelas){
+    // Set filter kelas
+    document.getElementById('filterPresensiClass').value = kelas;
+    // Panggil fungsi detail tidak hadir
+    loadDetailTidakHadir();
+}
+
 // ==================== AUTO REFRESH ====================
 function startPresensiAutoRefresh(){
     stopPresensiAutoRefresh();
@@ -581,7 +619,7 @@ function startPresensiAutoRefresh(){
 function stopPresensiAutoRefresh(){
     if(presensiRefreshTimer){ clearInterval(presensiRefreshTimer); presensiRefreshTimer = null; }
 }
-function cetakPresensi(){var container=document.getElementById('presensiRekapContainer');if(!container||container.innerHTML.includes('Belum ada laporan')){alert('⚠️ Tidak ada data presensi untuk dicetak.');return;}var w=window.open('','_blank','width=900,height=700');if(!w){alert('⚠️ Izinkan pop-up untuk mencetak.');return;}var period=document.getElementById('filterPresensiPeriod').value;var periodLabel={'daily':'Harian','weekly':'Mingguan','monthly':'Bulanan','semester':'Semester'};var label=periodLabel[period]||'Periode';w.document.write('<!DOCTYPE html><html><head><title>Laporan Presensi '+label+'</title><style>');w.document.write('body { font-family: Arial, sans-serif; padding: 20px; color: #1a2a3a; }');w.document.write('h2 { color: #0d3b6b; border-bottom: 2px solid #0d3b6b; padding-bottom: 8px; }');w.document.write('.presensi-rekap-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 8px 0; }');w.document.write('.rekap-item { background: #f8fafc; padding: 8px 12px; border-radius: 6px; text-align: center; }');w.document.write('.rekap-item .num { font-size: 20px; font-weight: 800; }');w.document.write('.rekap-item .label { font-size: 10px; color: #6b7d90; }');w.document.write('.panel { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; }');w.document.write('.footer { margin-top: 20px; font-size: 10px; color: #6b7d90; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }');w.document.write('.brand { font-weight: 600; color: #0d3b6b; }');w.document.write('@media print { body { padding: 10px; } .panel { page-break-inside: avoid; } }');w.document.write('</style></head><body>');w.document.write('<h2>📋 LAPORAN PRESENSI '+label.toUpperCase()+'</h2>');w.document.write('<p>Dicetak: '+new Date().toLocaleString('id-ID')+' | Periode: '+document.getElementById('filterPresensiDate').value+'</p>');w.document.write('<div style="margin-top:12px;">');w.document.write(container.innerHTML);w.document.write('</div>');w.document.write('<div class="footer">Dicetak dari SIM BK | <span class="brand">@NaFaSBK</span></div>');w.document.write('<script>setTimeout(function() { window.print(); }, 500);<\/script>');w.document.write('</body></html>');w.document.close();}
+function cetakPresensi(){var container=document.getElementById('presensiRekapContainer');if(!container||container.innerHTML.includes('Belum ada laporan')){alert('⚠️ Tidak ada data presensi untuk dicetak.');return;}var w=window.open('','_blank','width=900,height=700');if(!w){alert('⚠️ Izinkan pop-up untuk mencetak.');return;}var period=document.getElementById('filterPresensiPeriod').value;var periodLabel={'daily':'Harian','weekly':'Mingguan','monthly':'Bulanan','semester':'Semester','all':'Semua Data'};var label=periodLabel[period]||'Periode';w.document.write('<!DOCTYPE html><html><head><title>Laporan Presensi '+label+'</title><style>');w.document.write('body { font-family: Arial, sans-serif; padding: 20px; color: #1a2a3a; }');w.document.write('h2 { color: #0d3b6b; border-bottom: 2px solid #0d3b6b; padding-bottom: 8px; }');w.document.write('.presensi-rekap-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 8px 0; }');w.document.write('.rekap-item { background: #f8fafc; padding: 8px 12px; border-radius: 6px; text-align: center; }');w.document.write('.rekap-item .num { font-size: 20px; font-weight: 800; }');w.document.write('.rekap-item .label { font-size: 10px; color: #6b7d90; }');w.document.write('.panel { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; }');w.document.write('.footer { margin-top: 20px; font-size: 10px; color: #6b7d90; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }');w.document.write('.brand { font-weight: 600; color: #0d3b6b; }');w.document.write('@media print { body { padding: 10px; } .panel { page-break-inside: avoid; } }');w.document.write('</style></head><body>');w.document.write('<h2>📋 LAPORAN PRESENSI '+label.toUpperCase()+'</h2>');w.document.write('<p>Dicetak: '+new Date().toLocaleString('id-ID')+' | Periode: '+document.getElementById('filterPresensiDate').value+'</p>');w.document.write('<div style="margin-top:12px;">');w.document.write(container.innerHTML);w.document.write('</div>');w.document.write('<div class="footer">Dicetak dari SIM BK | <span class="brand">@NaFaSBK</span></div>');w.document.write('<script>setTimeout(function() { window.print(); }, 500);<\/script>');w.document.write('</body></html>');w.document.close();}
 // ==================== DETAIL SISWA TIDAK HADIR ====================
 function loadDetailTidakHadir(){
     var kelas = document.getElementById('filterPresensiClass').value;
@@ -743,10 +781,9 @@ function cetakLaporan(jenis){var contentId=jenis+'List';var content=document.get
 (function(){var params=new URLSearchParams(window.location.search);var mode=params.get('mode');if(mode==='presensi'){document.getElementById('loginPage').style.display='none';document.getElementById('registerPage').style.display='none';document.getElementById('mainApp').style.display='none';document.getElementById('presensiMode').style.display='block';document.querySelector('.app-container').style.padding='0';document.getElementById('app').classList.add('presensi-mode-only');db.collection('students').orderBy('class').orderBy('name').get().then(function(snapshot){allStudents=[];var classes=new Set();snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;allStudents.push(data);if(data.class)classes.add(data.class);});var select=document.getElementById('presensiKelas');var classArray=Array.from(classes).sort();select.innerHTML='<option value="">Pilih Kelas</option>';for(var i=0;i<classArray.length;i++){select.innerHTML+='<option value="'+classArray[i]+'">'+classArray[i]+'</option>';}document.getElementById('presensiSchoolDisplay').textContent=schoolData.name||'Sekolah';}).catch(function(err){console.log('Gagal load siswa untuk presensi: '+err.message);});}})();
 if(!checkSession()){showLoginPage();}
 db.collection('students').onSnapshot(function(){loadStudentsOptimized();populateClassDropdowns();populatePresensiKelas();});
-console.log('✅ SIM BK v2.4 - LAPORAN PENANGANAN SISWA!');
-console.log('✅ Fitur: Detail Tidak Hadir menampilkan NAMA siswa');
-console.log('✅ Cetak Laporan Penanganan untuk dokumentasi');
-console.log('✅ Link siswa TETAP SAMA!');
+console.log('✅ SIM BK v2.5 - LAPORAN PENANGANAN SISWA TERSIMPAN PERMANEN!');
+console.log('✅ Fitur: "Semua Data" di periode untuk melihat seluruh riwayat');
+console.log('✅ Data presensi tersimpan di Firestore dan bisa diakses kapan saja');
 </script>
 </body>
 </html>
