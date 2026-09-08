@@ -163,6 +163,13 @@
         .tidak-hadir-container .siswa-item .status-badge{font-size:12px}
         .tidak-hadir-container .siswa-item .keterangan{font-size:12px;color:var(--gray)}
         .total-tidak-hadir{font-size:14px;font-weight:600;color:var(--danger);padding:8px 12px;background:#f8f0f0;border-radius:6px;margin-bottom:8px}
+        .rekap-tidak-hadir{margin-top:12px;border-top:2px solid var(--gray-light);padding-top:12px}
+        .rekap-tidak-hadir .kelas-title{font-size:14px;font-weight:700;color:var(--primary-dark);margin-bottom:6px}
+        .rekap-tidak-hadir .siswa-list{display:flex;flex-wrap:wrap;gap:4px}
+        .rekap-tidak-hadir .siswa-tag{background:#f8f0f0;border:1px solid var(--danger);border-radius:16px;padding:2px 12px;font-size:12px;color:var(--danger)}
+        .rekap-tidak-hadir .siswa-tag.sakit{background:#fff3cd;border-color:var(--warning);color:#856404}
+        .rekap-tidak-hadir .siswa-tag.izin{background:#d1ecf1;border-color:var(--primary);color:#0c5460}
+        .rekap-tidak-hadir .siswa-tag.alfa{background:#f8d7da;border-color:var(--danger);color:#721c24}
     </style>
 </head>
 <body>
@@ -288,7 +295,7 @@
                     <div class="actions">
                         <button class="btn btn-success" onclick="openPresensiLink()">🔗 Link Presensi</button>
                         <button class="btn btn-outline" onclick="loadPresensiRekap()">🔄 Muat Ulang</button>
-                        <button class="btn btn-danger btn-detail-tidakhadir" onclick="loadDetailTidakHadir()">📋 Detail Tidak Hadir</button>
+                        <button class="btn btn-danger btn-detail-tidakhadir" onclick="loadDetailTidakHadirPeriode()">📋 Rekap Tidak Hadir</button>
                         <button class="btn btn-warning" onclick="cetakPresensi()">🖨️ Cetak</button>
                     </div>
                 </div>
@@ -521,19 +528,22 @@ function renderPresensiData(snapshot, classFilter, periodLabel){
     }
     
     var rekapKelas = {};
+    var semuaTidakHadir = {}; // Untuk rekap semua siswa tidak hadir per periode
+    
     for(var i=0; i<items.length; i++){
         var p = items[i];
         if(!rekapKelas[p.kelas]){
-            rekapKelas[p.kelas] = { total:0, hadir:0, sakit:0, izin:0, alfa:0, hari:0, data:[] };
+            rekapKelas[p.kelas] = { total:0, hadir:0, sakit:0, izin:0, alfa:0, hari:0, data:[], tidakHadirList:[] };
         }
         var siswa = p.siswa || [];
         var hadir=0, sakit=0, izin=0, alfa=0;
+        var tidakHadirList = [];
         for(var j=0; j<siswa.length; j++){
             var status = siswa[j].status || 'Hadir';
             if(status === 'Hadir') hadir++;
-            else if(status === 'Sakit') sakit++;
-            else if(status === 'Izin') izin++;
-            else if(status === 'Alfa') alfa++;
+            else if(status === 'Sakit') { sakit++; tidakHadirList.push({nama:siswa[j].nama, status:'Sakit', keterangan:siswa[j].keterangan||''}); }
+            else if(status === 'Izin') { izin++; tidakHadirList.push({nama:siswa[j].nama, status:'Izin', keterangan:siswa[j].keterangan||''}); }
+            else if(status === 'Alfa') { alfa++; tidakHadirList.push({nama:siswa[j].nama, status:'Alfa', keterangan:siswa[j].keterangan||''}); }
         }
         var total = hadir + sakit + izin + alfa;
         rekapKelas[p.kelas].total += total;
@@ -545,8 +555,17 @@ function renderPresensiData(snapshot, classFilter, periodLabel){
         rekapKelas[p.kelas].data.push({
             tanggal: p.tanggal,
             hadir: hadir, sakit: sakit, izin: izin, alfa: alfa, total: total,
-            dikirimOleh: p.dikirimOleh || 'Ketua Kelas'
+            dikirimOleh: p.dikirimOleh || 'Ketua Kelas',
+            tidakHadirList: tidakHadirList
         });
+        // Tambahkan ke daftar tidak hadir global
+        for(var k=0; k<tidakHadirList.length; k++){
+            var key = p.kelas + '|' + tidakHadirList[k].nama;
+            if(!semuaTidakHadir[key]){
+                semuaTidakHadir[key] = { kelas: p.kelas, nama: tidakHadirList[k].nama, status: tidakHadirList[k].status, keterangan: tidakHadirList[k].keterangan, count: 0 };
+            }
+            semuaTidakHadir[key].count++;
+        }
     }
     
     var html = '';
@@ -579,9 +598,31 @@ function renderPresensiData(snapshot, classFilter, periodLabel){
         html += '<div class="rekap-item alfa"><div class="num">'+r.alfa+'</div><div class="label">❌ Alfa</div></div>';
         html += '<div class="rekap-item"><div class="num" style="color:var(--primary-dark);">'+persen+'%</div><div class="label">📊 Kehadiran</div></div>';
         html += '</div>';
+        
+        // === REKAP SISWA TIDAK HADIR PER KELAS ===
+        var tidakHadirKelas = [];
+        for(var key in semuaTidakHadir){
+            if(semuaTidakHadir[key].kelas === kelas){
+                tidakHadirKelas.push(semuaTidakHadir[key]);
+            }
+        }
+        
+        if(tidakHadirKelas.length > 0){
+            html += '<div class="rekap-tidak-hadir">';
+            html += '<div class="kelas-title">📋 Daftar Siswa Tidak Hadir Periode Ini ('+tidakHadirKelas.length+' siswa):</div>';
+            html += '<div class="siswa-list">';
+            for(var s=0; s<tidakHadirKelas.length; s++){
+                var sis = tidakHadirKelas[s];
+                var cls = sis.status === 'Sakit' ? 'sakit' : (sis.status === 'Izin' ? 'izin' : 'alfa');
+                html += '<span class="siswa-tag '+cls+'">'+sis.nama+' ('+sis.status+')</span>';
+            }
+            html += '</div>';
+            html += '</div>';
+        }
+        
         html += '<div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;">';
         html += '<button class="btn btn-outline btn-sm" onclick="toggleDetailPresensi(\''+kelas+'\')">📋 Detail Harian</button>';
-        html += '<button class="btn btn-danger btn-sm" onclick="loadDetailTidakHadirKelas(\''+kelas+'\')">📋 Tidak Hadir</button>';
+        html += '<button class="btn btn-danger btn-sm" onclick="loadDetailTidakHadirPeriodeKelas(\''+kelas+'\')">📋 Detail Tidak Hadir</button>';
         html += '</div>';
         html += '<div id="detail-'+kelas+'" style="display:none;margin-top:8px;font-size:12px;max-height:200px;overflow-y:auto;border:1px solid var(--gray-light);border-radius:6px;padding:8px;">';
         for(var d=0; d<r.data.length; d++){
@@ -590,7 +631,35 @@ function renderPresensiData(snapshot, classFilter, periodLabel){
             html += '<span>'+new Date(dt.tanggal).toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short'})+'</span>';
             html += '<span>✅'+dt.hadir+' 🤒'+dt.sakit+' 📝'+dt.izin+' ❌'+dt.alfa+' | <strong>'+Math.round((dt.hadir/dt.total)*100)+'%</strong></span>';
             html += '</div>';
+            // Tampilkan siapa yang tidak hadir per hari
+            if(dt.tidakHadirList && dt.tidakHadirList.length > 0){
+                html += '<div style="font-size:10px;color:var(--gray);padding-left:12px;margin-bottom:4px;">';
+                html += 'Tidak hadir: ';
+                for(var th=0; th<dt.tidakHadirList.length; th++){
+                    var ths = dt.tidakHadirList[th];
+                    html += '<span style="background:#f8f0f0;padding:1px 8px;border-radius:10px;margin:2px;display:inline-block;">'+ths.nama+' ('+ths.status+')</span>';
+                }
+                html += '</div>';
+            }
         }
+        html += '</div>';
+        html += '</div>';
+    }
+    
+    // === REKAP SEMUA SISWA TIDAK HADIR GLOBAL ===
+    var semuaNamaTidakHadir = Object.keys(semuaTidakHadir);
+    if(semuaNamaTidakHadir.length > 0){
+        html += '<div class="panel" style="background:#f8fafc;border:2px solid var(--danger);">';
+        html += '<h4 style="color:var(--danger);margin-bottom:8px;">📋 REKAP SELURUH SISWA TIDAK HADIR PERIODE INI ('+semuaNamaTidakHadir.length+' siswa)</h4>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:4px;">';
+        for(var key in semuaTidakHadir){
+            var sis = semuaTidakHadir[key];
+            var cls = sis.status === 'Sakit' ? 'sakit' : (sis.status === 'Izin' ? 'izin' : 'alfa');
+            html += '<span class="siswa-tag '+cls+'" style="font-size:13px;padding:4px 16px;">'+sis.nama+' ('+sis.kelas+') - '+sis.status+' x'+sis.count+'</span>';
+        }
+        html += '</div>';
+        html += '<div style="margin-top:8px;">';
+        html += '<button class="btn btn-warning btn-sm" onclick="cetakRekapTidakHadir()">🖨️ Cetak Rekap Tidak Hadir</button>';
         html += '</div>';
         html += '</div>';
     }
@@ -600,9 +669,188 @@ function renderPresensiData(snapshot, classFilter, periodLabel){
 
 function toggleDetailPresensi(kelas){var el=document.getElementById('detail-'+kelas);if(el){if(el.style.display==='none'){el.style.display='block';}else{el.style.display='none';}}}
 
-function loadDetailTidakHadirKelas(kelas){
+// Fungsi untuk detail tidak hadir per periode (semua tanggal dalam periode)
+function loadDetailTidakHadirPeriode(){
+    var kelas = document.getElementById('filterPresensiClass').value;
+    var period = document.getElementById('filterPresensiPeriod').value;
+    var dateFilter = document.getElementById('filterPresensiDate').value;
+    var container = document.getElementById('presensiRekapContainer');
+    
+    if(!kelas){
+        container.innerHTML = '<div class="alert alert-warning">⚠️ Pilih kelas terlebih dahulu! <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">📊 Kembali ke Rekap</button></div>';
+        return;
+    }
+    
+    container.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat detail siswa tidak hadir periode...</div>';
+    
+    var startDate, endDate;
+    var today = new Date();
+    function formatDate(d){
+        return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+    
+    if(period === 'all'){
+        // Ambil semua data
+        var queryAll = db.collection('presensiHarian')
+            .where('kelas', '==', kelas)
+            .orderBy('tanggal', 'desc');
+        queryAll.get().then(function(snapshot){
+            renderDetailTidakHadirPeriode(snapshot, kelas, 'Semua Data');
+        }).catch(function(err){
+            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';
+        });
+        return;
+    }
+    
+    switch(period){
+        case 'daily':
+            if(dateFilter){ startDate = new Date(dateFilter); endDate = new Date(dateFilter); }
+            else { startDate = new Date(today); endDate = new Date(today); }
+            break;
+        case 'weekly':
+            var end = new Date(today); var start = new Date(today);
+            start.setDate(start.getDate() - 6); startDate = start; endDate = end;
+            break;
+        case 'monthly':
+            var end = new Date(today); var start = new Date(today);
+            start.setMonth(start.getMonth() - 1); startDate = start; endDate = end;
+            break;
+        case 'semester':
+            var end = new Date(today); var start = new Date(today);
+            start.setMonth(start.getMonth() - 6); startDate = start; endDate = end;
+            break;
+        default: startDate = new Date(today); endDate = new Date(today);
+    }
+    
+    var startStr = formatDate(startDate);
+    var endStr = formatDate(endDate);
+    
+    var query = db.collection('presensiHarian')
+        .where('kelas', '==', kelas)
+        .where('tanggal', '>=', startStr)
+        .where('tanggal', '<=', endStr)
+        .orderBy('tanggal', 'desc');
+    
+    query.get().then(function(snapshot){
+        var labelMap = {'daily':'Harian','weekly':'Mingguan','monthly':'Bulanan','semester':'Semester'};
+        var label = labelMap[period] || 'Periode';
+        renderDetailTidakHadirPeriode(snapshot, kelas, label + ' (' + startStr + ' s.d ' + endStr + ')');
+    }).catch(function(err){
+        container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';
+    });
+}
+
+function loadDetailTidakHadirPeriodeKelas(kelas){
     document.getElementById('filterPresensiClass').value = kelas;
-    loadDetailTidakHadir();
+    loadDetailTidakHadirPeriode();
+}
+
+function renderDetailTidakHadirPeriode(snapshot, kelas, periodLabel){
+    var container = document.getElementById('presensiRekapContainer');
+    var items = [];
+    snapshot.forEach(function(doc){
+        var data = doc.data();
+        data.id = doc.id;
+        items.push(data);
+    });
+    
+    if(items.length === 0){
+        container.innerHTML = '<div class="alert alert-info">📭 Belum ada laporan presensi untuk kelas '+kelas+' periode '+periodLabel+' <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">📊 Kembali ke Rekap</button></div>';
+        return;
+    }
+    
+    var html = '';
+    html += '<div style="margin-bottom:12px;padding:10px;background:#e8f0fe;border-radius:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">';
+    html += '<div><h3 style="font-size:16px;color:var(--primary-dark);">📋 Detail Ketidakhadiran</h3>';
+    html += '<span style="font-size:13px;color:var(--gray);">📚 '+kelas+' | 📅 '+periodLabel+'</span></div>';
+    html += '<span style="font-size:11px;color:var(--gray);">Total '+items.length+' hari laporan</span>';
+    html += '</div>';
+    
+    var semuaTidakHadir = {};
+    var totalTidakHadir = 0;
+    
+    for(var i=0; i<items.length; i++){
+        var p = items[i];
+        var siswa = p.siswa || [];
+        var tidakHadir = siswa.filter(function(s){ return s.status !== 'Hadir'; });
+        totalTidakHadir += tidakHadir.length;
+        
+        for(var j=0; j<tidakHadir.length; j++){
+            var s = tidakHadir[j];
+            var key = s.nama;
+            if(!semuaTidakHadir[key]){
+                semuaTidakHadir[key] = { nama: s.nama, status: s.status, keterangan: s.keterangan || '', tanggal: [] };
+            }
+            semuaTidakHadir[key].tanggal.push(p.tanggal);
+        }
+    }
+    
+    // Tampilkan rekap semua siswa tidak hadir
+    var namaList = Object.keys(semuaTidakHadir).sort();
+    
+    html += '<div style="margin-bottom:12px;padding:12px;background:#f8f0f0;border-radius:8px;border:2px solid var(--danger);">';
+    html += '<div style="font-size:15px;font-weight:700;color:var(--danger);margin-bottom:8px;">📊 TOTAL SISWA TIDAK HADIR: '+namaList.length+' siswa</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;">';
+    for(var n=0; n<namaList.length; n++){
+        var sis = semuaTidakHadir[namaList[n]];
+        var cls = sis.status === 'Sakit' ? 'sakit' : (sis.status === 'Izin' ? 'izin' : 'alfa');
+        var statusIcon = sis.status === 'Sakit' ? '🤒' : (sis.status === 'Izin' ? '📝' : '❌');
+        html += '<div style="background:#fff;padding:6px 12px;border-radius:6px;border-left:3px solid '+(sis.status==='Sakit'?'#ffc107':sis.status==='Izin'?'#17a2b8':'#dc3545')+';">';
+        html += '<div style="font-weight:600;">'+sis.nama+'</div>';
+        html += '<div style="font-size:11px;color:var(--gray);">'+statusIcon+' '+sis.status+' | '+sis.tanggal.length+'x tidak hadir</div>';
+        if(sis.keterangan) html += '<div style="font-size:10px;color:var(--gray);">📝 '+sis.keterangan+'</div>';
+        html += '</div>';
+    }
+    html += '</div>';
+    html += '</div>';
+    
+    // Detail per hari
+    html += '<div style="margin-top:12px;"><h4 style="color:var(--primary-dark);margin-bottom:8px;">📋 Detail Per Hari</h4></div>';
+    for(var i=0; i<items.length; i++){
+        var p = items[i];
+        var siswa = p.siswa || [];
+        var tidakHadir = siswa.filter(function(s){ return s.status !== 'Hadir'; });
+        
+        html += '<div class="panel" style="margin-bottom:12px;padding:12px;border-left:4px solid '+(tidakHadir.length>0?'var(--danger)':'var(--success)')+';">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:8px;">';
+        html += '<strong style="font-size:14px;">📅 '+new Date(p.tanggal).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</strong>';
+        html += '<span style="font-size:11px;color:var(--gray);">📌 '+(p.dikirimOleh || 'Ketua Kelas')+'</span>';
+        html += '</div>';
+        
+        if(tidakHadir.length === 0){
+            html += '<div class="alert alert-success">✅ Semua siswa hadir!</div>';
+        } else {
+            html += '<div style="margin-bottom:8px;font-size:13px;">';
+            var hadirCount = siswa.filter(function(s){ return s.status === 'Hadir'; }).length;
+            html += '<span class="badge-status success">✅ Hadir: '+hadirCount+'</span> ';
+            html += '<span class="badge-status warning">🤒 Sakit: '+tidakHadir.filter(function(s){ return s.status === 'Sakit'; }).length+'</span> ';
+            html += '<span class="badge-status info">📝 Izin: '+tidakHadir.filter(function(s){ return s.status === 'Izin'; }).length+'</span> ';
+            html += '<span class="badge-status danger">❌ Alfa: '+tidakHadir.filter(function(s){ return s.status === 'Alfa'; }).length+'</span>';
+            html += '</div>';
+            
+            html += '<div class="tidak-hadir-container">';
+            html += '<div style="font-weight:600;font-size:13px;color:var(--danger);margin-bottom:6px;">📋 Siswa Tidak Hadir:</div>';
+            for(var j=0; j<tidakHadir.length; j++){
+                var s = tidakHadir[j];
+                var statusClass = s.status === 'Sakit' ? 'warning' : (s.status === 'Izin' ? 'info' : 'danger');
+                var statusIcon = s.status === 'Sakit' ? '🤒' : (s.status === 'Izin' ? '📝' : '❌');
+                html += '<div class="siswa-item">';
+                html += '<span class="nama">'+(j+1)+'. '+s.nama+'</span>';
+                html += '<span class="status-badge badge-status '+statusClass+'">'+statusIcon+' '+s.status+'</span>';
+                html += '<span class="keterangan">'+(s.keterangan || '-')+'</span>';
+                html += '</div>';
+            }
+            html += '</div>';
+        }
+        html += '</div>';
+    }
+    
+    html += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">';
+    html += '<button class="btn btn-warning" onclick="cetakDetailTidakHadir()">🖨️ Cetak Laporan Penanganan</button>';
+    html += '<button class="btn btn-outline" onclick="loadPresensiRekap()">📊 Kembali ke Rekap</button>';
+    html += '</div>';
+    
+    container.innerHTML = html;
 }
 
 // ==================== AUTO REFRESH - 60 DETIK ====================
@@ -619,122 +867,115 @@ function startPresensiAutoRefresh(){
 function stopPresensiAutoRefresh(){
     if(presensiRefreshTimer){ clearInterval(presensiRefreshTimer); presensiRefreshTimer = null; }
 }
-function cetakPresensi(){var container=document.getElementById('presensiRekapContainer');if(!container||container.innerHTML.includes('Belum ada laporan')){alert('⚠️ Tidak ada data presensi untuk dicetak.');return;}var w=window.open('','_blank','width=900,height=700');if(!w){alert('⚠️ Izinkan pop-up untuk mencetak.');return;}var period=document.getElementById('filterPresensiPeriod').value;var periodLabel={'daily':'Harian','weekly':'Mingguan','monthly':'Bulanan','semester':'Semester','all':'Semua Data'};var label=periodLabel[period]||'Periode';w.document.write('<!DOCTYPE html><html><head><title>Laporan Presensi '+label+'</title><style>');w.document.write('body { font-family: Arial, sans-serif; padding: 20px; color: #1a2a3a; }');w.document.write('h2 { color: #0d3b6b; border-bottom: 2px solid #0d3b6b; padding-bottom: 8px; }');w.document.write('.presensi-rekap-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 8px 0; }');w.document.write('.rekap-item { background: #f8fafc; padding: 8px 12px; border-radius: 6px; text-align: center; }');w.document.write('.rekap-item .num { font-size: 20px; font-weight: 800; }');w.document.write('.rekap-item .label { font-size: 10px; color: #6b7d90; }');w.document.write('.panel { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; }');w.document.write('.footer { margin-top: 20px; font-size: 10px; color: #6b7d90; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }');w.document.write('.brand { font-weight: 600; color: #0d3b6b; }');w.document.write('@media print { body { padding: 10px; } .panel { page-break-inside: avoid; } }');w.document.write('</style></head><body>');w.document.write('<h2>📋 LAPORAN PRESENSI '+label.toUpperCase()+'</h2>');w.document.write('<p>Dicetak: '+new Date().toLocaleString('id-ID')+' | Periode: '+document.getElementById('filterPresensiDate').value+'</p>');w.document.write('<div style="margin-top:12px;">');w.document.write(container.innerHTML);w.document.write('</div>');w.document.write('<div class="footer">Dicetak dari SIM BK | <span class="brand">@NaFaSBK</span></div>');w.document.write('<script>setTimeout(function() { window.print(); }, 500);<\/script>');w.document.write('</body></html>');w.document.close();}
-// ==================== DETAIL SISWA TIDAK HADIR - DIPERBAIKI ====================
-function loadDetailTidakHadir(){
-    var kelas = document.getElementById('filterPresensiClass').value;
-    var tanggal = document.getElementById('filterPresensiDate').value;
+
+// ==================== CETAK FUNGSI ====================
+function cetakPresensi(){
     var container = document.getElementById('presensiRekapContainer');
-    
-    if(!kelas){
-        container.innerHTML = '<div class="alert alert-warning">⚠️ Pilih kelas terlebih dahulu! <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">📊 Kembali ke Rekap</button></div>';
+    if(!container || container.innerHTML.includes('Belum ada laporan')){
+        alert('⚠️ Tidak ada data presensi untuk dicetak.');
         return;
     }
-    if(!tanggal){
-        container.innerHTML = '<div class="alert alert-warning">⚠️ Pilih tanggal terlebih dahulu! <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">📊 Kembali ke Rekap</button></div>';
-        return;
+    var w = window.open('', '_blank', 'width=900,height=700');
+    if(!w){ alert('⚠️ Izinkan pop-up untuk mencetak.'); return; }
+    var period = document.getElementById('filterPresensiPeriod').value;
+    var periodLabel = {'daily':'Harian','weekly':'Mingguan','monthly':'Bulanan','semester':'Semester','all':'Semua Data'};
+    var label = periodLabel[period] || 'Periode';
+    var classFilter = document.getElementById('filterPresensiClass').value || 'Semua Kelas';
+    
+    w.document.write('<!DOCTYPE html><html><head><title>Laporan Presensi '+label+'</title><style>');
+    w.document.write('body { font-family: Arial, sans-serif; padding: 20px; color: #1a2a3a; }');
+    w.document.write('h2 { color: #0d3b6b; border-bottom: 2px solid #0d3b6b; padding-bottom: 8px; }');
+    w.document.write('.presensi-rekap-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 8px 0; }');
+    w.document.write('.rekap-item { background: #f8fafc; padding: 8px 12px; border-radius: 6px; text-align: center; }');
+    w.document.write('.rekap-item .num { font-size: 20px; font-weight: 800; }');
+    w.document.write('.rekap-item .label { font-size: 10px; color: #6b7d90; }');
+    w.document.write('.panel { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; page-break-inside: avoid; }');
+    w.document.write('.footer { margin-top: 20px; font-size: 10px; color: #6b7d90; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }');
+    w.document.write('.brand { font-weight: 600; color: #0d3b6b; }');
+    w.document.write('.siswa-tag { display: inline-block; padding: 2px 12px; border-radius: 16px; font-size: 12px; margin: 2px; }');
+    w.document.write('.siswa-tag.sakit { background: #fff3cd; border: 1px solid #ffc107; color: #856404; }');
+    w.document.write('.siswa-tag.izin { background: #d1ecf1; border: 1px solid #17a2b8; color: #0c5460; }');
+    w.document.write('.siswa-tag.alfa { background: #f8d7da; border: 1px solid #dc3545; color: #721c24; }');
+    w.document.write('.rekap-tidak-hadir { margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd; }');
+    w.document.write('.kelas-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }');
+    w.document.write('.siswa-list { display: flex; flex-wrap: wrap; gap: 4px; }');
+    w.document.write('@media print { body { padding: 10px; } .panel { page-break-inside: avoid; } }');
+    w.document.write('</style></head><body>');
+    w.document.write('<h2>📋 LAPORAN PRESENSI '+label.toUpperCase()+'</h2>');
+    w.document.write('<div style="margin-bottom:12px;">');
+    w.document.write('<span>📚 Kelas: '+classFilter+'</span> | ');
+    w.document.write('<span>📅 Dicetak: '+new Date().toLocaleString('id-ID')+'</span>');
+    w.document.write('</div>');
+    w.document.write('<hr>');
+    w.document.write('<div style="margin-top:12px;">');
+    // Ambil konten tanpa tombol navigasi
+    var contentHTML = container.innerHTML;
+    // Hapus tombol-tombol navigasi
+    contentHTML = contentHTML.replace(/<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">.*?<\/div>/gs, '');
+    w.document.write(contentHTML);
+    w.document.write('</div>');
+    w.document.write('<div class="footer">Dicetak dari SIM BK | <span class="brand">@NaFaSBK</span> | Laporan Presensi</div>');
+    w.document.write('<script>setTimeout(function() { window.print(); }, 800);<\/script>');
+    w.document.write('</body></html>');
+    w.document.close();
+}
+
+function cetakRekapTidakHadir(){
+    var container = document.getElementById('presensiRekapContainer');
+    var w = window.open('', '_blank', 'width=900,height=700');
+    if(!w){ alert('⚠️ Izinkan pop-up untuk mencetak.'); return; }
+    
+    w.document.write('<!DOCTYPE html><html><head><title>Rekap Siswa Tidak Hadir</title><style>');
+    w.document.write('body { font-family: Arial, sans-serif; padding: 20px; color: #1a2a3a; }');
+    w.document.write('h2 { color: #0d3b6b; border-bottom: 2px solid #0d3b6b; padding-bottom: 8px; }');
+    w.document.write('.siswa-tag { display: inline-block; padding: 4px 16px; border-radius: 16px; font-size: 13px; margin: 3px; }');
+    w.document.write('.siswa-tag.sakit { background: #fff3cd; border: 1px solid #ffc107; color: #856404; }');
+    w.document.write('.siswa-tag.izin { background: #d1ecf1; border: 1px solid #17a2b8; color: #0c5460; }');
+    w.document.write('.siswa-tag.alfa { background: #f8d7da; border: 1px solid #dc3545; color: #721c24; }');
+    w.document.write('.footer { margin-top: 20px; font-size: 10px; color: #6b7d90; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }');
+    w.document.write('.brand { font-weight: 600; color: #0d3b6b; }');
+    w.document.write('.panel { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; }');
+    w.document.write('@media print { body { padding: 10px; } .panel { page-break-inside: avoid; } }');
+    w.document.write('</style></head><body>');
+    w.document.write('<h2>📋 REKAP SISWA TIDAK HADIR</h2>');
+    w.document.write('<div style="margin-bottom:12px;">');
+    w.document.write('<span>📅 Dicetak: '+new Date().toLocaleString('id-ID')+'</span>');
+    w.document.write('</div>');
+    w.document.write('<hr>');
+    w.document.write('<div style="margin-top:12px;">');
+    // Ambil hanya bagian rekap tidak hadir
+    var panels = container.querySelectorAll('.panel');
+    var found = false;
+    for(var i=0; i<panels.length; i++){
+        if(panels[i].querySelector('.rekap-tidak-hadir')){
+            w.document.write(panels[i].outerHTML);
+            found = true;
+        }
     }
-    
-    container.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat detail siswa tidak hadir...</div>';
-    
-    db.collection('presensiHarian')
-        .where('kelas', '==', kelas)
-        .where('tanggal', '==', tanggal)
-        .get()
-        .then(function(snapshot){
-            if(snapshot.empty){
-                container.innerHTML = '<div class="alert alert-info">📭 Belum ada laporan presensi untuk kelas '+kelas+' tanggal '+tanggal+' <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">📊 Kembali ke Rekap</button></div>';
-                return;
-            }
-            
-            var allData = [];
-            snapshot.forEach(function(doc){
-                var data = doc.data();
-                data.id = doc.id;
-                allData.push(data);
-            });
-            
-            allData.sort(function(a,b){
-                return new Date(b.createdAt) - new Date(a.createdAt);
-            });
-            
-            var html = '';
-            html += '<div style="margin-bottom:12px;padding:10px;background:#e8f0fe;border-radius:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">';
-            html += '<div><h3 style="font-size:16px;color:var(--primary-dark);">📋 Detail Ketidakhadiran</h3>';
-            html += '<span style="font-size:13px;color:var(--gray);">📚 '+kelas+' | 📅 '+new Date(tanggal).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</span></div>';
-            html += '<span style="font-size:11px;color:var(--gray);">Total '+allData.length+' laporan</span>';
-            html += '</div>';
-            
-            var totalTidakHadir = 0;
-            
-            for(var i=0; i<allData.length; i++){
-                var p = allData[i];
-                var siswa = p.siswa || [];
-                var tidakHadir = siswa.filter(function(s){ return s.status !== 'Hadir'; });
-                totalTidakHadir += tidakHadir.length;
-                
-                html += '<div class="panel" style="margin-bottom:12px;padding:12px;border-left:4px solid var(--danger);">';
-                html += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:8px;">';
-                html += '<strong style="font-size:14px;">📌 '+(p.dikirimOleh || 'Ketua Kelas')+'</strong>';
-                html += '<span style="font-size:11px;color:var(--gray);">Dikirim: '+new Date(p.createdAt).toLocaleString('id-ID')+'</span>';
-                html += '</div>';
-                
-                if(tidakHadir.length === 0){
-                    html += '<div class="alert alert-success">✅ Semua siswa hadir! Tidak ada yang tidak masuk.</div>';
-                } else {
-                    var hadirCount = siswa.filter(function(s){ return s.status === 'Hadir'; }).length;
-                    html += '<div style="margin-bottom:8px;font-size:13px;">';
-                    html += '<span class="badge-status success">✅ Hadir: '+hadirCount+'</span> ';
-                    html += '<span class="badge-status warning">🤒 Sakit: '+tidakHadir.filter(function(s){ return s.status === 'Sakit'; }).length+'</span> ';
-                    html += '<span class="badge-status info">📝 Izin: '+tidakHadir.filter(function(s){ return s.status === 'Izin'; }).length+'</span> ';
-                    html += '<span class="badge-status danger">❌ Alfa: '+tidakHadir.filter(function(s){ return s.status === 'Alfa'; }).length+'</span>';
-                    html += '</div>';
-                    
-                    // Tampilkan daftar NAMA siswa yang tidak hadir dengan jelas
-                    html += '<div class="tidak-hadir-container">';
-                    html += '<div style="font-weight:600;font-size:13px;color:var(--danger);margin-bottom:6px;">📋 Daftar Siswa Tidak Hadir ('+tidakHadir.length+' siswa):</div>';
-                    for(var j=0; j<tidakHadir.length; j++){
-                        var s = tidakHadir[j];
-                        var statusClass = s.status === 'Sakit' ? 'warning' : (s.status === 'Izin' ? 'info' : 'danger');
-                        var statusIcon = s.status === 'Sakit' ? '🤒' : (s.status === 'Izin' ? '📝' : '❌');
-                        html += '<div class="siswa-item">';
-                        html += '<span class="nama">'+(j+1)+'. '+s.nama+'</span>';
-                        html += '<span class="status-badge badge-status '+statusClass+'">'+statusIcon+' '+s.status+'</span>';
-                        html += '<span class="keterangan">'+(s.keterangan || '-')+'</span>';
-                        html += '</div>';
-                    }
-                    html += '</div>';
-                }
-                html += '</div>';
-            }
-            
-            // Ringkasan total tidak hadir
-            html += '<div class="total-tidak-hadir">📊 Total Siswa Tidak Hadir: '+totalTidakHadir+' siswa</div>';
-            
-            html += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">';
-            html += '<button class="btn btn-warning" onclick="cetakDetailTidakHadir()">🖨️ Cetak Laporan Penanganan</button>';
-            html += '<button class="btn btn-outline" onclick="loadPresensiRekap()">📊 Kembali ke Rekap</button>';
-            html += '</div>';
-            
-            container.innerHTML = html;
-        })
-        .catch(function(err){
-            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+' <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">📊 Kembali</button></div>';
-        });
+    // Cari juga rekap global
+    var globalRekap = container.querySelector('.panel:last-child');
+    if(globalRekap && globalRekap.querySelector('.rekap-tidak-hadir')){
+        w.document.write(globalRekap.outerHTML);
+        found = true;
+    }
+    if(!found){
+        w.document.write('<p>Tidak ada data siswa tidak hadir.</p>');
+    }
+    w.document.write('</div>');
+    w.document.write('<div class="footer">Dicetak dari SIM BK | <span class="brand">@NaFaSBK</span> | Rekap Tidak Hadir</div>');
+    w.document.write('<script>setTimeout(function() { window.print(); }, 800);<\/script>');
+    w.document.write('</body></html>');
+    w.document.close();
 }
 
 function cetakDetailTidakHadir(){
     var container = document.getElementById('presensiRekapContainer');
     var w = window.open('', '_blank', 'width=900,height=700');
-    if(!w){
-        alert('⚠️ Izinkan pop-up untuk mencetak.');
-        return;
-    }
+    if(!w){ alert('⚠️ Izinkan pop-up untuk mencetak.'); return; }
     
     w.document.write('<!DOCTYPE html><html><head><title>Laporan Penanganan Siswa Tidak Hadir</title><style>');
     w.document.write('body { font-family: Arial, sans-serif; padding: 20px; color: #1a2a3a; }');
     w.document.write('h2 { color: #0d3b6b; border-bottom: 2px solid #0d3b6b; padding-bottom: 8px; }');
-    w.document.write('h3 { color: #0d3b6b; margin-top: 16px; }');
     w.document.write('table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }');
     w.document.write('th { background: #0d3b6b; color: #fff; padding: 8px 10px; text-align: left; }');
     w.document.write('td { padding: 6px 10px; border-bottom: 1px solid #ddd; }');
@@ -743,7 +984,7 @@ function cetakDetailTidakHadir(){
     w.document.write('.badge-status.info { background: #d1ecf1; color: #0c5460; }');
     w.document.write('.badge-status.danger { background: #f8d7da; color: #721c24; }');
     w.document.write('.badge-status.success { background: #d4edda; color: #155724; }');
-    w.document.write('.panel { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; border-left: 4px solid #d96b7b; }');
+    w.document.write('.panel { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; page-break-inside: avoid; }');
     w.document.write('.footer { margin-top: 20px; font-size: 10px; color: #6b7d90; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }');
     w.document.write('.brand { font-weight: 600; color: #0d3b6b; }');
     w.document.write('.header-info { margin-bottom: 16px; }');
@@ -761,14 +1002,12 @@ function cetakDetailTidakHadir(){
     w.document.write('</div>');
     w.document.write('<hr>');
     w.document.write('<div style="margin-top:12px;">');
-    // Ambil konten tanpa tombol
     var contentHTML = container.innerHTML;
-    // Hapus tombol navigasi
     contentHTML = contentHTML.replace(/<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">.*?<\/div>/gs, '');
     w.document.write(contentHTML);
     w.document.write('</div>');
     w.document.write('<div class="footer">Dicetak dari SIM BK | <span class="brand">@NaFaSBK</span> | Laporan Penanganan Siswa</div>');
-    w.document.write('<script>setTimeout(function() { window.print(); }, 500);<\/script>');
+    w.document.write('<script>setTimeout(function() { window.print(); }, 800);<\/script>');
     w.document.write('</body></html>');
     w.document.close();
 }
@@ -789,9 +1028,9 @@ function cetakLaporan(jenis){var contentId=jenis+'List';var content=document.get
 (function(){var params=new URLSearchParams(window.location.search);var mode=params.get('mode');if(mode==='presensi'){document.getElementById('loginPage').style.display='none';document.getElementById('registerPage').style.display='none';document.getElementById('mainApp').style.display='none';document.getElementById('presensiMode').style.display='block';document.querySelector('.app-container').style.padding='0';document.getElementById('app').classList.add('presensi-mode-only');db.collection('students').orderBy('class').orderBy('name').get().then(function(snapshot){allStudents=[];var classes=new Set();snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;allStudents.push(data);if(data.class)classes.add(data.class);});var select=document.getElementById('presensiKelas');var classArray=Array.from(classes).sort();select.innerHTML='<option value="">Pilih Kelas</option>';for(var i=0;i<classArray.length;i++){select.innerHTML+='<option value="'+classArray[i]+'">'+classArray[i]+'</option>';}document.getElementById('presensiSchoolDisplay').textContent=schoolData.name||'Sekolah';}).catch(function(err){console.log('Gagal load siswa untuk presensi: '+err.message);});}})();
 if(!checkSession()){showLoginPage();}
 db.collection('students').onSnapshot(function(){loadStudentsOptimized();populateClassDropdowns();populatePresensiKelas();});
-console.log('✅ SIM BK v2.6 - NAMA SISWA TIDAK HADIR MUNCUL!');
-console.log('✅ Auto-refresh diubah menjadi 60 detik (1 menit)');
-console.log('✅ Data presensi tersimpan PERMANEN di Firestore');
+console.log('✅ SIM BK v2.7 - REKAP TIDAK HADIR SEMUA PERIODE!');
+console.log('✅ Nama siswa tidak hadir muncul di semua periode (Harian/Mingguan/Bulanan/Semester/Semua Data)');
+console.log('✅ Bisa cetak laporan per periode dengan daftar nama siswa');
 </script>
 </body>
 </html>
