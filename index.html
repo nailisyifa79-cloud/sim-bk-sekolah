@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;color:#1a2a3a;display:flex;flex-direction:column;min-height:100vh}
@@ -138,6 +139,15 @@
         .btn-detail-tidakhadir{background:var(--danger);color:#fff}
         .btn-detail-tidakhadir:hover{background:#c45566}
         .presensi-refresh-indicator{font-size:12px;color:var(--gray);padding:4px 12px;background:#f0f4f8;border-radius:20px;display:inline-block}
+        .chart-container{background:#fff;border-radius:var(--radius);padding:16px;margin:12px 0;border:1px solid var(--gray-light)}
+        .chart-container h4{font-size:14px;color:var(--primary-dark);margin-bottom:8px}
+        .chart-container canvas{max-height:250px;width:100%!important}
+        .kelas-belum-lapor{background:#fff3cd;border:2px solid #ffc107;border-radius:var(--radius);padding:14px 18px;margin-bottom:12px}
+        .kelas-belum-lapor .title{font-weight:700;color:#856404;font-size:14px;margin-bottom:8px}
+        .kelas-belum-lapor .kelas-tag{display:inline-block;background:#fff;border:1px solid #ffc107;border-radius:16px;padding:4px 14px;margin:3px 6px 3px 0;font-size:13px;font-weight:600;color:var(--primary-dark)}
+        .kelas-belum-lapor .btn-notif{background:var(--primary);color:#fff;border:0;padding:2px 12px;border-radius:12px;font-size:11px;cursor:pointer;margin-left:6px}
+        .kelas-belum-lapor .btn-notif:hover{background:var(--primary-dark)}
+        .kelas-belum-lapor .semua-lapor{color:var(--success);font-weight:600}
         @media(max-width:768px){.header{flex-direction:column;align-items:stretch;text-align:center}.header-info{justify-content:center}.nav{justify-content:center}.nav button{font-size:10px;padding:5px 10px}.panel{padding:14px}.stats-grid{grid-template-columns:repeat(2,1fr)}.form-row{grid-template-columns:1fr}.settings-grid{grid-template-columns:1fr}.modal-box{padding:20px}.pagination-container{flex-direction:column;text-align:center}.select-all-container{flex-wrap:wrap}.select-all-container .btn-hapus-massal{margin-left:0}}
         @media print{.no-print{display:none!important}}
         .footer{text-align:center;padding:16px 20px;color:var(--gray);font-size:11px;border-top:1px solid var(--gray-light);margin-top:16px;background:#fff;border-radius:var(--radius)}
@@ -172,6 +182,17 @@
         .rekap-tidak-hadir .siswa-tag.alfa{background:#f8d7da;border-color:var(--danger);color:#721c24}
         .warning-index{background:#fff3cd;padding:12px 16px;border-radius:8px;border:1px solid #ffc107;margin-bottom:12px;font-size:13px}
         .warning-index a{color:var(--primary);font-weight:600}
+        .top-izin-chart .chart-container{background:#f8fafc}
+        .top-izin-chart .chart-container canvas{max-height:200px}
+        .top-izin-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:8px}
+        .top-izin-list .item{background:#f8fafc;padding:8px 12px;border-radius:6px;border-left:4px solid var(--primary);display:flex;justify-content:space-between;align-items:center}
+        .top-izin-list .item .name{font-weight:600;font-size:13px}
+        .top-izin-list .item .count{font-weight:700;color:var(--danger);font-size:14px}
+        .top-izin-list .item:nth-child(1){border-left-color:#ffc107}
+        .top-izin-list .item:nth-child(2){border-left-color:#17a2b8}
+        .top-izin-list .item:nth-child(3){border-left-color:#28a745}
+        .top-izin-list .item:nth-child(4){border-left-color:#6f42c1}
+        .top-izin-list .item:nth-child(5){border-left-color:#fd7e14}
     </style>
 </head>
 <body>
@@ -309,6 +330,8 @@
                     </div>
                     <span class="presensi-refresh-indicator" id="presensiRefreshStatus">🔄 Auto-refresh 60 detik</span>
                 </div>
+                <!-- === FITUR BARU: KELAS BELUM LAPOR === -->
+                <div id="kelasBelumLaporContainer" style="margin-bottom:12px;"></div>
                 <div id="presensiRekapContainer"><div class="loading"><span class="spinner"></span> Memuat data presensi...</div></div>
             </div>
             <div class="panel">
@@ -381,7 +404,7 @@ function getSchoolData(){try{return JSON.parse(localStorage.getItem(SCHOOL_KEY))
 function saveSchoolData(data){localStorage.setItem(SCHOOL_KEY,JSON.stringify(data))}
 var currentUser=null;var schoolData={name:'',year:'',address:''};var allStudents=[];var allTeachers=[];var presensiEditMode=false;var presensiEditDocId=null;var selectedStudents={};
 var presensiRefreshTimer=null;
-var allPresensiDataCache=[]; // Cache untuk semua data presensi
+var allPresensiDataCache=[];
 
 function showLoginPage(){document.getElementById('loginPage').style.display='block';document.getElementById('registerPage').style.display='none';document.getElementById('mainApp').style.display='none';document.getElementById('loginAlert').innerHTML='';}
 function showRegisterPage(){document.getElementById('loginPage').style.display='none';document.getElementById('registerPage').style.display='block';document.getElementById('mainApp').style.display='none';document.getElementById('registerAlert').innerHTML='';}
@@ -447,25 +470,219 @@ function renderPresensiForm(students,existingData,kelas,tanggal,docId){var conte
 function setAllSiswaHadir(){var items=document.querySelectorAll('.presensi-student-list .student-item');for(var i=0;i<items.length;i++){var select=document.getElementById('ps_'+i);if(select&&!select.disabled)select.value='Hadir';var note=document.getElementById('pn_'+i);if(note&&!note.disabled)note.value='';}var alertEl=document.getElementById('presensiFormAlert');if(alertEl){alertEl.innerHTML='<div class="alert alert-success">✅ Semua siswa diisi HADIR</div>';setTimeout(function(){alertEl.innerHTML='';},3000);}}
 function resetPresensiForm(){var items=document.querySelectorAll('.presensi-student-list .student-item');for(var i=0;i<items.length;i++){var select=document.getElementById('ps_'+i);if(select&&!select.disabled)select.value='Hadir';var note=document.getElementById('pn_'+i);if(note&&!note.disabled)note.value='';}var alertEl=document.getElementById('presensiFormAlert');if(alertEl){alertEl.innerHTML='<div class="alert alert-info">🔄 Form direset</div>';setTimeout(function(){alertEl.innerHTML='';},2000);}}
 function kirimPresensi(){var kelas=document.getElementById('presensiKelas').value;var tanggal=document.getElementById('presensiTanggal').value;var alertEl=document.getElementById('presensiFormAlert');if(!kelas||!tanggal){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Pilih kelas dan tanggal terlebih dahulu!</div>';return;}var items=document.querySelectorAll('.presensi-student-list .student-item');var siswaData=[];var semuaHadir=true;for(var i=0;i<items.length;i++){var select=document.getElementById('ps_'+i);var note=document.getElementById('pn_'+i);var nameEl=items[i].querySelector('.s-name');var status=select?select.value:'Hadir';var keterangan=note?note.value.trim():'';var nama=nameEl?nameEl.textContent.trim():'Siswa '+(i+1);if(status!=='Hadir'&&!keterangan){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Siswa '+nama+' tidak hadir tetapi keterangan kosong!</div>';return;}if(status!=='Hadir')semuaHadir=false;siswaData.push({nama:nama,status:status,keterangan:keterangan});}alertEl.innerHTML='<div class="alert alert-info">⏳ '+(presensiEditMode?'Memperbarui':'Menyimpan')+' laporan presensi...</div>';if(presensiEditMode&&presensiEditDocId){db.collection('presensiHarian').doc(presensiEditDocId).update({siswa:siswaData,semuaHadir:semuaHadir,updatedAt:new Date().toISOString(),dikirimOleh:'Ketua Kelas '+kelas}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Laporan presensi berhasil DIUPDATE! Terima kasih 🙏</div>';presensiEditMode=false;presensiEditDocId=null;loadPresensiRekap();updateDashboard();loadPresensiSiswa();}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal update: '+err.message+'</div>';});}else{db.collection('presensiHarian').add({kelas:kelas,tanggal:tanggal,siswa:siswaData,semuaHadir:semuaHadir,dikirimOleh:'Ketua Kelas '+kelas,createdAt:new Date().toISOString()}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Laporan presensi berhasil dikirim! Terima kasih 🙏</div>';loadPresensiRekap();updateDashboard();loadPresensiSiswa();}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal menyimpan: '+err.message+'</div>';});}}
-// ==================== PRESENSI GURU - REKAP (TANPA INDEX COMPOSITE) ====================
+
+// ==================== FITUR BARU 1: KELAS BELUM LAPOR ====================
+function loadKelasBelumLapor() {
+    var container = document.getElementById('kelasBelumLaporContainer');
+    var today = new Date().toISOString().split('T')[0];
+    
+    // Ambil semua kelas dari data siswa
+    var semuaKelas = [];
+    var kelasSet = new Set();
+    for(var i=0; i<allStudents.length; i++) {
+        if(allStudents[i].class) {
+            kelasSet.add(allStudents[i].class);
+        }
+    }
+    semuaKelas = Array.from(kelasSet).sort();
+    
+    if(semuaKelas.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">📭 Belum ada data kelas. Tambahkan siswa terlebih dahulu.</div>';
+        return;
+    }
+    
+    // Ambil data presensi hari ini
+    db.collection('presensiHarian').where('tanggal', '==', today).get().then(function(snapshot) {
+        var kelasLapor = new Set();
+        snapshot.forEach(function(doc) {
+            var data = doc.data();
+            if(data.kelas) {
+                kelasLapor.add(data.kelas);
+            }
+        });
+        
+        var kelasBelumLapor = [];
+        for(var i=0; i<semuaKelas.length; i++) {
+            if(!kelasLapor.has(semuaKelas[i])) {
+                kelasBelumLapor.push(semuaKelas[i]);
+            }
+        }
+        
+        if(kelasBelumLapor.length === 0) {
+            container.innerHTML = '<div class="alert alert-success" style="border:2px solid var(--success);">✅ <b>Semua Kelas Sudah Lapor!</b> 🎉 Semua kelas sudah melaporkan presensi hari ini (' + new Date(today).toLocaleDateString('id-ID') + ')</div>';
+        } else {
+            var html = '<div class="kelas-belum-lapor">';
+            html += '<div class="title">⚠️ ' + kelasBelumLapor.length + ' Kelas Belum Lapor Presensi Hari Ini (' + new Date(today).toLocaleDateString('id-ID') + ')</div>';
+            html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">';
+            for(var i=0; i<kelasBelumLapor.length; i++) {
+                html += '<span class="kelas-tag">📚 ' + kelasBelumLapor[i] + ' <button class="btn-notif" onclick="notifikasiKelas(\'' + kelasBelumLapor[i] + '\')">🔔 Ingatkan</button></span>';
+            }
+            html += '</div>';
+            html += '<div style="margin-top:8px;font-size:12px;color:var(--gray);">💡 Klik tombol <b>🔔 Ingatkan</b> untuk mengingatkan ketua kelas.</div>';
+            html += '</div>';
+            container.innerHTML = html;
+        }
+    }).catch(function(err) {
+        container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data kelas belum lapor: ' + err.message + '</div>';
+    });
+}
+
+function notifikasiKelas(kelas) {
+    var link = document.getElementById('presensiLinkDisplay').value;
+    var pesan = '📋 *Pengingat Presensi Harian*\n\nKelas: *' + kelas + '*\n\n📌 Mohon segera mengisi presensi hari ini melalui link berikut:\n' + link + '\n\n🙏 Terima kasih atas kerjasamanya!';
+    var encoded = encodeURIComponent(pesan);
+    if(confirm('📱 Kirim pengingat ke ketua kelas ' + kelas + '?\n\nSalin pesan ke WhatsApp.')) {
+        window.open('https://wa.me/?text=' + encoded, '_blank');
+    }
+}
+
+// ==================== FITUR BARU 2: GRAFIK TOP 5 IZIN ====================
+var chartInstance = null;
+
+function renderTopIzinChart(items, periodLabel) {
+    var container = document.getElementById('presensiRekapContainer');
+    
+    // Hitung jumlah izin per siswa
+    var izinCount = {};
+    for(var i=0; i<items.length; i++) {
+        var p = items[i];
+        var siswa = p.siswa || [];
+        for(var j=0; j<siswa.length; j++) {
+            var s = siswa[j];
+            if(s.status === 'Izin') {
+                var key = s.nama + '|' + p.kelas;
+                if(!izinCount[key]) {
+                    izinCount[key] = { nama: s.nama, kelas: p.kelas, count: 0 };
+                }
+                izinCount[key].count++;
+            }
+        }
+    }
+    
+    // Konversi ke array dan urutkan
+    var izinArray = Object.values(izinCount);
+    izinArray.sort(function(a, b) { return b.count - a.count; });
+    
+    // Ambil 5 teratas
+    var top5 = izinArray.slice(0, 5);
+    
+    // Buat elemen chart
+    var chartHtml = '';
+    if(top5.length > 0) {
+        chartHtml += '<div class="top-izin-chart">';
+        chartHtml += '<div class="chart-container">';
+        chartHtml += '<h4>📊 Top 5 Siswa dengan Izin Terbanyak - ' + periodLabel + '</h4>';
+        chartHtml += '<canvas id="topIzinChart" style="max-height:220px;width:100%;"></canvas>';
+        chartHtml += '</div>';
+        chartHtml += '<div class="top-izin-list">';
+        for(var i=0; i<top5.length; i++) {
+            var s = top5[i];
+            var medal = ['🥇','🥈','🥉','4️⃣','5️⃣'][i] || '•';
+            chartHtml += '<div class="item"><span class="name">' + medal + ' ' + s.nama + ' (' + s.kelas + ')</span><span class="count">' + s.count + 'x</span></div>';
+        }
+        chartHtml += '</div>';
+        chartHtml += '</div>';
+        
+        // Simpan data untuk chart
+        var chartData = {
+            labels: top5.map(function(s) { return s.nama + ' (' + s.kelas + ')'; }),
+            data: top5.map(function(s) { return s.count; })
+        };
+        
+        // Render chart setelah DOM siap
+        setTimeout(function() {
+            renderChart('topIzinChart', chartData);
+        }, 200);
+    } else {
+        chartHtml += '<div class="chart-container"><p style="text-align:center;color:var(--gray);padding:20px 0;">📭 Belum ada siswa yang izin pada periode ini.</p></div>';
+    }
+    
+    return chartHtml;
+}
+
+function renderChart(canvasId, chartData) {
+    var ctx = document.getElementById(canvasId);
+    if(!ctx) return;
+    
+    // Hapus chart sebelumnya jika ada
+    if(chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+    }
+    
+    // Warna untuk bar
+    var colors = ['#ffc107', '#17a2b8', '#28a745', '#6f42c1', '#fd7e14'];
+    var borderColors = ['#e0a800', '#138496', '#1e7e34', '#5a32a3', '#e06b00'];
+    
+    chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                label: 'Jumlah Izin',
+                data: chartData.data,
+                backgroundColor: colors.slice(0, chartData.data.length),
+                borderColor: borderColors.slice(0, chartData.data.length),
+                borderWidth: 2,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Izin: ' + context.parsed.y + 'x';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: { size: 10 }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Jumlah Izin'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: { size: 9 },
+                        maxRotation: 45,
+                        minRotation: 30
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ==================== PRESENSI GURU - REKAP (DENGAN FITUR BARU) ====================
 function loadPresensiRekap(){
     var classFilter = document.getElementById('filterPresensiClass').value;
     var period = document.getElementById('filterPresensiPeriod').value;
     var dateFilter = document.getElementById('filterPresensiDate').value;
     var container = document.getElementById('presensiRekapContainer');
     
+    // Load kelas belum lapor
+    loadKelasBelumLapor();
+    
     container.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat data presensi...</div>';
     
-    var startDate, endDate;
     var today = new Date();
     function formatDate(d){
         return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     }
-    function isDateInRange(dateStr, start, end){
-        return dateStr >= start && dateStr <= end;
-    }
     
-    // Ambil SEMUA data presensi terlebih dahulu (tanpa filter tanggal di query)
     db.collection('presensiHarian').orderBy('tanggal', 'desc').get().then(function(snapshot){
         var allItems = [];
         snapshot.forEach(function(doc){
@@ -473,54 +690,52 @@ function loadPresensiRekap(){
             data.id = doc.id;
             allItems.push(data);
         });
-        
-        // Cache data
         allPresensiDataCache = allItems;
         
-        // Filter berdasarkan kelas
+        // Filter kelas
         if(classFilter){
             allItems = allItems.filter(function(p){ return p.kelas === classFilter; });
         }
         
-        // Filter berdasarkan periode
+        var startStr, endStr, label;
         if(period !== 'all'){
-            var startStr, endStr;
             switch(period){
                 case 'daily':
                     if(dateFilter){ startStr = dateFilter; endStr = dateFilter; }
                     else { startStr = formatDate(today); endStr = formatDate(today); document.getElementById('filterPresensiDate').value = startStr; }
+                    label = 'Harian';
                     break;
                 case 'weekly':
                     var end = new Date(today); var start = new Date(today);
                     start.setDate(start.getDate() - 6);
                     startStr = formatDate(start); endStr = formatDate(end);
                     document.getElementById('filterPresensiDate').value = endStr;
+                    label = 'Mingguan';
                     break;
                 case 'monthly':
                     var end = new Date(today); var start = new Date(today);
                     start.setMonth(start.getMonth() - 1);
                     startStr = formatDate(start); endStr = formatDate(end);
                     document.getElementById('filterPresensiDate').value = endStr;
+                    label = 'Bulanan';
                     break;
                 case 'semester':
                     var end = new Date(today); var start = new Date(today);
                     start.setMonth(start.getMonth() - 6);
                     startStr = formatDate(start); endStr = formatDate(end);
                     document.getElementById('filterPresensiDate').value = endStr;
+                    label = 'Semester';
                     break;
-                default: startStr = formatDate(today); endStr = formatDate(today);
+                default: startStr = formatDate(today); endStr = formatDate(today); label = 'Harian';
             }
             allItems = allItems.filter(function(p){ 
                 return p.tanggal >= startStr && p.tanggal <= endStr; 
             });
-            var labelMap = {'daily':'Harian','weekly':'Mingguan','monthly':'Bulanan','semester':'Semester'};
-            var label = labelMap[period] || 'Periode';
-            renderPresensiDataFromArray(allItems, classFilter, label + ' (' + startStr + ' s.d ' + endStr + ')');
+            renderPresensiDataFromArray(allItems, classFilter, label + ' (' + startStr + ' s.d ' + endStr + ')', startStr, endStr);
         } else {
-            renderPresensiDataFromArray(allItems, classFilter, 'Semua Data');
+            renderPresensiDataFromArray(allItems, classFilter, 'Semua Data', '', '');
         }
     }).catch(function(err){
-        // Jika gagal ambil data, coba tanpa orderBy
         db.collection('presensiHarian').get().then(function(snapshot){
             var allItems = [];
             snapshot.forEach(function(doc){
@@ -536,40 +751,42 @@ function loadPresensiRekap(){
             }
             
             if(period !== 'all'){
-                var startStr, endStr;
+                var startStr, endStr, label;
                 switch(period){
                     case 'daily':
                         if(dateFilter){ startStr = dateFilter; endStr = dateFilter; }
                         else { startStr = formatDate(today); endStr = formatDate(today); document.getElementById('filterPresensiDate').value = startStr; }
+                        label = 'Harian';
                         break;
                     case 'weekly':
                         var end = new Date(today); var start = new Date(today);
                         start.setDate(start.getDate() - 6);
                         startStr = formatDate(start); endStr = formatDate(end);
                         document.getElementById('filterPresensiDate').value = endStr;
+                        label = 'Mingguan';
                         break;
                     case 'monthly':
                         var end = new Date(today); var start = new Date(today);
                         start.setMonth(start.getMonth() - 1);
                         startStr = formatDate(start); endStr = formatDate(end);
                         document.getElementById('filterPresensiDate').value = endStr;
+                        label = 'Bulanan';
                         break;
                     case 'semester':
                         var end = new Date(today); var start = new Date(today);
                         start.setMonth(start.getMonth() - 6);
                         startStr = formatDate(start); endStr = formatDate(end);
                         document.getElementById('filterPresensiDate').value = endStr;
+                        label = 'Semester';
                         break;
-                    default: startStr = formatDate(today); endStr = formatDate(today);
+                    default: startStr = formatDate(today); endStr = formatDate(today); label = 'Harian';
                 }
                 allItems = allItems.filter(function(p){ 
                     return p.tanggal >= startStr && p.tanggal <= endStr; 
                 });
-                var labelMap = {'daily':'Harian','weekly':'Mingguan','monthly':'Bulanan','semester':'Semester'};
-                var label = labelMap[period] || 'Periode';
-                renderPresensiDataFromArray(allItems, classFilter, label + ' (' + startStr + ' s.d ' + endStr + ')');
+                renderPresensiDataFromArray(allItems, classFilter, label + ' (' + startStr + ' s.d ' + endStr + ')', startStr, endStr);
             } else {
-                renderPresensiDataFromArray(allItems, classFilter, 'Semua Data');
+                renderPresensiDataFromArray(allItems, classFilter, 'Semua Data', '', '');
             }
         }).catch(function(err2){
             container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: '+err2.message+' <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">🔄 Coba Lagi</button></div>';
@@ -577,13 +794,16 @@ function loadPresensiRekap(){
     });
 }
 
-function renderPresensiDataFromArray(items, classFilter, periodLabel){
+function renderPresensiDataFromArray(items, classFilter, periodLabel, startStr, endStr){
     var container = document.getElementById('presensiRekapContainer');
     
     if(items.length === 0){
         container.innerHTML = '<div class="alert alert-info">📭 Belum ada laporan presensi untuk periode ini. <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">🔄 Refresh</button></div>';
         return;
     }
+    
+    // === RENDER GRAFIK TOP 5 IZIN ===
+    var chartHtml = renderTopIzinChart(items, periodLabel);
     
     var rekapKelas = {};
     var semuaTidakHadir = {};
@@ -633,8 +853,12 @@ function renderPresensiDataFromArray(items, classFilter, periodLabel){
     html += '<span style="font-size:11px;color:var(--gray);">🔄 Auto-refresh 60 detik</span>';
     html += '</div>';
     
+    // Tampilkan grafik
+    html += chartHtml;
+    
     if(kelasList.length === 0){
-        container.innerHTML = '<div class="alert alert-info">📭 Tidak ada data presensi untuk kelas yang dipilih. <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap()">🔄 Refresh</button></div>';
+        html += '<div class="alert alert-info">📭 Tidak ada data presensi untuk kelas yang dipilih.</div>';
+        container.innerHTML = html;
         return;
     }
     
@@ -656,7 +880,6 @@ function renderPresensiDataFromArray(items, classFilter, periodLabel){
         html += '<div class="rekap-item"><div class="num" style="color:var(--primary-dark);">'+persen+'%</div><div class="label">📊 Kehadiran</div></div>';
         html += '</div>';
         
-        // Rekap siswa tidak hadir per kelas
         var tidakHadirKelas = [];
         for(var key in semuaTidakHadir){
             if(semuaTidakHadir[key].kelas === kelas){
@@ -703,7 +926,6 @@ function renderPresensiDataFromArray(items, classFilter, periodLabel){
         html += '</div>';
     }
     
-    // Rekap global semua siswa tidak hadir
     var semuaNamaTidakHadir = Object.keys(semuaTidakHadir);
     if(semuaNamaTidakHadir.length > 0){
         html += '<div class="panel" style="background:#f8fafc;border:2px solid var(--danger);">';
@@ -722,6 +944,14 @@ function renderPresensiDataFromArray(items, classFilter, periodLabel){
     }
     
     container.innerHTML = html;
+    
+    // Re-render chart jika canvas ada
+    setTimeout(function() {
+        var canvas = document.getElementById('topIzinChart');
+        if(canvas && !chartInstance) {
+            // Data sudah di-render di renderTopIzinChart
+        }
+    }, 300);
 }
 
 function toggleDetailPresensi(kelas){var el=document.getElementById('detail-'+kelas);if(el){if(el.style.display==='none'){el.style.display='block';}else{el.style.display='none';}}}
@@ -744,7 +974,6 @@ function loadDetailTidakHadirPeriode(){
         return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     }
     
-    // Ambil semua data dari cache atau dari Firestore
     if(allPresensiDataCache.length > 0){
         processDetailData(allPresensiDataCache, kelas, period, dateFilter, container);
     } else {
@@ -764,10 +993,8 @@ function loadDetailTidakHadirPeriode(){
 }
 
 function processDetailData(items, kelas, period, dateFilter, container){
-    // Filter kelas
     items = items.filter(function(p){ return p.kelas === kelas; });
     
-    // Filter periode
     var today = new Date();
     function formatDate(d){
         return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -911,7 +1138,7 @@ function renderDetailTidakHadirPeriode(items, kelas, periodLabel){
     container.innerHTML = html;
 }
 
-// ==================== AUTO REFRESH - 60 DETIK ====================
+// ==================== AUTO REFRESH ====================
 function startPresensiAutoRefresh(){
     stopPresensiAutoRefresh();
     presensiRefreshTimer = setInterval(function(){
@@ -957,6 +1184,11 @@ function cetakPresensi(){
     w.document.write('.rekap-tidak-hadir { margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd; }');
     w.document.write('.kelas-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }');
     w.document.write('.siswa-list { display: flex; flex-wrap: wrap; gap: 4px; }');
+    w.document.write('.top-izin-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin: 8px 0; }');
+    w.document.write('.top-izin-list .item { background: #f8fafc; padding: 6px 12px; border-radius: 6px; border-left: 4px solid #1a5a9e; display: flex; justify-content: space-between; align-items: center; }');
+    w.document.write('.top-izin-list .item .name { font-weight: 600; font-size: 13px; }');
+    w.document.write('.top-izin-list .item .count { font-weight: 700; color: #d96b7b; font-size: 14px; }');
+    w.document.write('.chart-container { border: 1px solid #ddd; padding: 12px; border-radius: 6px; margin: 8px 0; }');
     w.document.write('@media print { body { padding: 10px; } .panel { page-break-inside: avoid; } }');
     w.document.write('</style></head><body>');
     w.document.write('<h2>📋 LAPORAN PRESENSI '+label.toUpperCase()+'</h2>');
@@ -968,6 +1200,7 @@ function cetakPresensi(){
     w.document.write('<div style="margin-top:12px;">');
     var contentHTML = container.innerHTML;
     contentHTML = contentHTML.replace(/<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">.*?<\/div>/gs, '');
+    contentHTML = contentHTML.replace(/<canvas[^>]*>.*?<\/canvas>/gs, '');
     w.document.write(contentHTML);
     w.document.write('</div>');
     w.document.write('<div class="footer">Dicetak dari SIM BK | <span class="brand">@NaFaSBK</span> | Laporan Presensi</div>');
@@ -1065,7 +1298,7 @@ function cetakDetailTidakHadir(){
     w.document.write('</body></html>');
     w.document.close();
 }
-// ==================== AKHIR FUNGSI ====================
+
 function keluarPresensi(){document.getElementById('presensiMode').style.display='none';document.getElementById('mainApp').style.display='block';document.querySelector('.app-container').style.padding='12px';showTab('presensi');}
 function copyPresensiLink(){var link=document.getElementById('presensiLinkDisplay').value;copyText(link);}
 function bagikanPresensiWA(){var link=document.getElementById('presensiLinkDisplay').value;var pesan=encodeURIComponent('📋 *Presensi Harian - SIM BK*\n\nKlik link berikut untuk mengisi presensi:\n'+link+'\n\n📌 Pilih kelas, pilih tanggal, isi presensi, kirim.\n🙏 Isi dengan jujur ya!');window.open('https://wa.me/?text='+pesan,'_blank');}
@@ -1082,9 +1315,10 @@ function cetakLaporan(jenis){var contentId=jenis+'List';var content=document.get
 (function(){var params=new URLSearchParams(window.location.search);var mode=params.get('mode');if(mode==='presensi'){document.getElementById('loginPage').style.display='none';document.getElementById('registerPage').style.display='none';document.getElementById('mainApp').style.display='none';document.getElementById('presensiMode').style.display='block';document.querySelector('.app-container').style.padding='0';document.getElementById('app').classList.add('presensi-mode-only');db.collection('students').orderBy('class').orderBy('name').get().then(function(snapshot){allStudents=[];var classes=new Set();snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;allStudents.push(data);if(data.class)classes.add(data.class);});var select=document.getElementById('presensiKelas');var classArray=Array.from(classes).sort();select.innerHTML='<option value="">Pilih Kelas</option>';for(var i=0;i<classArray.length;i++){select.innerHTML+='<option value="'+classArray[i]+'">'+classArray[i]+'</option>';}document.getElementById('presensiSchoolDisplay').textContent=schoolData.name||'Sekolah';}).catch(function(err){console.log('Gagal load siswa untuk presensi: '+err.message);});}})();
 if(!checkSession()){showLoginPage();}
 db.collection('students').onSnapshot(function(){loadStudentsOptimized();populateClassDropdowns();populatePresensiKelas();});
-console.log('✅ SIM BK v2.8 - TANPA INDEX COMPOSITE!');
+console.log('✅ SIM BK v3.0 - DENGAN FITUR KELAS BELUM LAPOR & GRAFIK TOP 5 IZIN!');
 console.log('✅ Data presensi tetap tersimpan dan TIDAK HILANG');
-console.log('✅ Nama siswa tidak hadir muncul di semua periode (Harian/Mingguan/Bulanan/Semester/Semua Data)');
+console.log('✅ Kelas belum lapor muncul di bagian atas laporan presensi');
+console.log('✅ Grafik 5 siswa dengan izin terbanyak di setiap periode');
 </script>
 </body>
 </html>
