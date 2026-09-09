@@ -141,13 +141,24 @@
         .presensi-refresh-indicator{font-size:12px;color:var(--gray);padding:4px 12px;background:#f0f4f8;border-radius:20px;display:inline-block}
         .chart-container{background:#fff;border-radius:var(--radius);padding:16px;margin:12px 0;border:1px solid var(--gray-light)}
         .chart-container h4{font-size:14px;color:var(--primary-dark);margin-bottom:8px}
-        .chart-container canvas{max-height:250px;width:100%!important}
+        .chart-container canvas{max-height:200px;width:100%!important}
         .kelas-belum-lapor{background:#fff3cd;border:2px solid #ffc107;border-radius:var(--radius);padding:14px 18px;margin-bottom:12px}
         .kelas-belum-lapor .title{font-weight:700;color:#856404;font-size:14px;margin-bottom:8px}
         .kelas-belum-lapor .kelas-tag{display:inline-block;background:#fff;border:1px solid #ffc107;border-radius:16px;padding:4px 14px;margin:3px 6px 3px 0;font-size:13px;font-weight:600;color:var(--primary-dark)}
-        .kelas-belum-lapor .btn-notif{background:var(--primary);color:#fff;border:0;padding:2px 12px;border-radius:12px;font-size:11px;cursor:pointer;margin-left:6px}
-        .kelas-belum-lapor .btn-notif:hover{background:var(--primary-dark)}
         .kelas-belum-lapor .semua-lapor{color:var(--success);font-weight:600}
+        .top-izin-perkelas{margin:12px 0;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid var(--gray-light)}
+        .top-izin-perkelas h4{font-size:14px;color:var(--primary-dark);margin-bottom:8px}
+        .top-izin-perkelas .chart-container{background:#fff;padding:12px;margin:6px 0}
+        .top-izin-perkelas canvas{max-height:180px}
+        .top-izin-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px;margin-top:6px}
+        .top-izin-list .item{background:#fff;padding:6px 12px;border-radius:6px;border-left:4px solid var(--primary);display:flex;justify-content:space-between;align-items:center;font-size:13px}
+        .top-izin-list .item .name{font-weight:600}
+        .top-izin-list .item .count{font-weight:700;color:var(--danger);font-size:14px}
+        .top-izin-list .item:nth-child(1){border-left-color:#ffc107}
+        .top-izin-list .item:nth-child(2){border-left-color:#17a2b8}
+        .top-izin-list .item:nth-child(3){border-left-color:#28a745}
+        .top-izin-list .item:nth-child(4){border-left-color:#6f42c1}
+        .top-izin-list .item:nth-child(5){border-left-color:#fd7e14}
         @media(max-width:768px){.header{flex-direction:column;align-items:stretch;text-align:center}.header-info{justify-content:center}.nav{justify-content:center}.nav button{font-size:10px;padding:5px 10px}.panel{padding:14px}.stats-grid{grid-template-columns:repeat(2,1fr)}.form-row{grid-template-columns:1fr}.settings-grid{grid-template-columns:1fr}.modal-box{padding:20px}.pagination-container{flex-direction:column;text-align:center}.select-all-container{flex-wrap:wrap}.select-all-container .btn-hapus-massal{margin-left:0}}
         @media print{.no-print{display:none!important}}
         .footer{text-align:center;padding:16px 20px;color:var(--gray);font-size:11px;border-top:1px solid var(--gray-light);margin-top:16px;background:#fff;border-radius:var(--radius)}
@@ -182,17 +193,6 @@
         .rekap-tidak-hadir .siswa-tag.alfa{background:#f8d7da;border-color:var(--danger);color:#721c24}
         .warning-index{background:#fff3cd;padding:12px 16px;border-radius:8px;border:1px solid #ffc107;margin-bottom:12px;font-size:13px}
         .warning-index a{color:var(--primary);font-weight:600}
-        .top-izin-chart .chart-container{background:#f8fafc}
-        .top-izin-chart .chart-container canvas{max-height:200px}
-        .top-izin-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:8px}
-        .top-izin-list .item{background:#f8fafc;padding:8px 12px;border-radius:6px;border-left:4px solid var(--primary);display:flex;justify-content:space-between;align-items:center}
-        .top-izin-list .item .name{font-weight:600;font-size:13px}
-        .top-izin-list .item .count{font-weight:700;color:var(--danger);font-size:14px}
-        .top-izin-list .item:nth-child(1){border-left-color:#ffc107}
-        .top-izin-list .item:nth-child(2){border-left-color:#17a2b8}
-        .top-izin-list .item:nth-child(3){border-left-color:#28a745}
-        .top-izin-list .item:nth-child(4){border-left-color:#6f42c1}
-        .top-izin-list .item:nth-child(5){border-left-color:#fd7e14}
     </style>
 </head>
 <body>
@@ -330,7 +330,7 @@
                     </div>
                     <span class="presensi-refresh-indicator" id="presensiRefreshStatus">🔄 Auto-refresh 60 detik</span>
                 </div>
-                <!-- === FITUR BARU: KELAS BELUM LAPOR === -->
+                <!-- KELAS BELUM LAPOR -->
                 <div id="kelasBelumLaporContainer" style="margin-bottom:12px;"></div>
                 <div id="presensiRekapContainer"><div class="loading"><span class="spinner"></span> Memuat data presensi...</div></div>
             </div>
@@ -405,6 +405,7 @@ function saveSchoolData(data){localStorage.setItem(SCHOOL_KEY,JSON.stringify(dat
 var currentUser=null;var schoolData={name:'',year:'',address:''};var allStudents=[];var allTeachers=[];var presensiEditMode=false;var presensiEditDocId=null;var selectedStudents={};
 var presensiRefreshTimer=null;
 var allPresensiDataCache=[];
+var chartInstances={};
 
 function showLoginPage(){document.getElementById('loginPage').style.display='block';document.getElementById('registerPage').style.display='none';document.getElementById('mainApp').style.display='none';document.getElementById('loginAlert').innerHTML='';}
 function showRegisterPage(){document.getElementById('loginPage').style.display='none';document.getElementById('registerPage').style.display='block';document.getElementById('mainApp').style.display='none';document.getElementById('registerAlert').innerHTML='';}
@@ -471,12 +472,11 @@ function setAllSiswaHadir(){var items=document.querySelectorAll('.presensi-stude
 function resetPresensiForm(){var items=document.querySelectorAll('.presensi-student-list .student-item');for(var i=0;i<items.length;i++){var select=document.getElementById('ps_'+i);if(select&&!select.disabled)select.value='Hadir';var note=document.getElementById('pn_'+i);if(note&&!note.disabled)note.value='';}var alertEl=document.getElementById('presensiFormAlert');if(alertEl){alertEl.innerHTML='<div class="alert alert-info">🔄 Form direset</div>';setTimeout(function(){alertEl.innerHTML='';},2000);}}
 function kirimPresensi(){var kelas=document.getElementById('presensiKelas').value;var tanggal=document.getElementById('presensiTanggal').value;var alertEl=document.getElementById('presensiFormAlert');if(!kelas||!tanggal){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Pilih kelas dan tanggal terlebih dahulu!</div>';return;}var items=document.querySelectorAll('.presensi-student-list .student-item');var siswaData=[];var semuaHadir=true;for(var i=0;i<items.length;i++){var select=document.getElementById('ps_'+i);var note=document.getElementById('pn_'+i);var nameEl=items[i].querySelector('.s-name');var status=select?select.value:'Hadir';var keterangan=note?note.value.trim():'';var nama=nameEl?nameEl.textContent.trim():'Siswa '+(i+1);if(status!=='Hadir'&&!keterangan){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Siswa '+nama+' tidak hadir tetapi keterangan kosong!</div>';return;}if(status!=='Hadir')semuaHadir=false;siswaData.push({nama:nama,status:status,keterangan:keterangan});}alertEl.innerHTML='<div class="alert alert-info">⏳ '+(presensiEditMode?'Memperbarui':'Menyimpan')+' laporan presensi...</div>';if(presensiEditMode&&presensiEditDocId){db.collection('presensiHarian').doc(presensiEditDocId).update({siswa:siswaData,semuaHadir:semuaHadir,updatedAt:new Date().toISOString(),dikirimOleh:'Ketua Kelas '+kelas}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Laporan presensi berhasil DIUPDATE! Terima kasih 🙏</div>';presensiEditMode=false;presensiEditDocId=null;loadPresensiRekap();updateDashboard();loadPresensiSiswa();}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal update: '+err.message+'</div>';});}else{db.collection('presensiHarian').add({kelas:kelas,tanggal:tanggal,siswa:siswaData,semuaHadir:semuaHadir,dikirimOleh:'Ketua Kelas '+kelas,createdAt:new Date().toISOString()}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Laporan presensi berhasil dikirim! Terima kasih 🙏</div>';loadPresensiRekap();updateDashboard();loadPresensiSiswa();}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal menyimpan: '+err.message+'</div>';});}}
 
-// ==================== FITUR BARU 1: KELAS BELUM LAPOR ====================
+// ==================== FITUR 1: KELAS BELUM LAPOR (TANPA TOMBOL) ====================
 function loadKelasBelumLapor() {
     var container = document.getElementById('kelasBelumLaporContainer');
     var today = new Date().toISOString().split('T')[0];
     
-    // Ambil semua kelas dari data siswa
     var semuaKelas = [];
     var kelasSet = new Set();
     for(var i=0; i<allStudents.length; i++) {
@@ -491,7 +491,6 @@ function loadKelasBelumLapor() {
         return;
     }
     
-    // Ambil data presensi hari ini
     db.collection('presensiHarian').where('tanggal', '==', today).get().then(function(snapshot) {
         var kelasLapor = new Set();
         snapshot.forEach(function(doc) {
@@ -515,10 +514,9 @@ function loadKelasBelumLapor() {
             html += '<div class="title">⚠️ ' + kelasBelumLapor.length + ' Kelas Belum Lapor Presensi Hari Ini (' + new Date(today).toLocaleDateString('id-ID') + ')</div>';
             html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">';
             for(var i=0; i<kelasBelumLapor.length; i++) {
-                html += '<span class="kelas-tag">📚 ' + kelasBelumLapor[i] + ' <button class="btn-notif" onclick="notifikasiKelas(\'' + kelasBelumLapor[i] + '\')">🔔 Ingatkan</button></span>';
+                html += '<span class="kelas-tag">📚 ' + kelasBelumLapor[i] + '</span>';
             }
             html += '</div>';
-            html += '<div style="margin-top:8px;font-size:12px;color:var(--gray);">💡 Klik tombol <b>🔔 Ingatkan</b> untuk mengingatkan ketua kelas.</div>';
             html += '</div>';
             container.innerHTML = html;
         }
@@ -527,104 +525,110 @@ function loadKelasBelumLapor() {
     });
 }
 
-function notifikasiKelas(kelas) {
-    var link = document.getElementById('presensiLinkDisplay').value;
-    var pesan = '📋 *Pengingat Presensi Harian*\n\nKelas: *' + kelas + '*\n\n📌 Mohon segera mengisi presensi hari ini melalui link berikut:\n' + link + '\n\n🙏 Terima kasih atas kerjasamanya!';
-    var encoded = encodeURIComponent(pesan);
-    if(confirm('📱 Kirim pengingat ke ketua kelas ' + kelas + '?\n\nSalin pesan ke WhatsApp.')) {
-        window.open('https://wa.me/?text=' + encoded, '_blank');
-    }
-}
-
-// ==================== FITUR BARU 2: GRAFIK TOP 5 IZIN ====================
-var chartInstance = null;
-
-function renderTopIzinChart(items, periodLabel) {
+// ==================== FITUR 2: GRAFIK TOP 5 IZIN PER KELAS ====================
+function renderTopIzinPerKelas(items, periodLabel, classFilter) {
     var container = document.getElementById('presensiRekapContainer');
     
-    // Hitung jumlah izin per siswa
-    var izinCount = {};
+    // Kelompokkan data per kelas
+    var kelasData = {};
     for(var i=0; i<items.length; i++) {
         var p = items[i];
         var siswa = p.siswa || [];
         for(var j=0; j<siswa.length; j++) {
             var s = siswa[j];
             if(s.status === 'Izin') {
-                var key = s.nama + '|' + p.kelas;
-                if(!izinCount[key]) {
-                    izinCount[key] = { nama: s.nama, kelas: p.kelas, count: 0 };
+                var kelas = p.kelas || 'Tidak diketahui';
+                if(!kelasData[kelas]) {
+                    kelasData[kelas] = {};
                 }
-                izinCount[key].count++;
+                var key = s.nama;
+                if(!kelasData[kelas][key]) {
+                    kelasData[kelas][key] = { nama: s.nama, count: 0 };
+                }
+                kelasData[kelas][key].count++;
             }
         }
     }
     
-    // Konversi ke array dan urutkan
-    var izinArray = Object.values(izinCount);
-    izinArray.sort(function(a, b) { return b.count - a.count; });
-    
-    // Ambil 5 teratas
-    var top5 = izinArray.slice(0, 5);
-    
-    // Buat elemen chart
-    var chartHtml = '';
-    if(top5.length > 0) {
-        chartHtml += '<div class="top-izin-chart">';
-        chartHtml += '<div class="chart-container">';
-        chartHtml += '<h4>📊 Top 5 Siswa dengan Izin Terbanyak - ' + periodLabel + '</h4>';
-        chartHtml += '<canvas id="topIzinChart" style="max-height:220px;width:100%;"></canvas>';
-        chartHtml += '</div>';
-        chartHtml += '<div class="top-izin-list">';
-        for(var i=0; i<top5.length; i++) {
-            var s = top5[i];
-            var medal = ['🥇','🥈','🥉','4️⃣','5️⃣'][i] || '•';
-            chartHtml += '<div class="item"><span class="name">' + medal + ' ' + s.nama + ' (' + s.kelas + ')</span><span class="count">' + s.count + 'x</span></div>';
-        }
-        chartHtml += '</div>';
-        chartHtml += '</div>';
-        
-        // Simpan data untuk chart
-        var chartData = {
-            labels: top5.map(function(s) { return s.nama + ' (' + s.kelas + ')'; }),
-            data: top5.map(function(s) { return s.count; })
-        };
-        
-        // Render chart setelah DOM siap
-        setTimeout(function() {
-            renderChart('topIzinChart', chartData);
-        }, 200);
-    } else {
-        chartHtml += '<div class="chart-container"><p style="text-align:center;color:var(--gray);padding:20px 0;">📭 Belum ada siswa yang izin pada periode ini.</p></div>';
+    // Jika filter kelas dipilih, hanya tampilkan kelas itu
+    var kelasList = Object.keys(kelasData).sort();
+    if(classFilter && kelasList.includes(classFilter)) {
+        kelasList = [classFilter];
     }
     
-    return chartHtml;
+    if(kelasList.length === 0) {
+        return '<div class="alert alert-info">📭 Belum ada siswa yang izin pada periode ini.</div>';
+    }
+    
+    var html = '<div class="top-izin-perkelas">';
+    html += '<h4>📊 Top 5 Siswa dengan Izin Terbanyak per Kelas - ' + periodLabel + '</h4>';
+    
+    for(var k=0; k<kelasList.length; k++) {
+        var kelas = kelasList[k];
+        var siswaList = Object.values(kelasData[kelas]);
+        siswaList.sort(function(a, b) { return b.count - a.count; });
+        var top5 = siswaList.slice(0, 5);
+        
+        if(top5.length === 0) continue;
+        
+        var chartId = 'chartKelas_' + kelas.replace(/[^a-zA-Z0-9]/g, '_');
+        
+        html += '<div class="chart-container" style="margin-top:10px;">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">';
+        html += '<h5 style="font-size:13px;color:var(--primary-dark);">📚 ' + kelas + '</h5>';
+        html += '<span style="font-size:11px;color:var(--gray);">' + top5.length + ' siswa</span>';
+        html += '</div>';
+        html += '<canvas id="' + chartId + '" style="max-height:160px;width:100%;"></canvas>';
+        
+        // Daftar siswa
+        html += '<div class="top-izin-list">';
+        var medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+        for(var s=0; s<top5.length; s++) {
+            var medal = medals[s] || '•';
+            html += '<div class="item"><span class="name">' + medal + ' ' + top5[s].nama + '</span><span class="count">' + top5[s].count + 'x</span></div>';
+        }
+        html += '</div>';
+        html += '</div>';
+        
+        // Simpan data chart untuk di-render setelah DOM
+        setTimeout(function(chartId, top5, kelas) {
+            var ctx = document.getElementById(chartId);
+            if(ctx) {
+                renderPerKelasChart(chartId, top5);
+            }
+        }(chartId, top5, kelas), 100);
+    }
+    
+    html += '</div>';
+    return html;
 }
 
-function renderChart(canvasId, chartData) {
-    var ctx = document.getElementById(canvasId);
+function renderPerKelasChart(chartId, data) {
+    var ctx = document.getElementById(chartId);
     if(!ctx) return;
     
     // Hapus chart sebelumnya jika ada
-    if(chartInstance) {
-        chartInstance.destroy();
-        chartInstance = null;
+    if(chartInstances[chartId]) {
+        chartInstances[chartId].destroy();
+        delete chartInstances[chartId];
     }
     
-    // Warna untuk bar
+    var labels = data.map(function(d) { return d.nama; });
+    var values = data.map(function(d) { return d.count; });
     var colors = ['#ffc107', '#17a2b8', '#28a745', '#6f42c1', '#fd7e14'];
     var borderColors = ['#e0a800', '#138496', '#1e7e34', '#5a32a3', '#e06b00'];
     
-    chartInstance = new Chart(ctx, {
+    chartInstances[chartId] = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: chartData.labels,
+            labels: labels,
             datasets: [{
                 label: 'Jumlah Izin',
-                data: chartData.data,
-                backgroundColor: colors.slice(0, chartData.data.length),
-                borderColor: borderColors.slice(0, chartData.data.length),
+                data: values,
+                backgroundColor: colors.slice(0, data.length),
+                borderColor: borderColors.slice(0, data.length),
                 borderWidth: 2,
-                borderRadius: 6
+                borderRadius: 4
             }]
         },
         options: {
@@ -647,18 +651,14 @@ function renderChart(canvasId, chartData) {
                     beginAtZero: true,
                     ticks: {
                         stepSize: 1,
-                        font: { size: 10 }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Jumlah Izin'
+                        font: { size: 9 }
                     }
                 },
                 x: {
                     ticks: {
                         font: { size: 9 },
-                        maxRotation: 45,
-                        minRotation: 30
+                        maxRotation: 30,
+                        minRotation: 20
                     }
                 }
             }
@@ -666,7 +666,7 @@ function renderChart(canvasId, chartData) {
     });
 }
 
-// ==================== PRESENSI GURU - REKAP (DENGAN FITUR BARU) ====================
+// ==================== PRESENSI GURU - REKAP ====================
 function loadPresensiRekap(){
     var classFilter = document.getElementById('filterPresensiClass').value;
     var period = document.getElementById('filterPresensiPeriod').value;
@@ -692,7 +692,6 @@ function loadPresensiRekap(){
         });
         allPresensiDataCache = allItems;
         
-        // Filter kelas
         if(classFilter){
             allItems = allItems.filter(function(p){ return p.kelas === classFilter; });
         }
@@ -802,8 +801,8 @@ function renderPresensiDataFromArray(items, classFilter, periodLabel, startStr, 
         return;
     }
     
-    // === RENDER GRAFIK TOP 5 IZIN ===
-    var chartHtml = renderTopIzinChart(items, periodLabel);
+    // === GRAFIK TOP 5 IZIN PER KELAS ===
+    var chartHtml = renderTopIzinPerKelas(items, periodLabel, classFilter);
     
     var rekapKelas = {};
     var semuaTidakHadir = {};
@@ -944,14 +943,6 @@ function renderPresensiDataFromArray(items, classFilter, periodLabel, startStr, 
     }
     
     container.innerHTML = html;
-    
-    // Re-render chart jika canvas ada
-    setTimeout(function() {
-        var canvas = document.getElementById('topIzinChart');
-        if(canvas && !chartInstance) {
-            // Data sudah di-render di renderTopIzinChart
-        }
-    }, 300);
 }
 
 function toggleDetailPresensi(kelas){var el=document.getElementById('detail-'+kelas);if(el){if(el.style.display==='none'){el.style.display='block';}else{el.style.display='none';}}}
@@ -1184,9 +1175,11 @@ function cetakPresensi(){
     w.document.write('.rekap-tidak-hadir { margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd; }');
     w.document.write('.kelas-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }');
     w.document.write('.siswa-list { display: flex; flex-wrap: wrap; gap: 4px; }');
-    w.document.write('.top-izin-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin: 8px 0; }');
-    w.document.write('.top-izin-list .item { background: #f8fafc; padding: 6px 12px; border-radius: 6px; border-left: 4px solid #1a5a9e; display: flex; justify-content: space-between; align-items: center; }');
-    w.document.write('.top-izin-list .item .name { font-weight: 600; font-size: 13px; }');
+    w.document.write('.top-izin-perkelas { margin: 12px 0; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #ddd; }');
+    w.document.write('.top-izin-perkelas h4 { font-size: 14px; color: #0d3b6b; margin-bottom: 8px; }');
+    w.document.write('.top-izin-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px; margin-top: 6px; }');
+    w.document.write('.top-izin-list .item { background: #fff; padding: 6px 12px; border-radius: 6px; border-left: 4px solid #1a5a9e; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }');
+    w.document.write('.top-izin-list .item .name { font-weight: 600; }');
     w.document.write('.top-izin-list .item .count { font-weight: 700; color: #d96b7b; font-size: 14px; }');
     w.document.write('.chart-container { border: 1px solid #ddd; padding: 12px; border-radius: 6px; margin: 8px 0; }');
     w.document.write('@media print { body { padding: 10px; } .panel { page-break-inside: avoid; } }');
@@ -1315,10 +1308,10 @@ function cetakLaporan(jenis){var contentId=jenis+'List';var content=document.get
 (function(){var params=new URLSearchParams(window.location.search);var mode=params.get('mode');if(mode==='presensi'){document.getElementById('loginPage').style.display='none';document.getElementById('registerPage').style.display='none';document.getElementById('mainApp').style.display='none';document.getElementById('presensiMode').style.display='block';document.querySelector('.app-container').style.padding='0';document.getElementById('app').classList.add('presensi-mode-only');db.collection('students').orderBy('class').orderBy('name').get().then(function(snapshot){allStudents=[];var classes=new Set();snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;allStudents.push(data);if(data.class)classes.add(data.class);});var select=document.getElementById('presensiKelas');var classArray=Array.from(classes).sort();select.innerHTML='<option value="">Pilih Kelas</option>';for(var i=0;i<classArray.length;i++){select.innerHTML+='<option value="'+classArray[i]+'">'+classArray[i]+'</option>';}document.getElementById('presensiSchoolDisplay').textContent=schoolData.name||'Sekolah';}).catch(function(err){console.log('Gagal load siswa untuk presensi: '+err.message);});}})();
 if(!checkSession()){showLoginPage();}
 db.collection('students').onSnapshot(function(){loadStudentsOptimized();populateClassDropdowns();populatePresensiKelas();});
-console.log('✅ SIM BK v3.0 - DENGAN FITUR KELAS BELUM LAPOR & GRAFIK TOP 5 IZIN!');
+console.log('✅ SIM BK v3.1 - KELAS BELUM LAPOR (tanpa tombol) + GRAFIK PER KELAS!');
 console.log('✅ Data presensi tetap tersimpan dan TIDAK HILANG');
-console.log('✅ Kelas belum lapor muncul di bagian atas laporan presensi');
-console.log('✅ Grafik 5 siswa dengan izin terbanyak di setiap periode');
+console.log('✅ Kelas belum lapor hanya menampilkan daftar kelas tanpa tombol');
+console.log('✅ Grafik 5 siswa dengan izin terbanyak tampil PER KELAS');
 </script>
 </body>
 </html>
