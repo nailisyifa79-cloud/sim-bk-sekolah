@@ -45,6 +45,7 @@
         .btn-primary:hover{background:var(--primary-dark)}
         .btn-success{background:var(--success);color:#fff}
         .btn-success:hover{background:#0d7a62}
+        .btn-success:disabled{background:#94a3b8;cursor:not-allowed;transform:none;box-shadow:none}
         .btn-danger{background:var(--danger);color:#fff}
         .btn-danger:hover{background:#c45566}
         .btn-warning{background:var(--warning);color:#fff}
@@ -197,6 +198,9 @@
         @keyframes skeleton{0%{background-position:200% 0}100%{background-position:-200% 0}}
         .quick-loading{text-align:center;padding:20px;color:var(--gray);font-size:13px}
         .quick-loading .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--gray-light);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}
+        .saving-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;justify-content:center;align-items:center;flex-direction:column;color:#fff;font-size:16px;gap:16px}
+        .saving-overlay .spinner-big{width:60px;height:60px;border:5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite}
+        .saving-overlay .info{text-align:center;font-size:14px;opacity:0.9;max-width:300px}
     </style>
 </head>
 <body>
@@ -332,7 +336,7 @@
                         <div style="flex:1;"><label>Periode</label><select id="filterPresensiPeriod" class="form-control" onchange="loadPresensiRekap(true)"><option value="daily">📅 Harian</option><option value="weekly" selected>📆 Mingguan</option><option value="monthly">📊 Bulanan</option><option value="semester">📚 Semester</option><option value="all">📂 Semua Data</option></select></div>
                         <div style="flex:1;"><label>Tanggal</label><input type="date" id="filterPresensiDate" class="form-control" onchange="loadPresensiRekap(true)"></div>
                     </div>
-                    <span class="presensi-refresh-indicator" id="presensiRefreshStatus">🔄 Auto-refresh 120 detik</span>
+                    <span class="presensi-refresh-indicator" id="presensiRefreshStatus">🔄 Manual refresh</span>
                 </div>
                 <div id="kelasBelumLaporContainer" style="margin-bottom:12px;"></div>
                 <div id="presensiRekapContainer"><div class="loading"><span class="spinner"></span> Memuat data presensi...</div></div>
@@ -396,9 +400,16 @@
 </div>
 <script>
 var firebaseConfig = {apiKey:"AIzaSyA2AQNbuiqycFQ4S-vsthw9NFMNyb-acFA",authDomain:"sosio-digital.firebaseapp.com",projectId:"sosio-digital",storageBucket:"sosio-digital.firebasestorage.app",messagingSenderId:"562983012848",appId:"1:562983012848:web:aced97fe045efed03cf535"};
-firebase.initializeApp(firebaseConfig);var db=firebase.firestore();var storage=firebase.storage();var auth=firebase.auth();
+firebase.initializeApp(firebaseConfig);
+var db=firebase.firestore();
+var storage=firebase.storage();
+var auth=firebase.auth();
+
+// ==================== MATIKAN PERSISTENCE (bisa lambat di HP) ====================
+// Tidak pakai enablePersistence untuk hindari race
+
 var USER_KEY='SIMBK_USERS';var SESSION_KEY='SIMBK_SESSION';var SCHOOL_KEY='SIMBK_SCHOOL';
-var STUDENT_CACHE_KEY='SIMBK_STUDENT_CACHE_'; // per kelas
+var STUDENT_CACHE_KEY='SIMBK_STUDENT_CACHE_';
 function getUsers(){try{return JSON.parse(localStorage.getItem(USER_KEY))||{}}catch(e){return{}}}
 function saveUsers(users){localStorage.setItem(USER_KEY,JSON.stringify(users));}
 function getSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY))}catch(e){return null}}
@@ -407,21 +418,17 @@ function clearSession(){localStorage.removeItem(SESSION_KEY)}
 function getSchoolData(){try{return JSON.parse(localStorage.getItem(SCHOOL_KEY))||{name:'',year:'',address:''}}catch(e){return{name:'',year:'',address:''}}}
 function saveSchoolData(data){localStorage.setItem(SCHOOL_KEY,JSON.stringify(data))}
 
-// ==================== CACHE SISWA PER KELAS ====================
 function getCachedClass(kelas){
     try{
         var raw=localStorage.getItem(STUDENT_CACHE_KEY+kelas);
         if(!raw)return null;
         var obj=JSON.parse(raw);
-        // Cache valid 1 jam
         if(Date.now()-obj.ts > 3600000) return null;
         return obj.data;
     }catch(e){return null;}
 }
 function setCachedClass(kelas,data){
-    try{
-        localStorage.setItem(STUDENT_CACHE_KEY+kelas,JSON.stringify({ts:Date.now(),data:data}));
-    }catch(e){}
+    try{ localStorage.setItem(STUDENT_CACHE_KEY+kelas,JSON.stringify({ts:Date.now(),data:data})); }catch(e){}
 }
 function getCachedClassList(){
     try{
@@ -433,16 +440,14 @@ function getCachedClassList(){
     }catch(e){return null;}
 }
 function setCachedClassList(list){
-    try{
-        localStorage.setItem(STUDENT_CACHE_KEY+'__list__',JSON.stringify({ts:Date.now(),data:list}));
-    }catch(e){}
+    try{ localStorage.setItem(STUDENT_CACHE_KEY+'__list__',JSON.stringify({ts:Date.now(),data:list})); }catch(e){}
 }
 
 var currentUser=null;var schoolData={name:'',year:'',address:''};var allStudents=[];var allTeachers=[];var presensiEditMode=false;var presensiEditDocId=null;var selectedStudents={};
 var presensiRefreshTimer=null;
 var allPresensiDataCache=[];
 var presensiLastFetch=0;
-var PRESENSI_CACHE_TTL=60000;
+var PRESENSI_CACHE_TTL=120000;
 var chartInstances={};
 var isLoadingPresensiRekap=false;
 var isPresensiMode=false;
@@ -450,11 +455,10 @@ var isPresensiMode=false;
 function showLoginPage(){document.getElementById('loginPage').style.display='block';document.getElementById('registerPage').style.display='none';document.getElementById('mainApp').style.display='none';document.getElementById('loginAlert').innerHTML='';}
 function showRegisterPage(){document.getElementById('loginPage').style.display='none';document.getElementById('registerPage').style.display='block';document.getElementById('mainApp').style.display='none';document.getElementById('registerAlert').innerHTML='';}
 function handleRegister(){var email=document.getElementById('registerEmail').value.trim();var password=document.getElementById('registerPassword').value.trim();var school=document.getElementById('registerSchool').value.trim();var alertEl=document.getElementById('registerAlert');if(!email){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Email harus diisi!</div>';return;}if(!password||password.length<6){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Password minimal 6 karakter!</div>';return;}if(!school){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Nama sekolah harus diisi!</div>';return;}var users=getUsers();if(users[email]){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Email sudah terdaftar! Silakan login.</div>';return;}users[email]={password:password,school:school,registeredAt:new Date().toISOString(),role:'admin'};saveUsers(users);alertEl.innerHTML='<div class="alert alert-success">✅ Pendaftaran berhasil! Silakan login.</div>';document.getElementById('registerEmail').value='';document.getElementById('registerPassword').value='';document.getElementById('registerSchool').value='';setTimeout(showLoginPage,2000);}
-function handleLogin(){var email=document.getElementById('loginEmail').value.trim();var password=document.getElementById('loginPassword').value.trim();var alertEl=document.getElementById('loginAlert');if(!email){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Email harus diisi!</div>';return;}if(!password){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Password harus diisi!</div>';return;}var users=getUsers();if(!users[email]){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Email tidak terdaftar! Silakan daftar terlebih dahulu.</div>';return;}if(users[email].password!==password){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Password salah! Coba lagi.</div>';return;}currentUser=users[email];currentUser.email=email;saveSession(email);alertEl.innerHTML='<div class="alert alert-success">✅ Login berhasil! Mengarahkan...</div>';setTimeout(function(){document.getElementById('loginPage').style.display='none';document.getElementById('registerPage').style.display='none';document.getElementById('mainApp').style.display='block';document.getElementById('userDisplay').textContent='👤 '+(currentUser.school||'Admin');schoolData=getSchoolData();document.getElementById('settingsSchool').value=schoolData.name||'';document.getElementById('settingsYear').value=schoolData.year||'';document.getElementById('settingsAddress').value=schoolData.address||'';document.getElementById('schoolDisplay').textContent=schoolData.name||'Sekolah';loadAllData();},1000);}
+function handleLogin(){var email=document.getElementById('loginEmail').value.trim();var password=document.getElementById('loginPassword').value.trim();var alertEl=document.getElementById('loginAlert');if(!email){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Email harus diisi!</div>';return;}if(!password){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Password harus diisi!</div>';return;}var users=getUsers();if(!users[email]){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Email tidak terdaftar!</div>';return;}if(users[email].password!==password){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Password salah!</div>';return;}currentUser=users[email];currentUser.email=email;saveSession(email);alertEl.innerHTML='<div class="alert alert-success">✅ Login berhasil!</div>';setTimeout(function(){document.getElementById('loginPage').style.display='none';document.getElementById('mainApp').style.display='block';document.getElementById('userDisplay').textContent='👤 '+(currentUser.school||'Admin');schoolData=getSchoolData();document.getElementById('settingsSchool').value=schoolData.name||'';document.getElementById('settingsYear').value=schoolData.year||'';document.getElementById('settingsAddress').value=schoolData.address||'';document.getElementById('schoolDisplay').textContent=schoolData.name||'Sekolah';loadAllData();},800);}
 function handleLogout(){if(confirm('Yakin ingin keluar?')){stopPresensiAutoRefresh();clearSession();currentUser=null;document.getElementById('mainApp').style.display='none';showLoginPage();}}
-function checkSession(){var session=getSession();if(session&&session.email){var users=getUsers();if(users[session.email]){currentUser=users[session.email];currentUser.email=session.email;document.getElementById('loginPage').style.display='none';document.getElementById('registerPage').style.display='none';document.getElementById('mainApp').style.display='block';document.getElementById('userDisplay').textContent='👤 '+(currentUser.school||'Admin');schoolData=getSchoolData();document.getElementById('settingsSchool').value=schoolData.name||'';document.getElementById('settingsYear').value=schoolData.year||'';document.getElementById('settingsAddress').value=schoolData.address||'';document.getElementById('schoolDisplay').textContent=schoolData.name||'Sekolah';loadAllData();return true;}else{clearSession();}}return false;}
+function checkSession(){var session=getSession();if(session&&session.email){var users=getUsers();if(users[session.email]){currentUser=users[session.email];currentUser.email=session.email;document.getElementById('loginPage').style.display='none';document.getElementById('mainApp').style.display='block';document.getElementById('userDisplay').textContent='👤 '+(currentUser.school||'Admin');schoolData=getSchoolData();document.getElementById('settingsSchool').value=schoolData.name||'';document.getElementById('settingsYear').value=schoolData.year||'';document.getElementById('settingsAddress').value=schoolData.address||'';document.getElementById('schoolDisplay').textContent=schoolData.name||'Sekolah';loadAllData();return true;}else{clearSession();}}return false;}
 
-// ==================== loadAllData ====================
 function loadAllData(){
     loadStudentsOptimized().then(function(){
         populateClassDropdowns();
@@ -520,13 +524,14 @@ function updateHomeVisitStudent(){var classVal=document.getElementById('homeVisi
 function updateIncidentStudent(){var classVal=document.getElementById('incidentClassSelect').value;populateFilteredStudents('incidentStudent',classVal);}
 function updateMutationStudent(){var classVal=document.getElementById('mutationClassSelect').value;populateFilteredStudents('mutationStudent',classVal);}
 function updateGraduationStudent(){var classVal=document.getElementById('graduationClassSelect').value;populateFilteredStudents('graduationStudent',classVal);}
-function showTab(tabId){var tabs=document.querySelectorAll('.tab-content');for(var i=0;i<tabs.length;i++){tabs[i].classList.remove('active');}var target=document.getElementById('tab-'+tabId);if(target)target.classList.add('active');var navBtns=document.querySelectorAll('#mainNav button');for(var j=0;j<navBtns.length;j++){navBtns[j].classList.remove('active');}var activeBtn=document.querySelector('#mainNav button[onclick="showTab(\''+tabId+'\')"]');if(activeBtn)activeBtn.classList.add('active');if(tabId==='students')loadStudentsOptimized();if(tabId==='teachers')loadTeachers();if(tabId==='counseling')loadCounseling();if(tabId==='parent-call')loadParentCalls();if(tabId==='home-visit')loadHomeVisits();if(tabId==='incident')loadIncidents();if(tabId==='mutation')loadMutations();if(tabId==='graduation')loadGraduations();if(tabId==='presensi'){loadPresensiRekap(true);populatePresensiKelas();startPresensiAutoRefresh();}else{stopPresensiAutoRefresh();}}
+function showTab(tabId){var tabs=document.querySelectorAll('.tab-content');for(var i=0;i<tabs.length;i++){tabs[i].classList.remove('active');}var target=document.getElementById('tab-'+tabId);if(target)target.classList.add('active');var navBtns=document.querySelectorAll('#mainNav button');for(var j=0;j<navBtns.length;j++){navBtns[j].classList.remove('active');}var activeBtn=document.querySelector('#mainNav button[onclick="showTab(\''+tabId+'\')"]');if(activeBtn)activeBtn.classList.add('active');if(tabId==='students')loadStudentsOptimized();if(tabId==='teachers')loadTeachers();if(tabId==='counseling')loadCounseling();if(tabId==='parent-call')loadParentCalls();if(tabId==='home-visit')loadHomeVisits();if(tabId==='incident')loadIncidents();if(tabId==='mutation')loadMutations();if(tabId==='graduation')loadGraduations();if(tabId==='presensi'){loadPresensiRekap(true);populatePresensiKelas();}else{stopPresensiAutoRefresh();}}
 function openModal(id){document.getElementById(id).classList.add('active');document.getElementById(id+'Alert').innerHTML='';var today=new Date().toISOString().split('T')[0];if(id==='counselingModal'){populateClassDropdowns();document.getElementById('counselingDate').value=today;}else if(id==='parentCallModal'){populateClassDropdowns();document.getElementById('parentCallDate').value=today;}else if(id==='homeVisitModal'){populateClassDropdowns();document.getElementById('homeVisitDate').value=today;}else if(id==='incidentModal'){populateClassDropdowns();document.getElementById('incidentDate').value=today;}else if(id==='mutationModal'){populateClassDropdowns();document.getElementById('mutationDate').value=today;}else if(id==='graduationModal'){populateClassDropdowns();document.getElementById('graduationUniversity').value='';document.getElementById('graduationMajor').value='';document.getElementById('graduationYear').value=new Date().getFullYear()+'/'+(new Date().getFullYear()+1);}else if(id==='studentModal'){document.getElementById('studentName').value='';document.getElementById('studentClass').value='';document.getElementById('studentYear').value=schoolData.year||'';document.getElementById('studentNISN').value='';}else if(id==='bulkStudentModal'){document.getElementById('bulkClass').value='';document.getElementById('bulkYear').value=schoolData.year||'';document.getElementById('bulkStudents').value='';document.getElementById('bulkProgress').style.display='none';}else if(id==='teacherModal'){document.getElementById('teacherName').value='';document.getElementById('teacherClasses').value='';}}
 function closeModal(id){document.getElementById(id).classList.remove('active');}
 document.addEventListener('click',function(e){if(e.target.classList.contains('modal-overlay')){e.target.classList.remove('active');}});
 document.addEventListener('keydown',function(e){if(e.key==='Enter'){if(document.getElementById('loginPage').style.display!=='none'){handleLogin();}else if(document.getElementById('registerPage').style.display!=='none'){handleRegister();}}});
 var currentPage=1;var pageSize=50;var totalStudents=0;var filteredStudents=[];
 
+// ==================== LOAD STUDENTS ====================
 function loadStudentsOptimized(){
     var classFilter=document.getElementById('filterClass').value;
     var yearFilter=document.getElementById('filterYear').value;
@@ -537,7 +542,6 @@ function loadStudentsOptimized(){
         allStudents=[];
         var classes=new Set();
         snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;allStudents.push(data);if(data.class)classes.add(data.class);});
-        // Simpan cache daftar kelas
         var classArray=Array.from(classes).sort();
         setCachedClassList(classArray);
         var filterClassEl=document.getElementById('filterClass');
@@ -568,35 +572,35 @@ function goToPage(page){var totalPages=Math.ceil(totalStudents/pageSize);if(page
 function toggleStudent(id){if(selectedStudents[id]){delete selectedStudents[id];}else{selectedStudents[id]=true;}updateHapusButton();}
 function toggleSelectAll(){var checked=document.getElementById('selectAllCheckbox').checked;var start=(currentPage-1)*pageSize;var end=Math.min(start+pageSize,totalStudents);var pageData=filteredStudents.slice(start,end);for(var j=0;j<pageData.length;j++){var s=pageData[j];if(checked){selectedStudents[s.id]=true;}else{delete selectedStudents[s.id];}}var checkboxes=document.querySelectorAll('.student-checkbox');for(var k=0;k<checkboxes.length;k++){checkboxes[k].checked=checked;}updateHapusButton();}
 function updateHapusButton(){var btn=document.getElementById('btnHapusMassal');var count=Object.keys(selectedStudents).length;if(btn){if(count===0){btn.disabled=true;btn.textContent='🗑️ Hapus Terpilih';}else{btn.disabled=false;btn.textContent='🗑️ Hapus '+count+' Terpilih';}}var counter=document.querySelector('.select-all-container span');if(counter){var pageData=filteredStudents.slice((currentPage-1)*pageSize,Math.min(currentPage*pageSize,totalStudents));var selectedInPage=0;for(var j=0;j<pageData.length;j++){if(selectedStudents[pageData[j].id])selectedInPage++;}counter.textContent='('+selectedInPage+'/'+pageData.length+' dipilih)';}}
-function hapusMassal(){var ids=Object.keys(selectedStudents);if(ids.length===0){alert('⚠️ Pilih siswa terlebih dahulu!');return;}var confirmMsg='⚠️ Anda akan menghapus '+ids.length+' siswa secara permanen!\n\n';if(!confirm(confirmMsg))return;if(!confirm('⚠️⚠️ KONFIRMASI TERAKHIR: Hapus '+ids.length+' siswa?'))return;var container=document.getElementById('studentList');container.innerHTML='<div class="loading"><span class="spinner"></span> Menghapus '+ids.length+' siswa...</div>';var batchSize=20;var totalBatches=Math.ceil(ids.length/batchSize);var completedBatches=0;var deletedCount=0;function deleteBatch(startIndex){var endIndex=Math.min(startIndex+batchSize,ids.length);var batchPromises=[];for(var i=startIndex;i<endIndex;i++){batchPromises.push(db.collection('students').doc(ids[i]).delete().then(function(){deletedCount++;}).catch(function(err){}));}return Promise.all(batchPromises).then(function(){completedBatches++;var progress=Math.round((completedBatches/totalBatches)*100);container.innerHTML='<div class="loading"><span class="spinner"></span> Menghapus '+deletedCount+'/'+ids.length+' siswa... ('+progress+'%)</div>';if(endIndex<ids.length){return deleteBatch(endIndex);}});}deleteBatch(0).then(function(){for(var i=0;i<ids.length;i++){delete selectedStudents[ids[i]];}container.innerHTML='<div class="alert alert-success">✅ '+ids.length+' siswa berhasil dihapus!</div>';setTimeout(function(){loadStudentsOptimized();updateDashboard();},1000);}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal menghapus: '+err.message+'</div>';});}
-function saveStudent(){var name=document.getElementById('studentName').value.trim();var classVal=document.getElementById('studentClass').value.trim();var year=document.getElementById('studentYear').value.trim();var nisn=document.getElementById('studentNISN').value.trim();var gender=document.getElementById('studentGender').value;var alertEl=document.getElementById('studentModalAlert');if(!name||!classVal){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Nama dan kelas harus diisi!</div>';return;}alertEl.innerHTML='<div class="alert alert-info">⏳ Menyimpan data...</div>';db.collection('students').add({name:name,class:classVal,year:year||schoolData.year||'',nisn:nisn||'',gender:gender,createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Siswa berhasil ditambahkan!</div>';setTimeout(function(){closeModal('studentModal');loadStudentsOptimized();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
-function saveBulkStudentsOptimized(){var classVal=document.getElementById('bulkClass').value.trim();var year=document.getElementById('bulkYear').value.trim();var namesText=document.getElementById('bulkStudents').value;var alertEl=document.getElementById('bulkStudentModalAlert');var progressEl=document.getElementById('bulkProgress');var progressBar=document.getElementById('bulkProgressBar');var statusText=document.getElementById('bulkStatusText');if(!classVal){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Kelas harus diisi!</div>';return;}if(!year){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Tahun ajaran harus diisi!</div>';return;}var names=namesText.split('\n').map(function(x){return x.trim();}).filter(function(x){return x!=='';});if(names.length===0){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Masukkan minimal 1 nama siswa!</div>';return;}alertEl.innerHTML='';progressEl.style.display='block';progressBar.style.width='0%';progressBar.textContent='0%';statusText.textContent='⏳ Memulai proses...';var batchSize=20;var totalBatches=Math.ceil(names.length/batchSize);var completedBatches=0;var totalAdded=0;function saveBatch(startIndex){var endIndex=Math.min(startIndex+batchSize,names.length);var batchPromises=[];for(var i=startIndex;i<endIndex;i++){batchPromises.push(db.collection('students').add({name:names[i],class:classVal,year:year,nisn:'',gender:'L',createdAt:new Date().toISOString(),school:schoolData.name||''}));}return Promise.all(batchPromises).then(function(){completedBatches++;totalAdded+=(endIndex-startIndex);var progress=Math.round((completedBatches/totalBatches)*100);progressBar.style.width=progress+'%';progressBar.textContent=progress+'%';statusText.textContent='⏳ Proses '+completedBatches+'/'+totalBatches+' batch ('+totalAdded+'/'+names.length+' siswa)...';if(endIndex<names.length){return saveBatch(endIndex);}});}saveBatch(0).then(function(){progressBar.style.width='100%';progressBar.textContent='100%';statusText.textContent='✅ Selesai! '+names.length+' siswa berhasil ditambahkan!';alertEl.innerHTML='<div class="alert alert-success">✅ '+names.length+' siswa berhasil ditambahkan ke kelas '+classVal+'!</div>';setTimeout(function(){progressEl.style.display='none';closeModal('bulkStudentModal');loadStudentsOptimized();updateDashboard();},2000);}).catch(function(err){statusText.textContent='❌ Gagal: '+err.message;alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
-function deleteStudent(id){if(!confirm('Yakin ingin menghapus siswa ini?'))return;db.collection('students').doc(id).delete().then(function(){loadStudentsOptimized();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
-function loadTeachers(){var container=document.getElementById('teacherList');db.collection('teachers').orderBy('name').get().then(function(snapshot){allTeachers=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;allTeachers.push(data);});if(allTeachers.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada guru BK terdaftar.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>No</th><th>Nama Guru</th><th>Kelas Dipegang</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<allTeachers.length;i++){var t=allTeachers[i];var classList=t.classes?t.classes.split(',').map(function(c){return c.trim();}).filter(function(c){return c;}):[];html+='<tr><td>'+(i+1)+'</td><td><strong>'+t.name+'</strong></td><td>';for(var j=0;j<classList.length;j++){html+='<span class="teacher-tag">'+classList[j]+'</span>';}html+='</td><td><button class="btn btn-warning btn-sm" onclick="editTeacher(\''+t.id+'\')">✏️ Edit</button> <button class="btn btn-danger btn-sm" onclick="deleteTeacher(\''+t.id+'\')">🗑️ Hapus</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
-function editTeacher(id){var teacher=allTeachers.find(function(t){return t.id===id;});if(!teacher){alert('Data guru tidak ditemukan!');return;}document.getElementById('editTeacherId').value=id;document.getElementById('editTeacherName').value=teacher.name;document.getElementById('editTeacherClasses').value=teacher.classes||'';document.getElementById('editTeacherModal').classList.add('active');}
-function updateTeacher(){var id=document.getElementById('editTeacherId').value;var name=document.getElementById('editTeacherName').value.trim();var classes=document.getElementById('editTeacherClasses').value.trim();var alertEl=document.getElementById('editTeacherModalAlert');if(!name||!classes){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Nama dan kelas harus diisi!</div>';return;}db.collection('teachers').doc(id).update({name:name,classes:classes,updatedAt:new Date().toISOString()}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Data guru berhasil diupdate!</div>';setTimeout(function(){closeModal('editTeacherModal');loadTeachers();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
-function saveTeacher(){var name=document.getElementById('teacherName').value.trim();var classes=document.getElementById('teacherClasses').value.trim();var alertEl=document.getElementById('teacherModalAlert');if(!name||!classes){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Nama dan kelas harus diisi!</div>';return;}db.collection('teachers').add({name:name,classes:classes,createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Guru BK berhasil ditambahkan!</div>';setTimeout(function(){closeModal('teacherModal');loadTeachers();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
-function deleteTeacher(id){if(!confirm('Yakin ingin menghapus guru ini?'))return;db.collection('teachers').doc(id).delete().then(function(){loadTeachers();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
-function loadCounseling(){var classFilter=document.getElementById('filterCounselingClass').value;var monthFilter=document.getElementById('filterCounselingMonth').value;var container=document.getElementById('counselingList');db.collection('counseling').orderBy('date','desc').limit(200).get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(classFilter)items=items.filter(function(c){return c.studentClass===classFilter;});if(monthFilter)items=items.filter(function(c){return c.date&&c.date.startsWith(monthFilter);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada catatan konseling.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Siswa</th><th>Masalah</th><th>Hasil</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var c=items[i];html+='<tr><td>'+(c.date?new Date(c.date).toLocaleDateString('id-ID'):'-')+'</td><td><span class="badge-status info">'+c.studentClass+'</span></td><td><strong>'+c.studentName+'</strong></td><td style="max-width:150px;">'+(c.problem||'-')+'</td><td style="max-width:150px;">'+(c.result||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteCounseling(\''+c.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
-function saveCounseling(){var studentId=document.getElementById('counselingStudent').value;var date=document.getElementById('counselingDate').value;var problem=document.getElementById('counselingProblem').value.trim();var result=document.getElementById('counselingResult').value.trim();var followUp=document.getElementById('counselingFollowUp').value.trim();var alertEl=document.getElementById('counselingModalAlert');if(!studentId||!date||!problem||!result){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});db.collection('counseling').add({studentId:studentId,studentName:student?student.name:'Tidak diketahui',studentClass:student?student.class:'Tidak diketahui',date:date,problem:problem,result:result,followUp:followUp||'',counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Catatan konseling berhasil disimpan!</div>';setTimeout(function(){closeModal('counselingModal');loadCounseling();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
-function deleteCounseling(id){if(!confirm('Yakin ingin menghapus catatan ini?'))return;db.collection('counseling').doc(id).delete().then(function(){loadCounseling();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
-function loadParentCalls(){var container=document.getElementById('parentCallList');db.collection('parentCalls').orderBy('date','desc').limit(200).get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada data panggilan orang tua.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Siswa</th><th>Masalah</th><th>Hasil</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var c=items[i];html+='<tr><td>'+(c.date?new Date(c.date).toLocaleDateString('id-ID'):'-')+'</td><td><span class="badge-status info">'+c.studentClass+'</span></td><td><strong>'+c.studentName+'</strong></td><td style="max-width:150px;">'+(c.problem||'-')+'</td><td style="max-width:150px;">'+(c.result||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteParentCall(\''+c.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
-function saveParentCall(){var studentId=document.getElementById('parentCallStudent').value;var date=document.getElementById('parentCallDate').value;var problem=document.getElementById('parentCallProblem').value.trim();var result=document.getElementById('parentCallResult').value.trim();var alertEl=document.getElementById('parentCallModalAlert');if(!studentId||!date||!problem||!result){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});db.collection('parentCalls').add({studentId:studentId,studentName:student?student.name:'Tidak diketahui',studentClass:student?student.class:'Tidak diketahui',date:date,problem:problem,result:result,counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Data panggilan orang tua berhasil disimpan!</div>';setTimeout(function(){closeModal('parentCallModal');loadParentCalls();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
-function deleteParentCall(id){if(!confirm('Yakin ingin menghapus data ini?'))return;db.collection('parentCalls').doc(id).delete().then(function(){loadParentCalls();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
-function loadHomeVisits(){var container=document.getElementById('homeVisitList');db.collection('homeVisits').orderBy('date','desc').limit(200).get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada data home visit.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Siswa</th><th>Masalah</th><th>Hasil</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var c=items[i];html+='<tr><td>'+(c.date?new Date(c.date).toLocaleDateString('id-ID'):'-')+'</td><td><span class="badge-status info">'+c.studentClass+'</span></td><td><strong>'+c.studentName+'</strong></td><td style="max-width:150px;">'+(c.problem||'-')+'</td><td style="max-width:150px;">'+(c.result||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteHomeVisit(\''+c.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
-function saveHomeVisit(){var studentId=document.getElementById('homeVisitStudent').value;var date=document.getElementById('homeVisitDate').value;var problem=document.getElementById('homeVisitProblem').value.trim();var result=document.getElementById('homeVisitResult').value.trim();var alertEl=document.getElementById('homeVisitModalAlert');if(!studentId||!date||!problem||!result){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});db.collection('homeVisits').add({studentId:studentId,studentName:student?student.name:'Tidak diketahui',studentClass:student?student.class:'Tidak diketahui',date:date,problem:problem,result:result,counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Data home visit berhasil disimpan!</div>';setTimeout(function(){closeModal('homeVisitModal');loadHomeVisits();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
-function deleteHomeVisit(id){if(!confirm('Yakin ingin menghapus data ini?'))return;db.collection('homeVisits').doc(id).delete().then(function(){loadHomeVisits();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
-function loadIncidents(){var classFilter=document.getElementById('filterIncidentClass').value;var typeFilter=document.getElementById('filterIncidentType').value;var monthFilter=document.getElementById('filterIncidentMonth').value;var container=document.getElementById('incidentList');db.collection('incidents').orderBy('date','desc').limit(200).get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(classFilter)items=items.filter(function(c){return c.studentClass===classFilter;});if(typeFilter)items=items.filter(function(c){return c.type===typeFilter;});if(monthFilter)items=items.filter(function(c){return c.date&&c.date.startsWith(monthFilter);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada laporan kejadian.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Siswa</th><th>Jenis</th><th>Deskripsi</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var c=items[i];html+='<tr><td>'+(c.date?new Date(c.date).toLocaleDateString('id-ID'):'-')+'</td><td><span class="badge-status info">'+c.studentClass+'</span></td><td><strong>'+c.studentName+'</strong></td><td><span class="badge-status danger">'+(c.type||'-')+'</span></td><td style="max-width:200px;">'+(c.description||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteIncident(\''+c.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
-function saveIncident(){var studentId=document.getElementById('incidentStudent').value;var date=document.getElementById('incidentDate').value;var type=document.getElementById('incidentType').value;var description=document.getElementById('incidentDescription').value.trim();var action=document.getElementById('incidentAction').value.trim();var alertEl=document.getElementById('incidentModalAlert');if(!studentId||!date||!type||!description||!action){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});db.collection('incidents').add({studentId:studentId,studentName:student?student.name:'Tidak diketahui',studentClass:student?student.class:'Tidak diketahui',date:date,type:type,description:description,action:action,counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Laporan kejadian berhasil disimpan!</div>';setTimeout(function(){closeModal('incidentModal');loadIncidents();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
-function deleteIncident(id){if(!confirm('Yakin ingin menghapus laporan ini?'))return;db.collection('incidents').doc(id).delete().then(function(){loadIncidents();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
-function loadMutations(){var classFilter=document.getElementById('filterMutationClass').value;var monthFilter=document.getElementById('filterMutationMonth').value;var container=document.getElementById('mutationList');db.collection('mutations').orderBy('date','desc').limit(200).get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(classFilter)items=items.filter(function(m){return m.studentClass===classFilter;});if(monthFilter)items=items.filter(function(m){return m.date&&m.date.startsWith(monthFilter);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada data mutasi siswa.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Siswa</th><th>Jenis</th><th>Alasan</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var m=items[i];var typeClass=m.type==='Masuk'?'success':m.type==='Keluar'?'danger':m.type==='Pindah Kelas'?'warning':'danger';html+='<tr><td>'+(m.date?new Date(m.date).toLocaleDateString('id-ID'):'-')+'</td><td><span class="badge-status info">'+m.studentClass+'</span></td><td><strong>'+m.studentName+'</strong></td><td><span class="badge-status '+typeClass+'">'+(m.type||'-')+'</span></td><td style="max-width:150px;">'+(m.reason||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteMutation(\''+m.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
-function saveMutation(){var studentId=document.getElementById('mutationStudent').value;var date=document.getElementById('mutationDate').value;var type=document.getElementById('mutationType').value;var reason=document.getElementById('mutationReason').value.trim();var alertEl=document.getElementById('mutationModalAlert');if(!studentId||!date||!type||!reason){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});db.collection('mutations').add({studentId:studentId,studentName:student?student.name:'Tidak diketahui',studentClass:student?student.class:'Tidak diketahui',date:date,type:type,reason:reason,counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Data mutasi siswa berhasil disimpan!</div>';setTimeout(function(){closeModal('mutationModal');loadMutations();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
-function deleteMutation(id){if(!confirm('Yakin ingin menghapus data mutasi ini?'))return;db.collection('mutations').doc(id).delete().then(function(){loadMutations();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
-function loadGraduations(){var yearFilter=document.getElementById('filterGraduationYear').value;var pathFilter=document.getElementById('filterGraduationPath').value;var container=document.getElementById('graduationList');db.collection('graduations').orderBy('year','desc').limit(200).get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(yearFilter)items=items.filter(function(g){return g.year===yearFilter;});if(pathFilter)items=items.filter(function(g){return g.path===pathFilter;});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada data lulusan SNBP/SNBT.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tahun</th><th>Kelas</th><th>Siswa</th><th>Jalur</th><th>Kampus</th><th>Jurusan</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var g=items[i];var pathClass=g.path==='SNBP'?'success':'warning';html+='<tr><td><span class="badge-status info">'+(g.year||'-')+'</span></td><td><span class="badge-status info">'+g.studentClass+'</span></td><td><strong>'+g.studentName+'</strong></td><td><span class="badge-status '+pathClass+'">🎯 '+g.path+'</span></td><td>'+(g.university||'-')+'</td><td>'+(g.major||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteGraduation(\''+g.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal memuat data: '+err.message+'</div>';});}
-function saveGraduation(){var studentId=document.getElementById('graduationStudent').value;var path=document.getElementById('graduationPath').value;var university=document.getElementById('graduationUniversity').value.trim();var major=document.getElementById('graduationMajor').value.trim();var year=document.getElementById('graduationYear').value;var alertEl=document.getElementById('graduationModalAlert');if(!studentId){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Pilih siswa terlebih dahulu!</div>';return;}if(!university){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Nama kampus harus diisi!</div>';return;}if(!major){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Jurusan harus diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});db.collection('graduations').add({studentId:studentId,studentName:student?student.name:'Tidak diketahui',studentClass:student?student.class:'Tidak diketahui',path:path,university:university,major:major,year:year,counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Data lulusan '+path+' berhasil disimpan!</div>';setTimeout(function(){closeModal('graduationModal');loadGraduations();updateDashboard();},1000);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
-function deleteGraduation(id){if(!confirm('Yakin ingin menghapus data ini?'))return;db.collection('graduations').doc(id).delete().then(function(){loadGraduations();updateDashboard();}).catch(function(err){alert('Gagal menghapus: '+err.message);});}
+function hapusMassal(){var ids=Object.keys(selectedStudents);if(ids.length===0){alert('⚠️ Pilih siswa terlebih dahulu!');return;}if(!confirm('⚠️ Hapus '+ids.length+' siswa?'))return;if(!confirm('⚠️⚠️ Konfirmasi: Hapus '+ids.length+' siswa?'))return;var container=document.getElementById('studentList');container.innerHTML='<div class="loading"><span class="spinner"></span> Menghapus...</div>';var batchSize=20;var totalBatches=Math.ceil(ids.length/batchSize);var completedBatches=0;var deletedCount=0;function deleteBatch(startIndex){var endIndex=Math.min(startIndex+batchSize,ids.length);var batchPromises=[];for(var i=startIndex;i<endIndex;i++){batchPromises.push(db.collection('students').doc(ids[i]).delete().then(function(){deletedCount++;}).catch(function(err){}));}return Promise.all(batchPromises).then(function(){completedBatches++;if(endIndex<ids.length){return deleteBatch(endIndex);}});}deleteBatch(0).then(function(){for(var i=0;i<ids.length;i++){delete selectedStudents[ids[i]];}container.innerHTML='<div class="alert alert-success">✅ '+ids.length+' siswa berhasil dihapus!</div>';setTimeout(function(){loadStudentsOptimized();updateDashboard();},800);}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
+function saveStudent(){var name=document.getElementById('studentName').value.trim();var classVal=document.getElementById('studentClass').value.trim();var year=document.getElementById('studentYear').value.trim();var nisn=document.getElementById('studentNISN').value.trim();var gender=document.getElementById('studentGender').value;var alertEl=document.getElementById('studentModalAlert');if(!name||!classVal){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Nama dan kelas harus diisi!</div>';return;}db.collection('students').add({name:name,class:classVal,year:year||schoolData.year||'',nisn:nisn||'',gender:gender,createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Siswa berhasil ditambahkan!</div>';setTimeout(function(){closeModal('studentModal');loadStudentsOptimized();},800);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
+function saveBulkStudentsOptimized(){var classVal=document.getElementById('bulkClass').value.trim();var year=document.getElementById('bulkYear').value.trim();var namesText=document.getElementById('bulkStudents').value;var alertEl=document.getElementById('bulkStudentModalAlert');var progressEl=document.getElementById('bulkProgress');var progressBar=document.getElementById('bulkProgressBar');var statusText=document.getElementById('bulkStatusText');if(!classVal){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Kelas harus diisi!</div>';return;}if(!year){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Tahun ajaran harus diisi!</div>';return;}var names=namesText.split('\n').map(function(x){return x.trim();}).filter(function(x){return x!=='';});if(names.length===0){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Masukkan minimal 1 nama siswa!</div>';return;}alertEl.innerHTML='';progressEl.style.display='block';progressBar.style.width='0%';progressBar.textContent='0%';statusText.textContent='⏳ Memulai...';var batchSize=20;var totalBatches=Math.ceil(names.length/batchSize);var completedBatches=0;var totalAdded=0;function saveBatch(startIndex){var endIndex=Math.min(startIndex+batchSize,names.length);var batchPromises=[];for(var i=startIndex;i<endIndex;i++){batchPromises.push(db.collection('students').add({name:names[i],class:classVal,year:year,nisn:'',gender:'L',createdAt:new Date().toISOString(),school:schoolData.name||''}));}return Promise.all(batchPromises).then(function(){completedBatches++;totalAdded+=(endIndex-startIndex);var progress=Math.round((completedBatches/totalBatches)*100);progressBar.style.width=progress+'%';progressBar.textContent=progress+'%';statusText.textContent='⏳ '+totalAdded+'/'+names.length+' siswa...';if(endIndex<names.length){return saveBatch(endIndex);}});}saveBatch(0).then(function(){progressBar.style.width='100%';progressBar.textContent='100%';statusText.textContent='✅ Selesai! '+names.length+' siswa!';alertEl.innerHTML='<div class="alert alert-success">✅ '+names.length+' siswa berhasil ditambahkan!</div>';setTimeout(function(){progressEl.style.display='none';closeModal('bulkStudentModal');loadStudentsOptimized();},1500);}).catch(function(err){statusText.textContent='❌ Gagal: '+err.message;alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal: '+err.message+'</div>';});}
+function deleteStudent(id){if(!confirm('Yakin ingin menghapus siswa ini?'))return;db.collection('students').doc(id).delete().then(function(){loadStudentsOptimized();}).catch(function(err){alert('Gagal: '+err.message);});}
+function loadTeachers(){var container=document.getElementById('teacherList');db.collection('teachers').orderBy('name').limit(100).get().then(function(snapshot){allTeachers=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;allTeachers.push(data);});if(allTeachers.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada guru BK terdaftar.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>No</th><th>Nama Guru</th><th>Kelas Dipegang</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<allTeachers.length;i++){var t=allTeachers[i];var classList=t.classes?t.classes.split(',').map(function(c){return c.trim();}).filter(function(c){return c;}):[];html+='<tr><td>'+(i+1)+'</td><td><strong>'+t.name+'</strong></td><td>';for(var j=0;j<classList.length;j++){html+='<span class="teacher-tag">'+classList[j]+'</span>';}html+='</td><td><button class="btn btn-warning btn-sm" onclick="editTeacher(\''+t.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="deleteTeacher(\''+t.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function editTeacher(id){var teacher=allTeachers.find(function(t){return t.id===id;});if(!teacher){alert('Tidak ditemukan!');return;}document.getElementById('editTeacherId').value=id;document.getElementById('editTeacherName').value=teacher.name;document.getElementById('editTeacherClasses').value=teacher.classes||'';document.getElementById('editTeacherModal').classList.add('active');}
+function updateTeacher(){var id=document.getElementById('editTeacherId').value;var name=document.getElementById('editTeacherName').value.trim();var classes=document.getElementById('editTeacherClasses').value.trim();var alertEl=document.getElementById('editTeacherModalAlert');if(!name||!classes){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Wajib diisi!</div>';return;}db.collection('teachers').doc(id).update({name:name,classes:classes,updatedAt:new Date().toISOString()}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Berhasil!</div>';setTimeout(function(){closeModal('editTeacherModal');loadTeachers();},800);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function saveTeacher(){var name=document.getElementById('teacherName').value.trim();var classes=document.getElementById('teacherClasses').value.trim();var alertEl=document.getElementById('teacherModalAlert');if(!name||!classes){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Wajib diisi!</div>';return;}db.collection('teachers').add({name:name,classes:classes,createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Berhasil!</div>';setTimeout(function(){closeModal('teacherModal');loadTeachers();},800);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function deleteTeacher(id){if(!confirm('Yakin ingin menghapus guru ini?'))return;db.collection('teachers').doc(id).delete().then(function(){loadTeachers();}).catch(function(err){alert('Gagal: '+err.message);});}
+function loadCounseling(){var classFilter=document.getElementById('filterCounselingClass').value;var monthFilter=document.getElementById('filterCounselingMonth').value;var container=document.getElementById('counselingList');db.collection('counseling').orderBy('date','desc').limit(100).get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(classFilter)items=items.filter(function(c){return c.studentClass===classFilter;});if(monthFilter)items=items.filter(function(c){return c.date&&c.date.startsWith(monthFilter);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada catatan.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Siswa</th><th>Masalah</th><th>Hasil</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var c=items[i];html+='<tr><td>'+(c.date?new Date(c.date).toLocaleDateString('id-ID'):'-')+'</td><td><span class="badge-status info">'+c.studentClass+'</span></td><td><strong>'+c.studentName+'</strong></td><td style="max-width:150px;">'+(c.problem||'-')+'</td><td style="max-width:150px;">'+(c.result||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteCounseling(\''+c.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function saveCounseling(){var studentId=document.getElementById('counselingStudent').value;var date=document.getElementById('counselingDate').value;var problem=document.getElementById('counselingProblem').value.trim();var result=document.getElementById('counselingResult').value.trim();var followUp=document.getElementById('counselingFollowUp').value.trim();var alertEl=document.getElementById('counselingModalAlert');if(!studentId||!date||!problem||!result){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Semua field wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});db.collection('counseling').add({studentId:studentId,studentName:student?student.name:'-',studentClass:student?student.class:'-',date:date,problem:problem,result:result,followUp:followUp||'',counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Berhasil!</div>';setTimeout(function(){closeModal('counselingModal');loadCounseling();},800);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function deleteCounseling(id){if(!confirm('Hapus?'))return;db.collection('counseling').doc(id).delete().then(function(){loadCounseling();}).catch(function(err){alert('Gagal: '+err.message);});}
+function loadParentCalls(){var container=document.getElementById('parentCallList');db.collection('parentCalls').orderBy('date','desc').limit(100).get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada data.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Siswa</th><th>Masalah</th><th>Hasil</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var c=items[i];html+='<tr><td>'+(c.date?new Date(c.date).toLocaleDateString('id-ID'):'-')+'</td><td><span class="badge-status info">'+c.studentClass+'</span></td><td><strong>'+c.studentName+'</strong></td><td style="max-width:150px;">'+(c.problem||'-')+'</td><td style="max-width:150px;">'+(c.result||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteParentCall(\''+c.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function saveParentCall(){var studentId=document.getElementById('parentCallStudent').value;var date=document.getElementById('parentCallDate').value;var problem=document.getElementById('parentCallProblem').value.trim();var result=document.getElementById('parentCallResult').value.trim();var alertEl=document.getElementById('parentCallModalAlert');if(!studentId||!date||!problem||!result){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});db.collection('parentCalls').add({studentId:studentId,studentName:student?student.name:'-',studentClass:student?student.class:'-',date:date,problem:problem,result:result,counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Berhasil!</div>';setTimeout(function(){closeModal('parentCallModal');loadParentCalls();},800);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function deleteParentCall(id){if(!confirm('Hapus?'))return;db.collection('parentCalls').doc(id).delete().then(function(){loadParentCalls();}).catch(function(err){alert('Gagal: '+err.message);});}
+function loadHomeVisits(){var container=document.getElementById('homeVisitList');db.collection('homeVisits').orderBy('date','desc').limit(100).get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada data.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Siswa</th><th>Masalah</th><th>Hasil</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var c=items[i];html+='<tr><td>'+(c.date?new Date(c.date).toLocaleDateString('id-ID'):'-')+'</td><td><span class="badge-status info">'+c.studentClass+'</span></td><td><strong>'+c.studentName+'</strong></td><td style="max-width:150px;">'+(c.problem||'-')+'</td><td style="max-width:150px;">'+(c.result||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteHomeVisit(\''+c.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function saveHomeVisit(){var studentId=document.getElementById('homeVisitStudent').value;var date=document.getElementById('homeVisitDate').value;var problem=document.getElementById('homeVisitProblem').value.trim();var result=document.getElementById('homeVisitResult').value.trim();var alertEl=document.getElementById('homeVisitModalAlert');if(!studentId||!date||!problem||!result){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});db.collection('homeVisits').add({studentId:studentId,studentName:student?student.name:'-',studentClass:student?student.class:'-',date:date,problem:problem,result:result,counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Berhasil!</div>';setTimeout(function(){closeModal('homeVisitModal');loadHomeVisits();},800);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function deleteHomeVisit(id){if(!confirm('Hapus?'))return;db.collection('homeVisits').doc(id).delete().then(function(){loadHomeVisits();}).catch(function(err){alert('Gagal: '+err.message);});}
+function loadIncidents(){var classFilter=document.getElementById('filterIncidentClass').value;var typeFilter=document.getElementById('filterIncidentType').value;var monthFilter=document.getElementById('filterIncidentMonth').value;var container=document.getElementById('incidentList');db.collection('incidents').orderBy('date','desc').limit(100).get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(classFilter)items=items.filter(function(c){return c.studentClass===classFilter;});if(typeFilter)items=items.filter(function(c){return c.type===typeFilter;});if(monthFilter)items=items.filter(function(c){return c.date&&c.date.startsWith(monthFilter);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada laporan.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Siswa</th><th>Jenis</th><th>Deskripsi</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var c=items[i];html+='<tr><td>'+(c.date?new Date(c.date).toLocaleDateString('id-ID'):'-')+'</td><td><span class="badge-status info">'+c.studentClass+'</span></td><td><strong>'+c.studentName+'</strong></td><td><span class="badge-status danger">'+(c.type||'-')+'</span></td><td style="max-width:200px;">'+(c.description||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteIncident(\''+c.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function saveIncident(){var studentId=document.getElementById('incidentStudent').value;var date=document.getElementById('incidentDate').value;var type=document.getElementById('incidentType').value;var description=document.getElementById('incidentDescription').value.trim();var action=document.getElementById('incidentAction').value.trim();var alertEl=document.getElementById('incidentModalAlert');if(!studentId||!date||!type||!description||!action){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});db.collection('incidents').add({studentId:studentId,studentName:student?student.name:'-',studentClass:student?student.class:'-',date:date,type:type,description:description,action:action,counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Berhasil!</div>';setTimeout(function(){closeModal('incidentModal');loadIncidents();},800);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function deleteIncident(id){if(!confirm('Hapus?'))return;db.collection('incidents').doc(id).delete().then(function(){loadIncidents();}).catch(function(err){alert('Gagal: '+err.message);});}
+function loadMutations(){var classFilter=document.getElementById('filterMutationClass').value;var monthFilter=document.getElementById('filterMutationMonth').value;var container=document.getElementById('mutationList');db.collection('mutations').orderBy('date','desc').limit(100).get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(classFilter)items=items.filter(function(m){return m.studentClass===classFilter;});if(monthFilter)items=items.filter(function(m){return m.date&&m.date.startsWith(monthFilter);});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada data.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Kelas</th><th>Siswa</th><th>Jenis</th><th>Alasan</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var m=items[i];var typeClass=m.type==='Masuk'?'success':m.type==='Keluar'?'danger':m.type==='Pindah Kelas'?'warning':'danger';html+='<tr><td>'+(m.date?new Date(m.date).toLocaleDateString('id-ID'):'-')+'</td><td><span class="badge-status info">'+m.studentClass+'</span></td><td><strong>'+m.studentName+'</strong></td><td><span class="badge-status '+typeClass+'">'+(m.type||'-')+'</span></td><td style="max-width:150px;">'+(m.reason||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteMutation(\''+m.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function saveMutation(){var studentId=document.getElementById('mutationStudent').value;var date=document.getElementById('mutationDate').value;var type=document.getElementById('mutationType').value;var reason=document.getElementById('mutationReason').value.trim();var alertEl=document.getElementById('mutationModalAlert');if(!studentId||!date||!type||!reason){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});db.collection('mutations').add({studentId:studentId,studentName:student?student.name:'-',studentClass:student?student.class:'-',date:date,type:type,reason:reason,counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Berhasil!</div>';setTimeout(function(){closeModal('mutationModal');loadMutations();},800);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function deleteMutation(id){if(!confirm('Hapus?'))return;db.collection('mutations').doc(id).delete().then(function(){loadMutations();}).catch(function(err){alert('Gagal: '+err.message);});}
+function loadGraduations(){var yearFilter=document.getElementById('filterGraduationYear').value;var pathFilter=document.getElementById('filterGraduationPath').value;var container=document.getElementById('graduationList');db.collection('graduations').orderBy('year','desc').limit(100).get().then(function(snapshot){var items=[];snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;items.push(data);});if(yearFilter)items=items.filter(function(g){return g.year===yearFilter;});if(pathFilter)items=items.filter(function(g){return g.path===pathFilter;});if(items.length===0){container.innerHTML='<div class="alert alert-info">📭 Belum ada data.</div>';return;}var html='<div class="table-wrap"><table><thead><tr><th>Tahun</th><th>Kelas</th><th>Siswa</th><th>Jalur</th><th>Kampus</th><th>Jurusan</th><th>Aksi</th></tr></thead><tbody>';for(var i=0;i<items.length;i++){var g=items[i];var pathClass=g.path==='SNBP'?'success':'warning';html+='<tr><td><span class="badge-status info">'+(g.year||'-')+'</span></td><td><span class="badge-status info">'+g.studentClass+'</span></td><td><strong>'+g.studentName+'</strong></td><td><span class="badge-status '+pathClass+'">🎯 '+g.path+'</span></td><td>'+(g.university||'-')+'</td><td>'+(g.major||'-')+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteGraduation(\''+g.id+'\')">🗑️</button></td></tr>';}html+='</tbody></table></div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function saveGraduation(){var studentId=document.getElementById('graduationStudent').value;var path=document.getElementById('graduationPath').value;var university=document.getElementById('graduationUniversity').value.trim();var major=document.getElementById('graduationMajor').value.trim();var year=document.getElementById('graduationYear').value;var alertEl=document.getElementById('graduationModalAlert');if(!studentId||!university||!major){alertEl.innerHTML='<div class="alert alert-danger">⚠️ Wajib diisi!</div>';return;}var student=allStudents.find(function(s){return s.id===studentId;});db.collection('graduations').add({studentId:studentId,studentName:student?student.name:'-',studentClass:student?student.class:'-',path:path,university:university,major:major,year:year,counselor:currentUser?currentUser.school:'Guru BK',createdAt:new Date().toISOString(),school:schoolData.name||''}).then(function(){alertEl.innerHTML='<div class="alert alert-success">✅ Berhasil!</div>';setTimeout(function(){closeModal('graduationModal');loadGraduations();},800);}).catch(function(err){alertEl.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function deleteGraduation(id){if(!confirm('Hapus?'))return;db.collection('graduations').doc(id).delete().then(function(){loadGraduations();}).catch(function(err){alert('Gagal: '+err.message);});}
 
-// ==================== PRESENSI SISWA - OPTIMASI LAZY LOAD ====================
+// ==================== PRESENSI SISWA - LAZY LOAD ====================
 function loadPresensiSiswa(){
     var kelas=document.getElementById('presensiKelas').value;
     var tanggal=document.getElementById('presensiTanggal').value;
@@ -604,65 +608,49 @@ function loadPresensiSiswa(){
     var statusInfo=document.getElementById('presensiStatusInfo');
     if(!kelas||!tanggal){ content.innerHTML=''; statusInfo.innerHTML=''; return; }
     
-    // Coba ambil dari cache kelas dulu (INSTANT!)
     var cached=getCachedClass(kelas);
     if(cached && cached.length > 0){
-        // Render langsung dari cache
-        content.innerHTML='';
+        // RENDER INSTAN dari cache
         statusInfo.innerHTML='<div class="quick-loading"><span class="spinner"></span> Memeriksa laporan...</div>';
         renderPresensiForm(cached,{},kelas,tanggal,null);
-        // Cek existing + refresh cache di background
         checkExistingPresensi(kelas,tanggal,cached);
-        // Refresh cache dari server di background (jika expired)
         refreshClassFromServer(kelas);
         return;
     }
     
-    // Tidak ada cache - load dari server (lazy: hanya kelas ini)
     content.innerHTML='<div class="loading"><span class="spinner"></span> Memuat siswa kelas '+kelas+'...</div>';
     statusInfo.innerHTML='';
     
     db.collection('students').where('class','==',kelas).get().then(function(snapshot){
         var students=[];
         snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;students.push(data);});
-        // Sort by name
         students.sort(function(a,b){return a.name.localeCompare(b.name);});
-        if(students.length===0){content.innerHTML='<div class="alert alert-warning">Belum ada siswa di kelas ini. Hubungi guru BK.</div>';return;}
-        // Simpan ke cache
+        if(students.length===0){content.innerHTML='<div class="alert alert-warning">Belum ada siswa di kelas ini.</div>';return;}
         setCachedClass(kelas,students);
-        // Update allStudents juga (merge)
         for(var i=0;i<students.length;i++){
-            var s=students[i];
-            var found=false;
-            for(var j=0;j<allStudents.length;j++){
-                if(allStudents[j].id===s.id){found=true;break;}
-            }
+            var s=students[i];var found=false;
+            for(var j=0;j<allStudents.length;j++){if(allStudents[j].id===s.id){found=true;break;}}
             if(!found) allStudents.push(s);
         }
         renderPresensiForm(students,{},kelas,tanggal,null);
         checkExistingPresensi(kelas,tanggal,students);
     }).catch(function(err){
-        content.innerHTML='<div class="alert alert-danger">❌ Gagal memuat siswa: '+err.message+'</div>';
+        content.innerHTML='<div class="alert alert-danger">❌ Gagal memuat: '+err.message+'</div>';
     });
 }
 
 function refreshClassFromServer(kelas){
-    // Refresh di background, tidak blok UI
     db.collection('students').where('class','==',kelas).get().then(function(snapshot){
         var students=[];
         snapshot.forEach(function(doc){var data=doc.data();data.id=doc.id;students.push(data);});
         students.sort(function(a,b){return a.name.localeCompare(b.name);});
         setCachedClass(kelas,students);
-        // Update allStudents
         for(var i=0;i<students.length;i++){
-            var s=students[i];
-            var found=false;
-            for(var j=0;j<allStudents.length;j++){
-                if(allStudents[j].id===s.id){allStudents[j]=s;found=true;break;}
-            }
+            var s=students[i];var found=false;
+            for(var j=0;j<allStudents.length;j++){if(allStudents[j].id===s.id){allStudents[j]=s;found=true;break;}}
             if(!found) allStudents.push(s);
         }
-    }).catch(function(err){ console.log('Refresh cache gagal:',err.message); });
+    }).catch(function(err){ });
 }
 
 function checkExistingPresensi(kelas,tanggal,students){
@@ -676,23 +664,21 @@ function checkExistingPresensi(kelas,tanggal,students){
         if(docId){
             statusInfo.innerHTML='<div class="alert alert-info" style="font-size:13px;">📌 Presensi tanggal '+new Date(tanggal).toLocaleDateString('id-ID')+' <b>SUDAH</b> dilaporkan. <button class="edit-btn" onclick="enableEditPresensi(\''+docId+'\')">✏️ Edit</button></div>';
             presensiEditMode=true; presensiEditDocId=docId;
-            // Re-render dengan data existing
             renderPresensiForm(students,existingData,kelas,tanggal,docId);
         }else{
-            statusInfo.innerHTML='<div class="alert alert-success" style="font-size:13px;">✅ Belum ada laporan. Silakan isi presensi.</div>';
+            statusInfo.innerHTML='<div class="alert alert-success" style="font-size:13px;">✅ Belum ada laporan. Silakan isi.</div>';
             presensiEditMode=false; presensiEditDocId=null;
         }
     }).catch(function(err){
-        console.log('Cek existing gagal: '+err.message);
         statusInfo.innerHTML='<div class="alert alert-info" style="font-size:12px;">ℹ️ Siap mengisi presensi.</div>';
         presensiEditMode=false; presensiEditDocId=null;
     });
 }
 
 function enableEditPresensi(docId){
-    if(confirm('✏️ Edit presensi ini? Data lama akan diperbarui.')){
+    if(confirm('✏️ Edit presensi ini?')){
         presensiEditMode=true; presensiEditDocId=docId;
-        document.getElementById('presensiStatusInfo').innerHTML='<div class="alert alert-warning" style="font-size:13px;">✏️ Mode EDIT aktif. Perbarui data dan kirim ulang.</div>';
+        document.getElementById('presensiStatusInfo').innerHTML='<div class="alert alert-warning" style="font-size:13px;">✏️ Mode EDIT aktif.</div>';
         var selects=document.querySelectorAll('#presensiFormContent select');
         var inputs=document.querySelectorAll('#presensiFormContent input');
         for(var i=0;i<selects.length;i++)selects[i].disabled=false;
@@ -701,22 +687,24 @@ function enableEditPresensi(docId){
         if(btn)btn.style.display='inline-flex';
     }
 }
-function renderPresensiForm(students,existingData,kelas,tanggal,docId){var content=document.getElementById('presensiFormContent');var html='<div style="margin-top:8px;">';html+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:8px;">';html+='<h3 style="font-size:16px;color:var(--primary-dark);">📋 Presensi '+kelas+'</h3>';html+='<span style="font-size:13px;color:var(--gray);">📅 '+new Date(tanggal).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</span>';html+='</div>';html+='<div style="margin:8px 0;">';html+='<button class="btn btn-success btn-sm" onclick="setAllSiswaHadir()" style="padding:6px 16px;">✅ Semua Hadir</button>';html+='<span style="font-size:11px;color:var(--gray);margin-left:8px;">Klik jika semua siswa hadir</span>';html+='</div>';html+='<div class="presensi-student-list">';html+='<div style="display:flex;gap:10px;font-weight:600;padding:6px 4px;border-bottom:2px solid var(--gray-light);font-size:12px;">';html+='<span style="width:30px;">No</span>';html+='<span style="flex:1;">Nama</span>';html+='<span style="width:100px;">Status</span>';html+='<span style="width:120px;">Keterangan</span>';html+='</div>';for(var i=0;i<students.length;i++){var s=students[i];var existing=existingData[s.name]||{};var status=existing.status||'Hadir';var keterangan=existing.keterangan||'';var disabled=(docId&&!presensiEditMode)?'disabled':'';html+='<div class="student-item">';html+='<span style="font-weight:600;width:30px;font-size:12px;">'+(i+1)+'.</span>';html+='<span style="flex:1;font-size:13px;font-weight:500;" class="s-name">'+s.name+'</span>';html+='<select class="form-control" style="width:100px;padding:4px 8px;font-size:12px;" id="ps_'+i+'" '+disabled+'>';html+='<option value="Hadir" '+(status==='Hadir'?'selected':'')+'>✅ Hadir</option>';html+='<option value="Sakit" '+(status==='Sakit'?'selected':'')+'>🤒 Sakit</option>';html+='<option value="Izin" '+(status==='Izin'?'selected':'')+'>📝 Izin</option>';html+='<option value="Alfa" '+(status==='Alfa'?'selected':'')+'>❌ Alfa</option>';html+='</select>';html+='<input type="text" class="form-control" style="width:120px;padding:4px 8px;font-size:12px;" id="pn_'+i+'" placeholder="Keterangan" value="'+keterangan+'" '+disabled+'>';html+='</div>';}html+='</div>';html+='<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">';if(docId&&!presensiEditMode){html+='<button class="btn btn-warning" onclick="enableEditPresensi(\''+docId+'\')">✏️ Edit</button>';html+='<span style="font-size:12px;color:var(--gray);align-self:center;">Data sudah dikirim. Klik Edit untuk mengubah.</span>';}else{html+='<button class="btn btn-success" onclick="kirimPresensi()">📤 Kirim Laporan</button>';html+='<button class="btn btn-outline" onclick="resetPresensiForm()">🔄 Reset</button>';}html+='</div>';html+='<div id="presensiFormAlert" style="margin-top:8px;"></div>';html+='</div>';content.innerHTML=html;}
-function setAllSiswaHadir(){var items=document.querySelectorAll('.presensi-student-list .student-item');for(var i=0;i<items.length;i++){var select=document.getElementById('ps_'+i);if(select&&!select.disabled)select.value='Hadir';var note=document.getElementById('pn_'+i);if(note&&!note.disabled)note.value='';}var alertEl=document.getElementById('presensiFormAlert');if(alertEl){alertEl.innerHTML='<div class="alert alert-success">✅ Semua siswa diisi HADIR</div>';setTimeout(function(){alertEl.innerHTML='';},3000);}}
-function resetPresensiForm(){var items=document.querySelectorAll('.presensi-student-list .student-item');for(var i=0;i<items.length;i++){var select=document.getElementById('ps_'+i);if(select&&!select.disabled)select.value='Hadir';var note=document.getElementById('pn_'+i);if(note&&!note.disabled)note.value='';}var alertEl=document.getElementById('presensiFormAlert');if(alertEl){alertEl.innerHTML='<div class="alert alert-info">🔄 Form direset</div>';setTimeout(function(){alertEl.innerHTML='';},2000);}}
+function renderPresensiForm(students,existingData,kelas,tanggal,docId){var content=document.getElementById('presensiFormContent');var html='<div style="margin-top:8px;">';html+='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:8px;">';html+='<h3 style="font-size:16px;color:var(--primary-dark);">📋 Presensi '+kelas+'</h3>';html+='<span style="font-size:13px;color:var(--gray);">📅 '+new Date(tanggal).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</span>';html+='</div>';html+='<div style="margin:8px 0;">';html+='<button class="btn btn-success btn-sm" onclick="setAllSiswaHadir()" style="padding:6px 16px;">✅ Semua Hadir</button>';html+='</div>';html+='<div class="presensi-student-list">';html+='<div style="display:flex;gap:10px;font-weight:600;padding:6px 4px;border-bottom:2px solid var(--gray-light);font-size:12px;">';html+='<span style="width:30px;">No</span>';html+='<span style="flex:1;">Nama</span>';html+='<span style="width:100px;">Status</span>';html+='<span style="width:120px;">Keterangan</span>';html+='</div>';for(var i=0;i<students.length;i++){var s=students[i];var existing=existingData[s.name]||{};var status=existing.status||'Hadir';var keterangan=existing.keterangan||'';var disabled=(docId&&!presensiEditMode)?'disabled':'';html+='<div class="student-item">';html+='<span style="font-weight:600;width:30px;font-size:12px;">'+(i+1)+'.</span>';html+='<span style="flex:1;font-size:13px;font-weight:500;" class="s-name">'+s.name+'</span>';html+='<select class="form-control" style="width:100px;padding:4px 8px;font-size:12px;" id="ps_'+i+'" '+disabled+'>';html+='<option value="Hadir" '+(status==='Hadir'?'selected':'')+'>✅ Hadir</option>';html+='<option value="Sakit" '+(status==='Sakit'?'selected':'')+'>🤒 Sakit</option>';html+='<option value="Izin" '+(status==='Izin'?'selected':'')+'>📝 Izin</option>';html+='<option value="Alfa" '+(status==='Alfa'?'selected':'')+'>❌ Alfa</option>';html+='</select>';html+='<input type="text" class="form-control" style="width:120px;padding:4px 8px;font-size:12px;" id="pn_'+i+'" placeholder="Keterangan" value="'+keterangan+'" '+disabled+'>';html+='</div>';}html+='</div>';html+='<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">';if(docId&&!presensiEditMode){html+='<button class="btn btn-warning" onclick="enableEditPresensi(\''+docId+'\')">✏️ Edit</button>';}else{html+='<button class="btn btn-success" onclick="kirimPresensi()" id="btnKirimPresensi">📤 Kirim Laporan</button>';html+='<button class="btn btn-outline" onclick="resetPresensiForm()">🔄 Reset</button>';}html+='</div>';html+='<div id="presensiFormAlert" style="margin-top:8px;"></div>';html+='</div>';content.innerHTML=html;}
+function setAllSiswaHadir(){var items=document.querySelectorAll('.presensi-student-list .student-item');for(var i=0;i<items.length;i++){var select=document.getElementById('ps_'+i);if(select&&!select.disabled)select.value='Hadir';var note=document.getElementById('pn_'+i);if(note&&!note.disabled)note.value='';}var alertEl=document.getElementById('presensiFormAlert');if(alertEl){alertEl.innerHTML='<div class="alert alert-success">✅ Semua HADIR</div>';setTimeout(function(){alertEl.innerHTML='';},3000);}}
+function resetPresensiForm(){var items=document.querySelectorAll('.presensi-student-list .student-item');for(var i=0;i<items.length;i++){var select=document.getElementById('ps_'+i);if(select&&!select.disabled)select.value='Hadir';var note=document.getElementById('pn_'+i);if(note&&!note.disabled)note.value='';}var alertEl=document.getElementById('presensiFormAlert');if(alertEl){alertEl.innerHTML='<div class="alert alert-info">🔄 Direset</div>';setTimeout(function(){alertEl.innerHTML='';},2000);}}
 
-// ==================== KIRIM PRESENSI - OPTIMASI ====================
+// ==================== KIRIM PRESENSI - VERSI DARURAT ====================
 function kirimPresensi(){
     var kelas=document.getElementById('presensiKelas').value;
     var tanggal=document.getElementById('presensiTanggal').value;
     var alertEl=document.getElementById('presensiFormAlert');
+    var btnKirim=document.getElementById('btnKirimPresensi');
+    
     if(!kelas||!tanggal){
-        if(alertEl) alertEl.innerHTML='<div class="alert alert-danger">⚠️ Pilih kelas dan tanggal terlebih dahulu!</div>';
+        if(alertEl) alertEl.innerHTML='<div class="alert alert-danger">⚠️ Pilih kelas dan tanggal!</div>';
         return;
     }
     var items=document.querySelectorAll('.presensi-student-list .student-item');
     if(items.length===0){
-        if(alertEl) alertEl.innerHTML='<div class="alert alert-danger">⚠️ Tidak ada siswa untuk di-presensi!</div>';
+        if(alertEl) alertEl.innerHTML='<div class="alert alert-danger">⚠️ Tidak ada siswa!</div>';
         return;
     }
     var siswaData=[];
@@ -733,10 +721,15 @@ function kirimPresensi(){
         siswaData.push({nama:nama,status:status,keterangan:keterangan});
     }
     
-    // Disable tombol untuk cegah double-submit
-    var btnKirim=document.querySelector('#presensiFormContent .btn-success');
-    if(btnKirim) btnKirim.disabled=true;
-    if(alertEl) alertEl.innerHTML='<div class="alert alert-info">⏳ '+(presensiEditMode?'Memperbarui':'Menyimpan')+' laporan presensi...</div>';
+    if(btnKirim){ btnKirim.disabled=true; btnKirim.textContent='⏳ Mengirim...'; }
+    if(alertEl) alertEl.innerHTML='<div class="alert alert-info">⏳ Mengirim laporan... Jangan tutup halaman.</div>';
+    
+    // Tampilkan overlay
+    var overlay=document.createElement('div');
+    overlay.id='savingOverlay';
+    overlay.className='saving-overlay';
+    overlay.innerHTML='<div class="spinner-big"></div><div style="font-size:20px;font-weight:700;">⏳ Mengirim Presensi...</div><div class="info">Kelas: '+kelas+'<br>Tanggal: '+new Date(tanggal).toLocaleDateString('id-ID')+'<br>'+siswaData.length+' siswa<br><br>Mohon tunggu, jangan tutup halaman.</div>';
+    document.body.appendChild(overlay);
     
     var docData={
         kelas:kelas,
@@ -747,108 +740,108 @@ function kirimPresensi(){
         updatedAt:new Date().toISOString()
     };
     
-    try {
-        if(presensiEditMode && presensiEditDocId){
-            docData.createdAt=new Date().toISOString();
-            db.collection('presensiHarian').doc(presensiEditDocId).set(docData,{merge:true}).then(function(){
-                if(alertEl) alertEl.innerHTML='<div class="alert alert-success">✅ Laporan presensi berhasil DIUPDATE! Terima kasih 🙏</div>';
-                presensiEditMode=false; presensiEditDocId=null;
-                presensiLastFetch=0;
-                if(btnKirim) btnKirim.disabled=false;
-                // Kirim notif ke dashboard (tidak blok UI)
-                setTimeout(function(){ loadPresensiRekap(true); updateDashboard(); }, 100);
-            }).catch(function(err){
-                if(alertEl) alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal update: '+err.message+'</div>';
-                if(btnKirim) btnKirim.disabled=false;
-                console.error('Gagal update presensi:',err);
-            });
-        }else{
-            docData.createdAt=new Date().toISOString();
-            db.collection('presensiHarian').add(docData).then(function(){
-                if(alertEl) alertEl.innerHTML='<div class="alert alert-success">✅ Laporan presensi berhasil dikirim! Terima kasih 🙏</div>';
-                presensiLastFetch=0;
-                if(btnKirim) btnKirim.disabled=false;
-                setTimeout(function(){ loadPresensiRekap(true); updateDashboard(); }, 100);
-            }).catch(function(err){
-                if(alertEl) alertEl.innerHTML='<div class="alert alert-danger">❌ Gagal menyimpan: '+err.message+'</div>';
-                if(btnKirim) btnKirim.disabled=false;
-                console.error('Gagal simpan presensi:',err);
-            });
-        }
-    } catch(e) {
-        if(alertEl) alertEl.innerHTML='<div class="alert alert-danger">❌ Error: '+e.message+'</div>';
-        if(btnKirim) btnKirim.disabled=false;
-        console.error('Error kirimPresensi:',e);
+    var done=false;
+    // TIMEOUT 15 detik untuk antisipasi gagal
+    var timeoutId=setTimeout(function(){
+        if(done) return;
+        done=true;
+        var ov=document.getElementById('savingOverlay');
+        if(ov) ov.remove();
+        if(btnKirim){ btnKirim.disabled=false; btnKirim.textContent='📤 Kirim Laporan'; }
+        if(alertEl) alertEl.innerHTML='<div class="alert alert-warning">⏱️ Koneksi lambat. Data mungkin sudah terkirim. Cek dengan "Edit" atau muat ulang.<br><br>Jika belum terkirim, klik <b>Kirim Laporan</b> sekali lagi.</div>';
+    }, 15000);
+    
+    // PENTING: hanya 1 operasi add/update — tidak ada operasi lain
+    var operation;
+    if(presensiEditMode && presensiEditDocId){
+        docData.createdAt=new Date().toISOString();
+        operation=db.collection('presensiHarian').doc(presensiEditDocId).set(docData,{merge:true});
+    }else{
+        docData.createdAt=new Date().toISOString();
+        operation=db.collection('presensiHarian').add(docData);
     }
+    
+    operation.then(function(ref){
+        if(done) return;
+        done=true;
+        clearTimeout(timeoutId);
+        var ov=document.getElementById('savingOverlay');
+        if(ov) ov.remove();
+        if(btnKirim){ btnKirim.disabled=false; btnKirim.textContent='📤 Kirim Laporan'; }
+        if(alertEl) alertEl.innerHTML='<div class="alert alert-success" style="font-size:16px;font-weight:700;">✅ BERHASIL! Laporan presensi sudah terkirim.<br>Terima kasih 🙏</div>';
+        presensiEditMode=false; presensiEditDocId=null;
+        presensiLastFetch=0;
+        // Update tampilan jadi read-only
+        var selects=document.querySelectorAll('#presensiFormContent select');
+        var inputs=document.querySelectorAll('#presensiFormContent input');
+        for(var i=0;i<selects.length;i++)selects[i].disabled=true;
+        for(var j=0;j<inputs.length;j++)inputs[j].disabled=true;
+        // Background refresh (tidak blok user)
+        setTimeout(function(){ 
+            loadPresensiRekap(true); 
+            updateDashboard(); 
+        }, 3000);
+    }).catch(function(err){
+        if(done) return;
+        done=true;
+        clearTimeout(timeoutId);
+        var ov=document.getElementById('savingOverlay');
+        if(ov) ov.remove();
+        if(btnKirim){ btnKirim.disabled=false; btnKirim.textContent='📤 Kirim Laporan'; }
+        var errMsg=err.message||'Unknown error';
+        var saran='';
+        if(errMsg.indexOf('permission')!==-1 || errMsg.indexOf('Permission')!==-1 || errMsg.indexOf('insufficient')!==-1){
+            saran='<br><br>🔴 <b>Penyebab:</b> Firestore Rules belum mengizinkan.<br>Solusi: Buka Firebase Console → Firestore Database → Rules → tambahkan:<br><code style="background:#fff;padding:4px 8px;display:inline-block;margin-top:4px;">allow read, write: if true;</code>';
+        }else if(errMsg.indexOf('offline')!==-1 || errMsg.indexOf('network')!==-1 || errMsg.indexOf('unavailable')!==-1){
+            saran='<br><br>🔴 <b>Penyebab:</b> Koneksi internet bermasalah.<br>Solusi: Cek sinyal, coba lagi.';
+        }
+        if(alertEl) alertEl.innerHTML='<div class="alert alert-danger" style="font-size:14px;">❌ GAGAL KIRIM: '+errMsg+saran+'<br><br>Klik <b>Kirim Laporan</b> sekali lagi untuk coba ulang.</div>';
+        console.error('Gagal kirim presensi:',err);
+    });
 }
 
-// ==================== KELAS BELUM LAPOR ====================
+// ==================== PRESENSI REKAP ====================
 function loadKelasBelumLapor(presensiItems){
     var container = document.getElementById('kelasBelumLaporContainer');
     if(!container) return;
     var today = new Date().toISOString().split('T')[0];
-    
-    // Ambil daftar kelas dari cache list atau allStudents
     var kelasList = getCachedClassList();
     if(!kelasList || kelasList.length===0){
         var kelasSet = new Set();
         for(var i=0; i<allStudents.length; i++){ if(allStudents[i].class) kelasSet.add(allStudents[i].class); }
         kelasList = Array.from(kelasSet).sort();
     }
-    
-    if(kelasList.length === 0) {
-        container.innerHTML = '<div class="alert alert-info">📭 Belum ada data kelas.</div>';
-        return;
-    }
-    
+    if(kelasList.length === 0){ container.innerHTML = '<div class="alert alert-info">📭 Belum ada data kelas.</div>'; return; }
     var buildUI = function(items){
         var kelasLapor = new Set();
-        for(var i=0; i<items.length; i++){
-            var data = items[i];
-            if(data.tanggal === today && data.kelas) kelasLapor.add(data.kelas);
-        }
+        for(var i=0; i<items.length; i++){ var data = items[i]; if(data.tanggal === today && data.kelas) kelasLapor.add(data.kelas); }
         var kelasBelumLapor = [];
-        for(var i=0; i<kelasList.length; i++){
-            if(!kelasLapor.has(kelasList[i])) kelasBelumLapor.push(kelasList[i]);
-        }
+        for(var i=0; i<kelasList.length; i++){ if(!kelasLapor.has(kelasList[i])) kelasBelumLapor.push(kelasList[i]); }
         if(kelasBelumLapor.length === 0){
-            container.innerHTML = '<div class="alert alert-success" style="border:2px solid var(--success);">✅ <b>Semua Kelas Sudah Lapor!</b> 🎉 ('+new Date(today).toLocaleDateString('id-ID')+')</div>';
+            container.innerHTML = '<div class="alert alert-success" style="border:2px solid var(--success);">✅ <b>Semua Kelas Sudah Lapor!</b> 🎉</div>';
         } else {
-            var html = '<div class="kelas-belum-lapor">';
-            html += '<div class="title">⚠️ ' + kelasBelumLapor.length + ' Kelas Belum Lapor Presensi Hari Ini (' + new Date(today).toLocaleDateString('id-ID') + ')</div>';
-            html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">';
-            for(var i=0; i<kelasBelumLapor.length; i++){
-                html += '<span class="kelas-tag">📚 ' + kelasBelumLapor[i] + '</span>';
-            }
+            var html = '<div class="kelas-belum-lapor"><div class="title">⚠️ ' + kelasBelumLapor.length + ' Kelas Belum Lapor (' + new Date(today).toLocaleDateString('id-ID') + ')</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">';
+            for(var i=0; i<kelasBelumLapor.length; i++){ html += '<span class="kelas-tag">📚 ' + kelasBelumLapor[i] + '</span>'; }
             html += '</div></div>';
             container.innerHTML = html;
         }
     };
-    
-    if(presensiItems && presensiItems.length >= 0){
-        buildUI(presensiItems);
-    } else {
-        // Hanya ambil field tanggal & kelas, bukan seluruh data
+    if(presensiItems && presensiItems.length >= 0){ buildUI(presensiItems); }
+    else {
         db.collection('presensiHarian').where('tanggal','==',today).get().then(function(snapshot){
-            var items = [];
-            snapshot.forEach(function(doc){ items.push(doc.data()); });
+            var items = []; snapshot.forEach(function(doc){ items.push(doc.data()); });
             buildUI(items);
-        }).catch(function(err){
-            container.innerHTML = '<div class="alert alert-danger">❌ Gagal: ' + err.message + '</div>';
-        });
+        }).catch(function(err){ container.innerHTML = '<div class="alert alert-danger">❌ ' + err.message + '</div>'; });
     }
 }
-
-// ==================== TOP IZIN PER KELAS ====================
 function renderTopIzinPerKelas(items, periodLabel, classFilter) {
     var kelasData = {};
     for(var i=0; i<items.length; i++) {
-        var p = items[i];
-        var siswa = p.siswa || [];
+        var p = items[i]; var siswa = p.siswa || [];
         for(var j=0; j<siswa.length; j++) {
             var s = siswa[j];
             if(s.status === 'Izin') {
-                var kelas = p.kelas || 'Tidak diketahui';
+                var kelas = p.kelas || '-';
                 if(!kelasData[kelas]) kelasData[kelas] = {};
                 if(!kelasData[kelas][s.nama]) kelasData[kelas][s.nama] = { nama: s.nama, count: 0 };
                 kelasData[kelas][s.nama].count++;
@@ -857,8 +850,8 @@ function renderTopIzinPerKelas(items, periodLabel, classFilter) {
     }
     var kelasList = Object.keys(kelasData).sort();
     if(classFilter && kelasList.indexOf(classFilter)!==-1) kelasList = [classFilter];
-    if(kelasList.length === 0) return '<div class="alert alert-info">📭 Belum ada siswa yang izin pada periode ini.</div>';
-    var html = '<div class="top-izin-perkelas"><h4>📊 Top 5 Siswa dengan Izin Terbanyak per Kelas - ' + periodLabel + '</h4>';
+    if(kelasList.length === 0) return '<div class="alert alert-info">📭 Belum ada siswa izin.</div>';
+    var html = '<div class="top-izin-perkelas"><h4>📊 Top 5 Izin per Kelas - ' + periodLabel + '</h4>';
     var chartQueue = [];
     for(var k=0; k<kelasList.length; k++) {
         var kelas = kelasList[k];
@@ -868,17 +861,11 @@ function renderTopIzinPerKelas(items, periodLabel, classFilter) {
         if(top5.length === 0) continue;
         var chartId = 'chartKelas_' + kelas.replace(/[^a-zA-Z0-9]/g, '_');
         chartQueue.push({id: chartId, data: top5});
-        html += '<div class="chart-container" style="margin-top:10px;">';
-        html += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">';
-        html += '<h5 style="font-size:13px;color:var(--primary-dark);">📚 ' + kelas + '</h5>';
-        html += '<span style="font-size:11px;color:var(--gray);">' + top5.length + ' siswa</span></div>';
+        html += '<div class="chart-container" style="margin-top:10px;"><h5 style="font-size:13px;color:var(--primary-dark);">📚 ' + kelas + '</h5>';
         html += '<canvas id="' + chartId + '" style="max-height:160px;width:100%;"></canvas>';
         html += '<div class="top-izin-list">';
         var medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
-        for(var s=0; s<top5.length; s++) {
-            var medal = medals[s] || '•';
-            html += '<div class="item"><span class="name">' + medal + ' ' + top5[s].nama + '</span><span class="count">' + top5[s].count + 'x</span></div>';
-        }
+        for(var s=0; s<top5.length; s++) { html += '<div class="item"><span class="name">' + (medals[s]||'•') + ' ' + top5[s].nama + '</span><span class="count">' + top5[s].count + 'x</span></div>'; }
         html += '</div></div>';
     }
     html += '</div>';
@@ -901,17 +888,14 @@ function renderPerKelasChart(chartId, data) {
     var labels = data.map(function(d) { return d.nama; });
     var values = data.map(function(d) { return d.count; });
     var colors = ['#ffc107', '#17a2b8', '#28a745', '#6f42c1', '#fd7e14'];
-    var borderColors = ['#e0a800', '#138496', '#1e7e34', '#5a32a3', '#e06b00'];
     chartInstances[chartId] = new Chart(ctx, {
         type: 'bar',
-        data: { labels: labels, datasets: [{ label: 'Jumlah Izin', data: values, backgroundColor: colors.slice(0, data.length), borderColor: borderColors.slice(0, data.length), borderWidth: 2, borderRadius: 4 }] },
-        options: { responsive: true, maintainAspectRatio: true, animation: { duration: 300 },
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return 'Izin: ' + context.parsed.y + 'x'; } } } },
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } } }, x: { ticks: { font: { size: 9 }, maxRotation: 30, minRotation: 20 } } } }
+        data: { labels: labels, datasets: [{ label: 'Jumlah Izin', data: values, backgroundColor: colors.slice(0, data.length), borderRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: true, animation: { duration: 200 },
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 9 } } }, x: { ticks: { font: { size: 9 }, maxRotation: 30 } } } }
     });
 }
-
-// ==================== LOAD PRESENSI REKAP - OPTIMASI ====================
 function loadPresensiRekap(forceRefresh){
     if(isLoadingPresensiRekap && !forceRefresh){ return; }
     var classFilter = document.getElementById('filterPresensiClass').value;
@@ -924,8 +908,7 @@ function loadPresensiRekap(forceRefresh){
         return;
     }
     isLoadingPresensiRekap = true;
-    container.innerHTML='<div class="loading"><span class="spinner"></span> Memuat data presensi...</div>';
-    // Ambil hanya 200 dokumen terbaru, dan hanya field yang dibutuhkan
+    container.innerHTML='<div class="loading"><span class="spinner"></span> Memuat...</div>';
     db.collection('presensiHarian').orderBy('tanggal','desc').limit(200).get().then(function(snapshot){
         var allItems = [];
         snapshot.forEach(function(doc){ var data = doc.data(); data.id = doc.id; allItems.push(data); });
@@ -935,7 +918,6 @@ function loadPresensiRekap(forceRefresh){
         loadKelasBelumLapor(allItems);
         applyFilterAndRender(allItems, classFilter, period, dateFilter, container);
     }).catch(function(err){
-        console.error('orderBy gagal, fallback:', err.message);
         db.collection('presensiHarian').limit(200).get().then(function(snapshot){
             var allItems = [];
             snapshot.forEach(function(doc){ var data = doc.data(); data.id = doc.id; allItems.push(data); });
@@ -947,11 +929,10 @@ function loadPresensiRekap(forceRefresh){
             applyFilterAndRender(allItems, classFilter, period, dateFilter, container);
         }).catch(function(err2){
             isLoadingPresensiRekap = false;
-            container.innerHTML = '<div class="alert alert-danger">❌ Gagal memuat data: '+err2.message+' <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap(true)">🔄 Coba Lagi</button></div>';
+            container.innerHTML = '<div class="alert alert-danger">❌ '+err2.message+' <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap(true)">🔄 Coba Lagi</button></div>';
         });
     });
 }
-
 function applyFilterAndRender(allItems, classFilter, period, dateFilter, container){
     var today = new Date();
     function formatDate(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
@@ -959,37 +940,19 @@ function applyFilterAndRender(allItems, classFilter, period, dateFilter, contain
     if(period !== 'all'){
         var startStr, endStr, label;
         switch(period){
-            case 'daily':
-                if(dateFilter){ startStr = dateFilter; endStr = dateFilter; }
-                else { startStr = formatDate(today); endStr = formatDate(today); document.getElementById('filterPresensiDate').value = startStr; }
-                label = 'Harian'; break;
-            case 'weekly':
-                var end = new Date(today); var start = new Date(today); start.setDate(start.getDate() - 6);
-                startStr = formatDate(start); endStr = formatDate(end); document.getElementById('filterPresensiDate').value = endStr;
-                label = 'Mingguan'; break;
-            case 'monthly':
-                var end = new Date(today); var start = new Date(today); start.setMonth(start.getMonth() - 1);
-                startStr = formatDate(start); endStr = formatDate(end); document.getElementById('filterPresensiDate').value = endStr;
-                label = 'Bulanan'; break;
-            case 'semester':
-                var end = new Date(today); var start = new Date(today); start.setMonth(start.getMonth() - 6);
-                startStr = formatDate(start); endStr = formatDate(end); document.getElementById('filterPresensiDate').value = endStr;
-                label = 'Semester'; break;
+            case 'daily': if(dateFilter){ startStr = dateFilter; endStr = dateFilter; } else { startStr = formatDate(today); endStr = formatDate(today); document.getElementById('filterPresensiDate').value = startStr; } label = 'Harian'; break;
+            case 'weekly': var end = new Date(today); var start = new Date(today); start.setDate(start.getDate() - 6); startStr = formatDate(start); endStr = formatDate(end); document.getElementById('filterPresensiDate').value = endStr; label = 'Mingguan'; break;
+            case 'monthly': var end = new Date(today); var start = new Date(today); start.setMonth(start.getMonth() - 1); startStr = formatDate(start); endStr = formatDate(end); document.getElementById('filterPresensiDate').value = endStr; label = 'Bulanan'; break;
+            case 'semester': var end = new Date(today); var start = new Date(today); start.setMonth(start.getMonth() - 6); startStr = formatDate(start); endStr = formatDate(end); document.getElementById('filterPresensiDate').value = endStr; label = 'Semester'; break;
             default: startStr = formatDate(today); endStr = formatDate(today); label = 'Harian';
         }
         allItems = allItems.filter(function(p){ return p.tanggal >= startStr && p.tanggal <= endStr; });
         renderPresensiDataFromArray(allItems, classFilter, label + ' (' + startStr + ' s.d ' + endStr + ')');
-    } else {
-        renderPresensiDataFromArray(allItems, classFilter, 'Semua Data');
-    }
+    } else { renderPresensiDataFromArray(allItems, classFilter, 'Semua Data'); }
 }
-
 function renderPresensiDataFromArray(items, classFilter, periodLabel){
     var container = document.getElementById('presensiRekapContainer');
-    if(items.length === 0){
-        container.innerHTML = '<div class="alert alert-info">📭 Belum ada laporan presensi untuk periode ini. <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap(true)">🔄 Refresh</button></div>';
-        return;
-    }
+    if(items.length === 0){ container.innerHTML = '<div class="alert alert-info">📭 Belum ada laporan. <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap(true)">🔄 Refresh</button></div>'; return; }
     var chartHtml = renderTopIzinPerKelas(items, periodLabel, classFilter);
     var rekapKelas = {};
     var semuaTidakHadir = {};
@@ -1013,7 +976,7 @@ function renderPresensiDataFromArray(items, classFilter, periodLabel){
         rekapKelas[p.kelas].izin += izin;
         rekapKelas[p.kelas].alfa += alfa;
         rekapKelas[p.kelas].hari++;
-        rekapKelas[p.kelas].data.push({tanggal:p.tanggal,hadir:hadir,sakit:sakit,izin:izin,alfa:alfa,total:total,dikirimOleh:p.dikirimOleh||'Ketua Kelas'});
+        rekapKelas[p.kelas].data.push({tanggal:p.tanggal,hadir:hadir,sakit:sakit,izin:izin,alfa:alfa,total:total});
         for(var k=0; k<tidakHadirList.length; k++){
             var key = p.kelas + '|' + tidakHadirList[k].nama;
             if(!semuaTidakHadir[key]) semuaTidakHadir[key] = { kelas: p.kelas, nama: tidakHadirList[k].nama, status: tidakHadirList[k].status, keterangan: tidakHadirList[k].keterangan, count: 0 };
@@ -1022,15 +985,10 @@ function renderPresensiDataFromArray(items, classFilter, periodLabel){
     }
     var html = '';
     var kelasList = Object.keys(rekapKelas).sort();
-    html += '<div style="margin-bottom:12px;padding:10px;background:#e8f0fe;border-radius:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">';
-    html += '<div><strong>📊 Rekap Presensi</strong> <span style="font-size:12px;color:var(--gray);">('+periodLabel+')</span> | <span style="font-size:12px;color:var(--gray);">Total '+items.length+' laporan</span></div>';
-    html += '<span style="font-size:11px;color:var(--gray);">🔄 Auto-refresh 120 detik</span></div>';
+    html += '<div style="margin-bottom:12px;padding:10px;background:#e8f0fe;border-radius:8px;">';
+    html += '<div><strong>📊 Rekap Presensi</strong> <span style="font-size:12px;color:var(--gray);">('+periodLabel+')</span> | <span style="font-size:12px;color:var(--gray);">Total '+items.length+' laporan</span></div></div>';
     html += chartHtml;
-    if(kelasList.length === 0){
-        html += '<div class="alert alert-info">📭 Tidak ada data presensi.</div>';
-        container.innerHTML = html;
-        return;
-    }
+    if(kelasList.length === 0){ html += '<div class="alert alert-info">📭 Tidak ada data.</div>'; container.innerHTML = html; return; }
     for(var k=0; k<kelasList.length; k++){
         var kelas = kelasList[k];
         var r = rekapKelas[kelas];
@@ -1038,7 +996,7 @@ function renderPresensiDataFromArray(items, classFilter, periodLabel){
         html += '<div class="panel" style="margin-bottom:12px;padding:12px;">';
         html += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">';
         html += '<h3 style="font-size:15px;color:var(--primary-dark);">📚 '+kelas+'</h3>';
-        html += '<span style="font-size:12px;color:var(--gray);">📅 '+r.hari+' hari laporan</span></div>';
+        html += '<span style="font-size:12px;color:var(--gray);">📅 '+r.hari+' hari</span></div>';
         html += '<div class="presensi-rekap-grid">';
         html += '<div class="rekap-item hadir"><div class="num">'+r.hadir+'</div><div class="label">✅ Hadir</div></div>';
         html += '<div class="rekap-item sakit"><div class="num">'+r.sakit+'</div><div class="label">🤒 Sakit</div></div>';
@@ -1062,16 +1020,14 @@ function renderPresensiDataFromArray(items, classFilter, periodLabel){
         html += '<div id="detail-'+kelas+'" style="display:none;margin-top:8px;font-size:12px;max-height:200px;overflow-y:auto;border:1px solid var(--gray-light);border-radius:6px;padding:8px;">';
         for(var d=0; d<r.data.length; d++){
             var dt = r.data[d];
-            html += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;">';
-            html += '<span>'+new Date(dt.tanggal).toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short'})+'</span>';
-            html += '<span>✅'+dt.hadir+' 🤒'+dt.sakit+' 📝'+dt.izin+' ❌'+dt.alfa+' | <strong>'+Math.round((dt.hadir/dt.total)*100)+'%</strong></span></div>';
+            html += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;"><span>'+new Date(dt.tanggal).toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short'})+'</span><span>✅'+dt.hadir+' 🤒'+dt.sakit+' 📝'+dt.izin+' ❌'+dt.alfa+' | <strong>'+Math.round((dt.hadir/dt.total)*100)+'%</strong></span></div>';
         }
         html += '</div></div>';
     }
     var semuaNamaTidakHadir = Object.keys(semuaTidakHadir);
     if(semuaNamaTidakHadir.length > 0){
         html += '<div class="panel" style="background:#f8fafc;border:2px solid var(--danger);">';
-        html += '<h4 style="color:var(--danger);margin-bottom:8px;">📋 REKAP SELURUH SISWA TIDAK HADIR ('+semuaNamaTidakHadir.length+' siswa)</h4>';
+        html += '<h4 style="color:var(--danger);margin-bottom:8px;">📋 REKAP SISWA TIDAK HADIR ('+semuaNamaTidakHadir.length+')</h4>';
         html += '<div style="display:flex;flex-wrap:wrap;gap:4px;">';
         for(var key in semuaTidakHadir){
             var sis = semuaTidakHadir[key];
@@ -1083,16 +1039,14 @@ function renderPresensiDataFromArray(items, classFilter, periodLabel){
     container.innerHTML = html;
     renderQueuedCharts();
 }
-
 function toggleDetailPresensi(kelas){var el=document.getElementById('detail-'+kelas);if(el){if(el.style.display==='none'){el.style.display='block';}else{el.style.display='none';}}}
-
 function loadDetailTidakHadirPeriode(){
     var kelas = document.getElementById('filterPresensiClass').value;
     var period = document.getElementById('filterPresensiPeriod').value;
     var dateFilter = document.getElementById('filterPresensiDate').value;
     var container = document.getElementById('presensiRekapContainer');
     if(!kelas){ container.innerHTML = '<div class="alert alert-warning">⚠️ Pilih kelas! <button class="btn btn-outline btn-sm" onclick="loadPresensiRekap(true)">📊 Kembali</button></div>'; return; }
-    container.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat detail...</div>';
+    container.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat...</div>';
     if(allPresensiDataCache.length > 0){ processDetailData(allPresensiDataCache, kelas, period, dateFilter, container); }
     else {
         db.collection('presensiHarian').limit(200).get().then(function(snapshot){
@@ -1139,7 +1093,7 @@ function renderDetailTidakHadirPeriode(items, kelas, periodLabel){
     }
     var namaList = Object.keys(semuaTidakHadir).sort();
     html += '<div style="margin-bottom:12px;padding:12px;background:#f8f0f0;border-radius:8px;border:2px solid var(--danger);">';
-    html += '<div style="font-size:15px;font-weight:700;color:var(--danger);margin-bottom:8px;">📊 TOTAL SISWA TIDAK HADIR: '+namaList.length+' siswa</div>';
+    html += '<div style="font-size:15px;font-weight:700;color:var(--danger);margin-bottom:8px;">📊 TOTAL TIDAK HADIR: '+namaList.length+' siswa</div>';
     html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;">';
     for(var n=0; n<namaList.length; n++){
         var sis = semuaTidakHadir[namaList[n]];
@@ -1154,10 +1108,10 @@ function renderDetailTidakHadirPeriode(items, kelas, periodLabel){
         var tidakHadir = siswa.filter(function(s){ return s.status !== 'Hadir'; });
         html += '<div class="panel" style="margin-bottom:12px;padding:12px;border-left:4px solid '+(tidakHadir.length>0?'var(--danger)':'var(--success)')+';">';
         html += '<strong style="font-size:14px;">📅 '+new Date(p.tanggal).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</strong>';
-        if(tidakHadir.length === 0){ html += '<div class="alert alert-success" style="margin-top:8px;">✅ Semua siswa hadir!</div>'; }
+        if(tidakHadir.length === 0){ html += '<div class="alert alert-success" style="margin-top:8px;">✅ Semua hadir!</div>'; }
         else {
-            html += '<div style="margin:8px 0;font-size:13px;">';
             var hadirCount = siswa.filter(function(s){ return s.status === 'Hadir'; }).length;
+            html += '<div style="margin:8px 0;font-size:13px;">';
             html += '<span class="badge-status success">✅ '+hadirCount+'</span> ';
             html += '<span class="badge-status warning">🤒 '+tidakHadir.filter(function(s){ return s.status === 'Sakit'; }).length+'</span> ';
             html += '<span class="badge-status info">📝 '+tidakHadir.filter(function(s){ return s.status === 'Izin'; }).length+'</span> ';
@@ -1181,64 +1135,46 @@ function renderDetailTidakHadirPeriode(items, kelas, periodLabel){
     container.innerHTML = html;
 }
 
-// ==================== AUTO REFRESH 120 DETIK ====================
-function startPresensiAutoRefresh(){
-    stopPresensiAutoRefresh();
-    presensiRefreshTimer = setInterval(function(){
-        var tabPresensi = document.getElementById('tab-presensi');
-        if(tabPresensi && tabPresensi.classList.contains('active')){
-            loadPresensiRekap(true);
-            var statusEl = document.getElementById('presensiRefreshStatus');
-            if(statusEl) statusEl.textContent = '🔄 Auto-refresh 120 detik ('+new Date().toLocaleTimeString()+')';
-        }
-    }, 120000);
-}
+function startPresensiAutoRefresh(){ /* MANUAL ONLY — tidak auto refresh */ }
 function stopPresensiAutoRefresh(){ if(presensiRefreshTimer){ clearInterval(presensiRefreshTimer); presensiRefreshTimer = null; } }
 
-// ==================== CETAK ====================
 function cetakPresensi(){
     var container = document.getElementById('presensiRekapContainer');
-    if(!container || container.innerHTML.includes('Belum ada')){ alert('⚠️ Tidak ada data presensi untuk dicetak.'); return; }
+    if(!container || container.innerHTML.includes('Belum ada')){ alert('⚠️ Tidak ada data.'); return; }
     var w = window.open('', '_blank', 'width=900,height=700');
-    if(!w){ alert('⚠️ Izinkan pop-up untuk mencetak.'); return; }
+    if(!w){ alert('⚠️ Izinkan pop-up.'); return; }
     var period = document.getElementById('filterPresensiPeriod').value;
     var periodLabel = {'daily':'Harian','weekly':'Mingguan','monthly':'Bulanan','semester':'Semester','all':'Semua Data'};
     var label = periodLabel[period] || 'Periode';
     var classFilter = document.getElementById('filterPresensiClass').value || 'Semua Kelas';
     w.document.write('<!DOCTYPE html><html><head><title>Laporan Presensi '+label+'</title><style>');
-    w.document.write('body { font-family: Arial, sans-serif; padding: 20px; color: #1a2a3a; }');
+    w.document.write('body { font-family: Arial, sans-serif; padding: 20px; }');
     w.document.write('h2 { color: #0d3b6b; border-bottom: 2px solid #0d3b6b; padding-bottom: 8px; }');
     w.document.write('.presensi-rekap-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 8px 0; }');
     w.document.write('.rekap-item { background: #f8fafc; padding: 8px 12px; border-radius: 6px; text-align: center; }');
     w.document.write('.rekap-item .num { font-size: 20px; font-weight: 800; }');
     w.document.write('.rekap-item .label { font-size: 10px; color: #6b7d90; }');
     w.document.write('.panel { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; page-break-inside: avoid; }');
-    w.document.write('.footer { margin-top: 20px; font-size: 10px; color: #6b7d90; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }');
+    w.document.write('.footer { margin-top: 20px; font-size: 10px; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }');
     w.document.write('.brand { font-weight: 600; color: #0d3b6b; }');
     w.document.write('.siswa-tag { display: inline-block; padding: 2px 12px; border-radius: 16px; font-size: 12px; margin: 2px; }');
     w.document.write('.siswa-tag.sakit { background: #fff3cd; border: 1px solid #ffc107; color: #856404; }');
     w.document.write('.siswa-tag.izin { background: #d1ecf1; border: 1px solid #17a2b8; color: #0c5460; }');
     w.document.write('.siswa-tag.alfa { background: #f8d7da; border: 1px solid #dc3545; color: #721c24; }');
+    w.document.write('.siswa-list { display: flex; flex-wrap: wrap; gap: 4px; }');
     w.document.write('.rekap-tidak-hadir { margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd; }');
     w.document.write('.kelas-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }');
-    w.document.write('.siswa-list { display: flex; flex-wrap: wrap; gap: 4px; }');
     w.document.write('.top-izin-perkelas { margin: 12px 0; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #ddd; }');
-    w.document.write('.top-izin-perkelas h4 { font-size: 14px; color: #0d3b6b; margin-bottom: 8px; }');
     w.document.write('.top-izin-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px; margin-top: 6px; }');
-    w.document.write('.top-izin-list .item { background: #fff; padding: 6px 12px; border-radius: 6px; border-left: 4px solid #1a5a9e; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }');
-    w.document.write('.top-izin-list .item .name { font-weight: 600; }');
-    w.document.write('.top-izin-list .item .count { font-weight: 700; color: #d96b7b; font-size: 14px; }');
-    w.document.write('.chart-container { border: 1px solid #ddd; padding: 12px; border-radius: 6px; margin: 8px 0; }');
-    w.document.write('@media print { body { padding: 10px; } .panel { page-break-inside: avoid; } }');
+    w.document.write('.top-izin-list .item { background: #fff; padding: 6px 12px; border-radius: 6px; border-left: 4px solid #1a5a9e; display: flex; justify-content: space-between; font-size: 13px; }');
+    w.document.write('@media print { body { padding: 10px; } }');
     w.document.write('</style></head><body>');
     w.document.write('<h2>📋 LAPORAN PRESENSI '+label.toUpperCase()+'</h2>');
-    w.document.write('<div style="margin-bottom:12px;"><span>📚 Kelas: '+classFilter+'</span> | <span>📅 Dicetak: '+new Date().toLocaleString('id-ID')+'</span></div><hr>');
-    w.document.write('<div style="margin-top:12px;">');
+    w.document.write('<div style="margin-bottom:12px;"><span>📚 '+classFilter+'</span> | <span>📅 '+new Date().toLocaleString('id-ID')+'</span></div><hr>');
     var contentHTML = container.innerHTML;
     contentHTML = contentHTML.replace(/<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">.*?<\/div>/gs, '');
     contentHTML = contentHTML.replace(/<canvas[^>]*>.*?<\/canvas>/gs, '');
     w.document.write(contentHTML);
-    w.document.write('</div>');
     w.document.write('<div class="footer">Dicetak dari SIM BK | <span class="brand">@NaFaSBK</span></div>');
     w.document.write('<script>setTimeout(function() { window.print(); }, 800);<\/script>');
     w.document.write('</body></html>');
@@ -1248,78 +1184,45 @@ function cetakRekapTidakHadir(){
     var container = document.getElementById('presensiRekapContainer');
     var w = window.open('', '_blank', 'width=900,height=700');
     if(!w){ alert('⚠️ Izinkan pop-up.'); return; }
-    w.document.write('<!DOCTYPE html><html><head><title>Rekap Siswa Tidak Hadir</title><style>');
-    w.document.write('body { font-family: Arial, sans-serif; padding: 20px; }');
-    w.document.write('h2 { color: #0d3b6b; }');
-    w.document.write('.siswa-tag { display: inline-block; padding: 4px 16px; border-radius: 16px; font-size: 13px; margin: 3px; }');
-    w.document.write('.siswa-tag.sakit { background: #fff3cd; border: 1px solid #ffc107; color: #856404; }');
-    w.document.write('.siswa-tag.izin { background: #d1ecf1; border: 1px solid #17a2b8; color: #0c5460; }');
-    w.document.write('.siswa-tag.alfa { background: #f8d7da; border: 1px solid #dc3545; color: #721c24; }');
-    w.document.write('.panel { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; }');
-    w.document.write('.footer { margin-top: 20px; font-size: 10px; color: #6b7d90; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }');
-    w.document.write('.brand { font-weight: 600; color: #0d3b6b; }');
-    w.document.write('</style></head><body>');
+    w.document.write('<!DOCTYPE html><html><head><title>Rekap</title><style>body{font-family:Arial;padding:20px;}h2{color:#0d3b6b;}.siswa-tag{display:inline-block;padding:4px 16px;border-radius:16px;font-size:13px;margin:3px;}.siswa-tag.sakit{background:#fff3cd;border:1px solid #ffc107;color:#856404;}.siswa-tag.izin{background:#d1ecf1;border:1px solid #17a2b8;color:#0c5460;}.siswa-tag.alfa{background:#f8d7da;border:1px solid #dc3545;color:#721c24;}.panel{border:1px solid #ddd;padding:12px;margin-bottom:12px;border-radius:6px;}.footer{margin-top:20px;font-size:10px;text-align:center;border-top:1px solid #ddd;padding-top:10px;}.brand{font-weight:600;color:#0d3b6b;}</style></head><body>');
     w.document.write('<h2>📋 REKAP SISWA TIDAK HADIR</h2><p>Dicetak: '+new Date().toLocaleString('id-ID')+'</p><hr>');
     var panels = container.querySelectorAll('.panel');
     var found = false;
-    for(var i=0; i<panels.length; i++){
-        if(panels[i].querySelector('.rekap-tidak-hadir')){ w.document.write(panels[i].outerHTML); found = true; }
-    }
+    for(var i=0; i<panels.length; i++){ if(panels[i].querySelector('.rekap-tidak-hadir')){ w.document.write(panels[i].outerHTML); found = true; } }
     if(!found) w.document.write('<p>Tidak ada data.</p>');
     w.document.write('<div class="footer">Dicetak dari SIM BK | <span class="brand">@NaFaSBK</span></div>');
-    w.document.write('<script>setTimeout(function() { window.print(); }, 800);<\/script>');
-    w.document.write('</body></html>');
+    w.document.write('<script>setTimeout(function() { window.print(); }, 800);<\/script></body></html>');
     w.document.close();
 }
 function cetakDetailTidakHadir(){
     var container = document.getElementById('presensiRekapContainer');
     var w = window.open('', '_blank', 'width=900,height=700');
     if(!w){ alert('⚠️ Izinkan pop-up.'); return; }
-    w.document.write('<!DOCTYPE html><html><head><title>Laporan Penanganan Siswa</title><style>');
-    w.document.write('body { font-family: Arial, sans-serif; padding: 20px; }');
-    w.document.write('h2 { color: #0d3b6b; }');
-    w.document.write('.badge-status { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }');
-    w.document.write('.badge-status.warning { background: #fff3cd; color: #856404; }');
-    w.document.write('.badge-status.info { background: #d1ecf1; color: #0c5460; }');
-    w.document.write('.badge-status.danger { background: #f8d7da; color: #721c24; }');
-    w.document.write('.badge-status.success { background: #d4edda; color: #155724; }');
-    w.document.write('.panel { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; page-break-inside: avoid; }');
-    w.document.write('.footer { margin-top: 20px; font-size: 10px; color: #6b7d90; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }');
-    w.document.write('.brand { font-weight: 600; color: #0d3b6b; }');
-    w.document.write('.alert-success { background: #d4edda; color: #155724; padding: 10px; border-radius: 6px; }');
-    w.document.write('.siswa-item { display: flex; justify-content: space-between; padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }');
-    w.document.write('</style></head><body>');
+    w.document.write('<!DOCTYPE html><html><head><title>Laporan</title><style>body{font-family:Arial;padding:20px;}h2{color:#0d3b6b;}.badge-status{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;}.badge-status.warning{background:#fff3cd;color:#856404;}.badge-status.info{background:#d1ecf1;color:#0c5460;}.badge-status.danger{background:#f8d7da;color:#721c24;}.badge-status.success{background:#d4edda;color:#155724;}.panel{border:1px solid #ddd;padding:12px;margin-bottom:12px;border-radius:6px;page-break-inside:avoid;}.footer{margin-top:20px;font-size:10px;text-align:center;border-top:1px solid #ddd;padding-top:10px;}.brand{font-weight:600;color:#0d3b6b;}.alert-success{background:#d4edda;color:#155724;padding:10px;border-radius:6px;}.siswa-item{display:flex;justify-content:space-between;padding:6px 8px;border-bottom:1px solid #f0f0f0;}</style></head><body>');
     w.document.write('<h2>📋 LAPORAN PENANGANAN SISWA TIDAK HADIR</h2>');
     w.document.write('<p>Dicetak: '+new Date().toLocaleString('id-ID')+' | Sekolah: '+(schoolData.name || 'Sekolah')+'</p><hr>');
     var contentHTML = container.innerHTML;
     contentHTML = contentHTML.replace(/<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">.*?<\/div>/gs, '');
     w.document.write(contentHTML);
     w.document.write('<div class="footer">Dicetak dari SIM BK | <span class="brand">@NaFaSBK</span></div>');
-    w.document.write('<script>setTimeout(function() { window.print(); }, 800);<\/script>');
-    w.document.write('</body></html>');
+    w.document.write('<script>setTimeout(function() { window.print(); }, 800);<\/script></body></html>');
     w.document.close();
 }
 
 function keluarPresensi(){document.getElementById('presensiMode').style.display='none';document.getElementById('mainApp').style.display='block';document.querySelector('.app-container').style.padding='12px';showTab('presensi');}
 function copyPresensiLink(){var link=document.getElementById('presensiLinkDisplay').value;copyText(link);}
-function bagikanPresensiWA(){var link=document.getElementById('presensiLinkDisplay').value;var pesan=encodeURIComponent('📋 *Presensi Harian - SIM BK*\n\nKlik link berikut:\n'+link+'\n\n📌 Pilih kelas, pilih tanggal, isi presensi, kirim.\n🙏 Isi dengan jujur!');window.open('https://wa.me/?text='+pesan,'_blank');}
+function bagikanPresensiWA(){var link=document.getElementById('presensiLinkDisplay').value;var pesan=encodeURIComponent('📋 *Presensi Harian - SIM BK*\n\nKlik link:\n'+link+'\n\n📌 Pilih kelas, tanggal, isi, kirim.\n🙏 Isi jujur!');window.open('https://wa.me/?text='+pesan,'_blank');}
 function openPresensiLink(){var link=document.getElementById('presensiLinkDisplay').value;window.open(link,'_blank');}
 function copyText(text){try{navigator.clipboard.writeText(text).then(function(){alert('✅ Disalin!');});}catch(e){var a=document.createElement('textarea');a.value=text;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();alert('✅ Disalin!');}}
 
-// ==================== DASHBOARD ====================
-var dashboardCache={lastFetch:0,ttl:180000};
+var dashboardCache={lastFetch:0,ttl:300000};
 function updateDashboard(){
     var now=Date.now();
     if(now-dashboardCache.lastFetch<dashboardCache.ttl && dashboardCache.data){
         var d=dashboardCache.data;
-        document.getElementById('statTotalStudents').textContent=d.totalStudents;
-        document.getElementById('statTeachers').textContent=d.teachers;
-        document.getElementById('statCounseling').textContent=d.counseling;
-        document.getElementById('statNeedsAttention').textContent=d.needsAttention;
-        document.getElementById('statIncidents').textContent=d.incidents;
-        document.getElementById('statMutations').textContent=d.mutations;
-        document.getElementById('statGraduations').textContent=d.graduations;
-        document.getElementById('statPresensi').textContent=d.presensi;
+        var ids=['statTotalStudents','statTeachers','statCounseling','statNeedsAttention','statIncidents','statMutations','statGraduations','statPresensi'];
+        var keys=['totalStudents','teachers','counseling','needsAttention','incidents','mutations','graduations','presensi'];
+        for(var i=0;i<ids.length;i++){ var el=document.getElementById(ids[i]); if(el) el.textContent=d[keys[i]]; }
         return;
     }
     var today=new Date().toISOString().split('T')[0];
@@ -1332,34 +1235,27 @@ function updateDashboard(){
         db.collection('graduations').get(),
         db.collection('presensiHarian').where('tanggal','==',today).get()
     ]).then(function(results){
-        var studentsSnap=results[0], teachersSnap=results[1], counselingSnap=results[2];
-        var incidentsSnap=results[3], mutationsSnap=results[4], graduationsSnap=results[5], presensiSnap=results[6];
         var uniqueStudents=new Set();
-        counselingSnap.forEach(function(doc){ var data=doc.data(); if(data.followUp && data.followUp!=='' && data.studentId) uniqueStudents.add(data.studentId); });
+        results[2].forEach(function(doc){ var data=doc.data(); if(data.followUp && data.followUp!=='' && data.studentId) uniqueStudents.add(data.studentId); });
         var d={
-            totalStudents:studentsSnap.size, teachers:teachersSnap.size, counseling:counselingSnap.size,
-            needsAttention:uniqueStudents.size, incidents:incidentsSnap.size, mutations:mutationsSnap.size,
-            graduations:graduationsSnap.size, presensi:presensiSnap.size
+            totalStudents:results[0].size, teachers:results[1].size, counseling:results[2].size,
+            needsAttention:uniqueStudents.size, incidents:results[3].size, mutations:results[4].size,
+            graduations:results[5].size, presensi:results[6].size
         };
         dashboardCache.data=d; dashboardCache.lastFetch=Date.now();
-        document.getElementById('statTotalStudents').textContent=d.totalStudents;
-        document.getElementById('statTeachers').textContent=d.teachers;
-        document.getElementById('statCounseling').textContent=d.counseling;
-        document.getElementById('statNeedsAttention').textContent=d.needsAttention;
-        document.getElementById('statIncidents').textContent=d.incidents;
-        document.getElementById('statMutations').textContent=d.mutations;
-        document.getElementById('statGraduations').textContent=d.graduations;
-        document.getElementById('statPresensi').textContent=d.presensi;
-    }).catch(function(err){ console.error('updateDashboard error:',err); });
+        var ids=['statTotalStudents','statTeachers','statCounseling','statNeedsAttention','statIncidents','statMutations','statGraduations','statPresensi'];
+        var keys=['totalStudents','teachers','counseling','needsAttention','incidents','mutations','graduations','presensi'];
+        for(var i=0;i<ids.length;i++){ var el=document.getElementById(ids[i]); if(el) el.textContent=d[keys[i]]; }
+    }).catch(function(err){ console.error('updateDashboard:',err); });
     loadRecentActivities();
 }
-function loadRecentActivities(){var container=document.getElementById('recentActivities');var activities=[];db.collection('presensiHarian').orderBy('createdAt','desc').limit(15).get().then(function(snapshot){snapshot.forEach(function(doc){var data=doc.data();var total=data.siswa?data.siswa.length:0;var hadir=0;if(data.siswa){for(var i=0;i<data.siswa.length;i++){if(data.siswa[i].status==='Hadir')hadir++;}}activities.push({type:'📋 Presensi',text:data.kelas+' - '+hadir+'/'+total+' hadir',date:data.tanggal?new Date(data.tanggal).toLocaleDateString('id-ID'):'-',time:data.createdAt?new Date(data.createdAt).toLocaleString('id-ID'):'-'});});activities.sort(function(a,b){return new Date(b.time)-new Date(a.time);});activities=activities.slice(0,15);if(activities.length===0){container.innerHTML='<div class="alert alert-info">Belum ada aktivitas.</div>';return;}var html='<div style="max-height:400px;overflow-y:auto;">';for(var i=0;i<activities.length;i++){var a=activities[i];html+='<div style="display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;"><span><strong>'+a.type+'</strong> '+a.text+'</span><span style="color:var(--gray);font-size:11px;">'+a.date+'</span></div>';}html+='</div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
-function saveSettings(){var name=document.getElementById('settingsSchool').value.trim();var year=document.getElementById('settingsYear').value.trim();var address=document.getElementById('settingsAddress').value.trim();schoolData={name:name,year:year,address:address};saveSchoolData(schoolData);document.getElementById('schoolDisplay').textContent=name||'Sekolah';alert('✅ Pengaturan berhasil disimpan!');}
-function loadUsersList(){var users=getUsers();var container=document.getElementById('userList');var emails=Object.keys(users);if(emails.length===0){container.innerHTML='<div class="alert alert-info">Belum ada pengguna terdaftar.</div>';return;}var html='<div style="max-height:300px;overflow-y:auto;">';for(var i=0;i<emails.length;i++){var email=emails[i];var user=users[email];html+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;"><span>'+email+'</span><span style="color:var(--gray);font-size:11px;">'+(user.school||'Tidak diketahui')+'</span></div>';}html+='</div>';container.innerHTML=html;}
+function loadRecentActivities(){var container=document.getElementById('recentActivities');if(!container)return;var activities=[];db.collection('presensiHarian').orderBy('createdAt','desc').limit(15).get().then(function(snapshot){snapshot.forEach(function(doc){var data=doc.data();var total=data.siswa?data.siswa.length:0;var hadir=0;if(data.siswa){for(var i=0;i<data.siswa.length;i++){if(data.siswa[i].status==='Hadir')hadir++;}}activities.push({type:'📋 Presensi',text:data.kelas+' - '+hadir+'/'+total+' hadir',date:data.tanggal?new Date(data.tanggal).toLocaleDateString('id-ID'):'-'});});activities=activities.slice(0,15);if(activities.length===0){container.innerHTML='<div class="alert alert-info">Belum ada aktivitas.</div>';return;}var html='<div style="max-height:400px;overflow-y:auto;">';for(var i=0;i<activities.length;i++){var a=activities[i];html+='<div style="display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;"><span><strong>'+a.type+'</strong> '+a.text+'</span><span style="color:var(--gray);font-size:11px;">'+a.date+'</span></div>';}html+='</div>';container.innerHTML=html;}).catch(function(err){container.innerHTML='<div class="alert alert-danger">❌ '+err.message+'</div>';});}
+function saveSettings(){var name=document.getElementById('settingsSchool').value.trim();var year=document.getElementById('settingsYear').value.trim();var address=document.getElementById('settingsAddress').value.trim();schoolData={name:name,year:year,address:address};saveSchoolData(schoolData);document.getElementById('schoolDisplay').textContent=name||'Sekolah';alert('✅ Tersimpan!');}
+function loadUsersList(){var users=getUsers();var container=document.getElementById('userList');var emails=Object.keys(users);if(emails.length===0){container.innerHTML='<div class="alert alert-info">Belum ada pengguna.</div>';return;}var html='<div style="max-height:300px;overflow-y:auto;">';for(var i=0;i<emails.length;i++){html+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;"><span>'+emails[i]+'</span><span style="color:var(--gray);font-size:11px;">'+(users[emails[i]].school||'-')+'</span></div>';}html+='</div>';container.innerHTML=html;}
 function exportAllData(){var data={school:schoolData,users:getUsers(),exportedAt:new Date().toISOString(),version:'1.0'};var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='backup-sim-bk-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(url);}
-function restoreData(event){var file=event.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){try{var data=JSON.parse(e.target.result);if(data.school)saveSchoolData(data.school);if(data.users)saveUsers(data.users);alert('✅ Data berhasil dipulihkan!');location.reload();}catch(err){alert('❌ File tidak valid: '+err.message);}};reader.readAsText(file);event.target.value='';}
-function resetAllData(){if(!confirm('⚠️ Yakin ingin menghapus SEMUA data?'))return;if(!confirm('⚠️⚠️ Konfirmasi terakhir: Hapus semua data?'))return;var collections=['students','teachers','counseling','parentCalls','homeVisits','incidents','mutations','graduations','presensiHarian'];var promises=[];for(var i=0;i<collections.length;i++){var col=collections[i];promises.push(db.collection(col).get().then(function(snapshot,colName){return function(){snapshot.forEach(function(doc){db.collection(colName).doc(doc.id).delete();});};}(col)));}Promise.all(promises).then(function(){localStorage.removeItem(SCHOOL_KEY);localStorage.removeItem(USER_KEY);localStorage.removeItem(SESSION_KEY);alert('✅ Semua data telah direset.');location.reload();}).catch(function(err){alert('❌ Gagal reset: '+err.message);});}
-function cetakLaporan(jenis){var contentId=jenis+'List';var content=document.getElementById(contentId);if(!content||content.innerHTML.includes('Belum ada')){alert('⚠️ Tidak ada data.');return;}var w=window.open('','_blank','width=900,height=700');if(!w){alert('⚠️ Izinkan pop-up.');return;}var judul={counseling:'Konseling Individu',parentCall:'Panggilan Orang Tua',homeVisit:'Home Visit',incident:'Kejadian',mutation:'Mutasi Siswa',graduation:'Lulusan SNBP/SNBT'};var title=judul[jenis]||jenis;w.document.write('<!DOCTYPE html><html><head><title>Laporan '+title+'</title><style>body{font-family:Arial;padding:20px;}h2{color:#0d3b6b;border-bottom:2px solid #0d3b6b;padding-bottom:8px;}table{width:100%;border-collapse:collapse;font-size:13px;}th{background:#0d3b6b;color:#fff;padding:8px 10px;text-align:left;}td{padding:6px 10px;border-bottom:1px solid #ddd;}.footer{margin-top:20px;font-size:10px;text-align:center;border-top:1px solid #ddd;padding-top:10px;}</style></head><body>');w.document.write('<h2>📋 LAPORAN '+title.toUpperCase()+'</h2><p>Dicetak: '+new Date().toLocaleString('id-ID')+'</p>');var table=content.querySelector('table');if(table){w.document.write(table.outerHTML);}else{w.document.write('<p>'+content.innerHTML+'</p>');}w.document.write('<div class="footer">Dicetak dari SIM BK | @NaFaSBK</div>');w.document.write('<script>setTimeout(function(){window.print();},500);<\/script></body></html>');w.document.close();}
+function restoreData(event){var file=event.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){try{var data=JSON.parse(e.target.result);if(data.school)saveSchoolData(data.school);if(data.users)saveUsers(data.users);alert('✅ Dipulihkan!');location.reload();}catch(err){alert('❌ File tidak valid: '+err.message);}};reader.readAsText(file);event.target.value='';}
+function resetAllData(){if(!confirm('⚠️ Yakin hapus SEMUA data?'))return;if(!confirm('⚠️⚠️ Konfirmasi?'))return;var collections=['students','teachers','counseling','parentCalls','homeVisits','incidents','mutations','graduations','presensiHarian'];var promises=[];for(var i=0;i<collections.length;i++){var col=collections[i];promises.push(db.collection(col).get().then(function(snapshot,colName){return function(){snapshot.forEach(function(doc){db.collection(colName).doc(doc.id).delete();});};}(col)));}Promise.all(promises).then(function(){localStorage.clear();alert('✅ Data direset!');location.reload();}).catch(function(err){alert('❌ '+err.message);});}
+function cetakLaporan(jenis){var contentId=jenis+'List';var content=document.getElementById(contentId);if(!content||content.innerHTML.includes('Belum ada')){alert('⚠️ Tidak ada data.');return;}var w=window.open('','_blank','width=900,height=700');if(!w){alert('⚠️ Izinkan pop-up.');return;}var judul={counseling:'Konseling',parentCall:'Panggilan',homeVisit:'Home Visit',incident:'Kejadian',mutation:'Mutasi',graduation:'Lulusan SNBP/SNBT'};var title=judul[jenis]||jenis;w.document.write('<!DOCTYPE html><html><head><title>Laporan '+title+'</title><style>body{font-family:Arial;padding:20px;}h2{color:#0d3b6b;border-bottom:2px solid #0d3b6b;padding-bottom:8px;}table{width:100%;border-collapse:collapse;font-size:13px;}th{background:#0d3b6b;color:#fff;padding:8px 10px;text-align:left;}td{padding:6px 10px;border-bottom:1px solid #ddd;}.footer{margin-top:20px;font-size:10px;text-align:center;border-top:1px solid #ddd;padding-top:10px;}</style></head><body>');w.document.write('<h2>📋 '+title.toUpperCase()+'</h2><p>Dicetak: '+new Date().toLocaleString('id-ID')+'</p>');var table=content.querySelector('table');if(table){w.document.write(table.outerHTML);}else{w.document.write('<p>'+content.innerHTML+'</p>');}w.document.write('<div class="footer">Dicetak dari SIM BK | @NaFaSBK</div>');w.document.write('<script>setTimeout(function(){window.print();},500);<\/script></body></html>');w.document.close();}
 
 // ==================== INIT ====================
 (function(){
@@ -1377,7 +1273,6 @@ function cetakLaporan(jenis){var contentId=jenis+'List';var content=document.get
         document.getElementById('presensiSchoolDisplay').textContent=schoolData.name||'Sekolah';
         var today=new Date().toISOString().split('T')[0];
         document.getElementById('presensiTanggal').value=today;
-        // Ambil daftar kelas dari cache dulu (INSTANT!)
         var cachedList=getCachedClassList();
         var select=document.getElementById('presensiKelas');
         if(cachedList && cachedList.length > 0){
@@ -1385,7 +1280,6 @@ function cetakLaporan(jenis){var contentId=jenis+'List';var content=document.get
             for(var i=0;i<cachedList.length;i++){ html+='<option value="'+cachedList[i]+'">'+cachedList[i]+'</option>'; }
             select.innerHTML=html;
         }
-        // Update dari server di background
         db.collection('students').orderBy('class').get().then(function(snapshot){
             var classes=new Set();
             snapshot.forEach(function(doc){ var data=doc.data(); if(data.class) classes.add(data.class); });
@@ -1399,13 +1293,13 @@ function cetakLaporan(jenis){var contentId=jenis+'List';var content=document.get
             }
             select.innerHTML=html;
             if(currentVal && classArray.indexOf(currentVal)!==-1) select.value=currentVal;
-        }).catch(function(err){ console.log('Gagal load kelas:',err.message); });
+        }).catch(function(err){ });
     }
 })();
 
 if(!isPresensiMode && !checkSession()){ showLoginPage(); }
 
-// onSnapshot HANYA saat mainApp aktif, dan debounce
+// onSnapshot HANYA saat mainApp aktif, dan debounce 5 detik
 if(!isPresensiMode){
     db.collection('students').onSnapshot(function(){
         var mainApp=document.getElementById('mainApp');
@@ -1417,22 +1311,19 @@ if(!isPresensiMode){
                         populatePresensiKelas();
                     });
                     window._studentsReloadTimer = null;
-                }, 3000); // 3 detik debounce biar tidak sering
+                }, 5000);
             }
         }
     });
 }
 
-console.log('✅ SIM BK v3.4 - OPTIMASI UNTUK 1764 SISWA!');
-console.log('✅ Lazy load siswa PER KELAS (mode presensi hanya load 1 kelas)');
-console.log('✅ Cache siswa per kelas di localStorage (1 jam)');
-console.log('✅ Daftar kelas di-cache di localStorage');
-console.log('✅ onSnapshot debounce 3 detik');
-console.log('✅ Query presensi limit 200 dokumen');
-console.log('✅ Dashboard cache 3 menit');
-console.log('✅ Auto-refresh 120 detik');
-console.log('✅ Kirim presensi pakai set+merge (lebih cepat dari update)');
-console.log('✅ Tombol kirim di-disable saat submit (cegah double-submit)');
+console.log('✅ SIM BK v3.5 - DARURAT: Kirim presensi cepat & andal!');
+console.log('✅ Kirim = 1 operasi add/set saja (tidak ada operasi lain)');
+console.log('✅ Timeout 15 detik — kalau lambat, kasih pesan jelas');
+console.log('✅ Overlay loading besar biar user tidak bingung');
+console.log('✅ Auto-refresh DIMATIKAN (manual only)');
+console.log('✅ onSnapshot debounce 5 detik');
+console.log('✅ Pesan error jelas + solusi (Firestore Rules / koneksi)');
 </script>
 </body>
 </html>
