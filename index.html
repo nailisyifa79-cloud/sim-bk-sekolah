@@ -320,6 +320,12 @@ table tr:hover{background:#f8fafc}
 </div>
 <button class="btn btn-warning" onclick="bersihkanDuplikat()">🧹 Bersihkan Duplikat Siswa</button>
 <hr style="margin:16px 0">
+<h3 style="margin-bottom:12px">🔧 Seragamkan Format Kelas</h3>
+<div class="alert alert-warning" style="font-size:13px">
+📌 Klik tombol di bawah untuk menyeragamkan format kelas di SIM BK (menghapus spasi & strip). Ini akan memperbaiki masalah data ganda.
+</div>
+<button class="btn btn-danger" onclick="seragamkanFormatKelas()">🔧 Seragamkan Format Kelas</button>
+<hr style="margin:16px 0">
 <h3 style="margin-bottom:12px">💾 Backup & Restore</h3>
 <button class="btn btn-outline" onclick="exportAllData()">📤 Backup Data</button>
 <div id="bersihLog" style="margin-top:12px;font-size:12px;color:var(--gray)"></div>
@@ -427,14 +433,20 @@ function saveSchoolData(d){localStorage.setItem(SCHOOL_KEY,JSON.stringify(d))}
 function getCache(key){try{var r=localStorage.getItem(STUDENT_CACHE_PREFIX+key);if(!r)return null;var o=JSON.parse(r);if(Date.now()-o.ts>CACHE_TTL)return null;return o.data}catch(e){return null}}
 function setCache(key,data){try{localStorage.setItem(STUDENT_CACHE_PREFIX+key,JSON.stringify({ts:Date.now(),data:data}))}catch(e){}}
 
+/* ====== FUNGSI NORMALISASI KELAS (BARU) ====== */
+function normalizeClassName(kelas) {
+    if (!kelas) return '';
+    // Hapus spasi dan strip, ubah ke huruf besar
+    return kelas.toString().toUpperCase().replace(/[\s-]/g, '');
+}
+
 /* ====== DEDUP KEY YANG LEBIH KUAT ====== */
 function norm(s){return (s||'').toString().trim().toLowerCase().replace(/\s+/g,' ');}
 function dedupKey(coll, d){
   if(coll==='students'){
-    // Siswa: NIS (prioritas). Kalau NIS kosong, pakai nama+kelas.
     var nis=norm(d.nisn||d.nis||d.nisN||'');
     var nm=norm(d.name||d.nama||'');
-    var kls=norm(d.class||d.kelas||'');
+    var kls=normalizeClassName(d.class||d.kelas||''); // NORMALISASI
     if(nis){return 's|nis:'+nis;}
     return 's|nm:'+nm+'|kls:'+kls;
   }
@@ -442,7 +454,7 @@ function dedupKey(coll, d){
     return 't|'+norm(d.name||d.nama||'')+'|'+norm(d.classes||'');
   }
   if(coll==='presensiHarian'){
-    return 'p|'+norm(d.kelas||'')+'|'+norm(d.tanggal||'');
+    return 'p|'+normalizeClassName(d.kelas||'')+'|'+norm(d.tanggal||''); // NORMALISASI
   }
   var nm3=norm(d.studentName||d.name||d.nama||'');
   var ts=d.date||d.createdAt||d.tanggal||'';
@@ -450,7 +462,7 @@ function dedupKey(coll, d){
   return 'x|'+nm3+'|'+ts+'|'+extra;
 }
 
-/* ====== BACA DARI 2 PROJECT, DEDUP ====== */
+/* ====== BACA DARI 2 PROJECT, DEDUP + NORMALISASI ====== */
 function readBoth(collName){
   var p1 = dbPrimary.collection(collName).get().then(function(snap){
     var arr=[];
@@ -467,9 +479,23 @@ function readBoth(collName){
   return Promise.all([p1,p2]).then(function(res){
     var a=res[0]||[],b=res[1]||[];
     var map={};
-    // SIM BK diprioritaskan
-    a.forEach(function(d){var k=dedupKey(collName,d);if(!map[k])map[k]=d});
-    b.forEach(function(d){var k=dedupKey(collName,d);if(!map[k])map[k]=d});
+    
+    // Proses data dari SIM BK (prioritas)
+    a.forEach(function(d){
+      if(collName === 'students') d.class = normalizeClassName(d.class);
+      if(collName === 'presensiHarian') d.kelas = normalizeClassName(d.kelas);
+      var k=dedupKey(collName,d);
+      if(!map[k])map[k]=d;
+    });
+    
+    // Proses data dari Sosio (hanya jika belum ada di map)
+    b.forEach(function(d){
+      if(collName === 'students') d.class = normalizeClassName(d.class);
+      if(collName === 'presensiHarian') d.kelas = normalizeClassName(d.kelas);
+      var k=dedupKey(collName,d);
+      if(!map[k])map[k]=d;
+    });
+    
     return Object.keys(map).map(function(k){return map[k]});
   });
 }
@@ -775,7 +801,6 @@ function loadStudentsOptimized(){
 }
 function cekDuplikatSiswa(){
   var w=document.getElementById('dupWarning');if(!w)return;
-  // Cek duplikat di SIM BK SAJA (rawan dobel) DAN cross-project
   var promises=[
     dbPrimary.collection('students').get().then(function(snap){
       var raw=[];snap.forEach(function(doc){raw.push(doc.data())});
@@ -786,22 +811,13 @@ function cekDuplikatSiswa(){
   Promise.all(promises).then(function(r){
     var simbkRaw=r[0].raw;
     var merged=r[1].merged;
-    var dupSimBK=simBK_dupCount(simBK_raw);
-    var dupTotal=allStudents.length>merged.length?0:0; // not needed
-    var c1=simbkRaw.length;
-    var c2=merged.length;
     var dupeRaw=simbkRaw.length-countUnique(simbkRaw,'students').length;
     if(dupeRaw>0){
-      w.innerHTML='<div class="alert alert-warning" style="font-size:13px">⚠️ Terdeteksi <b>'+dupeRaw+' data siswa ganda di SIM BK</b> (raw '+simbkRaw.length+' vs unik '+countUnique(simbkRaw,'students').length+'). <button class="btn btn-warning btn-sm" onclick="bersihkanDuplikat()">🧹 Bersihkan Sekarang</button></div>';
+      w.innerHTML='<div class="alert alert-warning" style="font-size:13px">⚠️ Terdeteksi <b>'+dupeRaw+' data siswa ganda di SIM BK</b>. <button class="btn btn-warning btn-sm" onclick="bersihkanDuplikat()">🧹 Bersihkan Sekarang</button></div>';
     }else{
       w.innerHTML='';
     }
   });
-  function simBK_dupCount(raw){
-    var seen={};var d=0;
-    raw.forEach(function(x){var k=dedupKey('students',x);if(seen[k])d++;else seen[k]=true});
-    return d;
-  }
 }
 function renderStudentPage(){
   var c=document.getElementById('studentList');
@@ -831,7 +847,8 @@ function saveStudent(){
   var nis=document.getElementById('studentNISN').value.trim();
   var a=document.getElementById('studentModalAlert');
   if(!name||!cls){a.innerHTML='<div class="alert alert-danger">⚠️ Nama & kelas wajib!</div>';return}
-  dbPrimary.collection('students').add({name:name,class:cls,nisn:nis,createdAt:new Date().toISOString()}).then(function(){
+  var clsNorm=normalizeClassName(cls); // Simpan dalam format normal
+  dbPrimary.collection('students').add({name:name,class:clsNorm,nisn:nis,createdAt:new Date().toISOString()}).then(function(){
     a.innerHTML='<div class="alert alert-success">✅ Berhasil disimpan ke SIM BK!</div>';
     setTimeout(function(){closeModal('studentModal');loadStudentsOptimized()},800);
   }).catch(function(e){a.innerHTML='<div class="alert alert-danger">❌ '+e.message+'</div>'});
@@ -887,7 +904,7 @@ function handleCSVUpload(event){
         if(!kelas||!nama)continue;
         data.push({
           name:nama,
-          class:kelas,
+          class:normalizeClassName(kelas), // NORMALISASI SAAT IMPOR
           nisn:idxNis!==-1?(r[idxNis]||'').trim():'',
           noAbsen:idxAbsen!==-1?(r[idxAbsen]||'').trim():'',
           createdAt:new Date().toISOString()
@@ -984,6 +1001,42 @@ function bersihkanDuplikat(){
     }
     batch();
   }).catch(function(e){log.innerHTML='❌ Error: '+e.message;});
+}
+
+/* ============ SERAGAMKAN FORMAT KELAS (BARU) ============ */
+function seragamkanFormatKelas(){
+  if(!confirm('Ini akan mengubah format semua kelas di SIM BK menjadi format standar (tanpa spasi/strip).\n\nLanjutkan?'))return;
+  var log=document.getElementById('bersihLog');
+  if(!log){log=document.createElement('div');log.id='bersihLog';document.body.appendChild(log);}
+  log.innerHTML='⏳ Menyeragamkan format kelas di SIM BK...';
+  
+  dbPrimary.collection('students').get().then(function(snap){
+    var batch = dbPrimary.batch();
+    var count = 0;
+    
+    snap.forEach(function(doc){
+      var data = doc.data();
+      var newClass = normalizeClassName(data.class);
+      
+      if (data.class !== newClass) {
+        batch.update(doc.ref, { class: newClass });
+        count++;
+      }
+    });
+    
+    if (count > 0) {
+      batch.commit().then(function(){
+        log.innerHTML='✅ Berhasil menyeragamkan <b>' + count + '</b> data siswa!';
+        loadStudentsOptimized();
+      }).catch(function(e){
+        log.innerHTML='❌ Gagal: ' + e.message;
+      });
+    } else {
+      log.innerHTML='✅ Semua data sudah seragam.';
+    }
+  }).catch(function(e){
+    log.innerHTML='❌ Error: ' + e.message;
+  });
 }
 
 /* ============ PRESENSI FORM ============ */
@@ -1305,19 +1358,16 @@ function renderPresensiRekap(items,cf,pl,ss,es){
 
 /* ============ DASHBOARD ============ */
 function updateDashboard(){
-  // Hitung guru BK (unik)
   dbPrimary.collection('teachers').get().then(function(snap){
     var a=[];snap.forEach(function(d){var x=d.data();x.__src='simbk';a.push(x)});
     var simbk=countUnique(a,'teachers').length;
     dbSecondary.collection('teachers').get().then(function(snap2){
       var b=[];snap2.forEach(function(d){var x=d.data();x.__src='sosio';b.push(x)});
-      // Gabung untuk hitung unik cross-project
       var all=a.concat(b);
       document.getElementById('statTeachers').textContent=countUnique(all,'teachers').length;
     }).catch(function(){document.getElementById('statTeachers').textContent=simbk});
   }).catch(function(){});
 
-  // Hitung yang lain (pakai readBoth untuk konsistensi)
   var simple=[['counseling','statCounseling'],['incidents','statIncidents'],['mutations','statMutations'],['graduations','statGraduations']];
   simple.forEach(function(pair){
     readBoth(pair[0]).then(function(list){
@@ -1325,7 +1375,6 @@ function updateDashboard(){
     }).catch(function(){});
   });
 
-  // Presensi hari ini
   var today=new Date().toISOString().split('T')[0];
   readBoth('presensiHarian').then(function(list){
     var c=0;list.forEach(function(d){if(d.tanggal===today)c++});
@@ -1518,7 +1567,7 @@ function keluarPresensi(){
   }
 })();
 if(!isPresensiMode&&!checkSession())showLoginPage();
-console.log('✅ SIM BK v5.2 - Dashboard dedup kuat + hitung unik cross-project');
+console.log('✅ SIM BK v5.3 - Normalisasi kelas + anti double data');
 </script>
 </body>
 </html>
